@@ -1,0 +1,76 @@
+import { describe, expect, it } from 'vitest';
+import { compute } from './rules';
+import { ALL_ABILITIES } from './data/abilities';
+import { RACES } from './data/races';
+import type { Character, LocId } from './data/types';
+
+type A = Character['equipaggiamento'][LocId]['armatura'];
+const eq = (a: Partial<Record<LocId, A>>, completa = false) => {
+  const out = { completa } as Character['equipaggiamento'];
+  for (const id of ['tronco', 'braccioDx', 'braccioSx', 'gambaDx', 'gambaSx'] as LocId[]) out[id] = { armatura: a[id] ?? 'nessuna' };
+  return out;
+};
+const tutto = (t: A): Partial<Record<LocId, A>> => ({ tronco: t, braccioDx: t, braccioSx: t, gambaDx: t, gambaSx: t });
+const pg = (p: Partial<Character>): Character => ({
+  id: 't', giocatore: '', nome: 'T', cognome: '', provenienza: '', razza: 'umano-nord', professione: '', sephire: 1,
+  abilita: [], slot: {}, incantesimi: [], equipaggiamento: eq({}), ...p,
+});
+const run = (c: Character) => compute(c, ALL_ABILITIES, RACES);
+
+describe('PF', () => {
+  it('base 2 in ogni locazione', () => expect(run(pg({})).locazioni.map((l) => l.pf)).toEqual([2, 2, 2, 2, 2]));
+  it('Sviluppo Fisico 1 + Mezzo Gigante = 4', () =>
+    expect(run(pg({ razza: 'mezzogigante', abilita: ['sviluppo-fisico-1'] })).pfBase).toBe(4));
+  it('Alf: nota notturna', () => expect(run(pg({ razza: 'alf' })).note[0]).toMatch(/notte/));
+  it('Mezz’Elfo eredita dalla razza scelta', () =>
+    expect(run(pg({ razza: 'mezzelfo', razzaEreditata: 'vinteralf' })).note[0]).toMatch(/notte/));
+});
+
+describe('PA', () => {
+  it('armatura senza abilità = 0 con avviso', () => {
+    const r = run(pg({ equipaggiamento: eq({ tronco: 'anelli' }) }));
+    expect(r.locazioni[0].pa).toBe(0);
+    expect(r.avvisi.length).toBe(1);
+  });
+  it('armature per locazione', () => {
+    const r = run(pg({ abilita: ['armatura-cuoio', 'armatura-cuoio-lavorato', 'armatura-anelli'], equipaggiamento: eq({ tronco: 'anelli', braccioDx: 'cuoio' }) }));
+    expect(r.locazioni.map((l) => l.pa)).toEqual([3, 1, 0, 0, 0]);
+  });
+  it('Armatura Completa: +1 ovunque se armato su tutto il corpo e dichiarata', () => {
+    const r = run(pg({ abilita: ['armatura-cuoio', 'armatura-completa'], equipaggiamento: eq(tutto('cuoio'), true) }));
+    expect(r.locazioni.map((l) => l.pa)).toEqual([2, 2, 2, 2, 2]);
+  });
+  it('Armatura Completa: non si attiva se manca una locazione', () => {
+    const r = run(pg({ abilita: ['armatura-cuoio', 'armatura-completa'], equipaggiamento: eq({ ...tutto('cuoio'), gambaSx: 'nessuna' }, true) }));
+    expect(r.completaPossibile).toBe(false);
+    expect(r.locazioni.map((l) => l.pa)).toEqual([1, 1, 1, 1, 0]);
+  });
+  it('Armatura Completa: non conta senza abilità o se non dichiarata', () => {
+    expect(run(pg({ abilita: ['armatura-cuoio'], equipaggiamento: eq(tutto('cuoio'), true) })).locazioni[0].pa).toBe(1);
+    expect(run(pg({ abilita: ['armatura-cuoio', 'armatura-completa'], equipaggiamento: eq(tutto('cuoio'), false) })).locazioni[0].pa).toBe(1);
+  });
+  it('Fiamma Ardente: +1 solo dove indossa l’armatura', () => {
+    const r = run(pg({ razza: 'umano-fiamma', abilita: ['armatura-cuoio'], equipaggiamento: eq({ tronco: 'cuoio', gambaSx: 'cuoio' }) }));
+    expect(r.locazioni.map((l) => l.pa)).toEqual([2, 0, 0, 0, 2]);
+  });
+  it('Fiamma Ardente non armato: nessun bonus', () =>
+    expect(run(pg({ razza: 'umano-fiamma' })).locazioni.every((l) => l.pa === 0)).toBe(true));
+});
+
+describe('Punti Potere', () => {
+  it('Legame Divino Minore = 3 PP, TdR 6 min', () => {
+    const p = run(pg({ abilita: ['legame-divino-1'] })).potere[0];
+    expect([p.qta, p.tdr]).toEqual([3, '6 min']);
+  });
+  it('Dono Arcano Minore = 2 PP', () => expect(run(pg({ abilita: ['dono-arcano-1'] })).potere[0].qta).toBe(2));
+  it('Conoscenze Magiche + Studio Arcano Maggiore = 4 PP (livello più alto)', () =>
+    expect(run(pg({ abilita: ['conoscenze-magiche', 'studio-arcano-1', 'studio-arcano-2'] })).potere).toHaveLength(1));
+  it('mago in armatura ad anelli: avviso', () =>
+    expect(run(pg({ abilita: ['conoscenze-magiche', 'armatura-cuoio', 'armatura-cuoio-lavorato', 'armatura-anelli'], equipaggiamento: eq({ tronco: 'anelli' }) })).avvisi[0]).toMatch(/Magia Arcana/));
+});
+
+import { astroOf } from './data/deities';
+describe('Divinità', () => {
+  it('Semi Dio -> Astro', () => { expect(astroOf('Freya')).toBe('Madre'); expect(astroOf('Thor')).toBe('Spada'); expect(astroOf('Vali')).toBe('Padre'); });
+  it('Astro diretto', () => expect(astroOf('Padre dell’Oblio')).toBe('Padre'));
+});

@@ -1,0 +1,17 @@
+import { chromium } from 'playwright';
+const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell' });
+const p = await b.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: 'dark' });
+const errs = []; p.on('pageerror', (e) => errs.push(e.message));
+await p.goto('http://localhost:4173/'); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(700);
+await p.getByText('Sigurd Vreitsson').click(); await p.waitForTimeout(400);
+const box = p.locator('.check.completa');
+await box.scrollIntoViewIfNeeded(); await p.evaluate(() => window.scrollBy(0, 120));
+await p.screenshot({ path: process.argv[2] + '/c1.png' });
+await box.locator('input').click(); await p.waitForTimeout(300);
+console.log('PA dopo togliere:', await p.locator('.loc-table td.pa').allTextContents());
+await p.locator('.zone').nth(3).click(); await p.waitForTimeout(200);
+await p.locator('label.armor-opt', { hasText: 'Nessuna' }).click();
+await p.getByRole('button', { name: 'Salva', exact: true }).click(); await p.waitForTimeout(300);
+await box.scrollIntoViewIfNeeded(); await p.evaluate(() => window.scrollBy(0, 120));
+await p.screenshot({ path: process.argv[2] + '/c2.png' });
+console.log(errs); await b.close();
