@@ -5,6 +5,8 @@ import { raceById, raceLabel } from '../../data/races';
 import { CharacterEditor, emptyCharacter } from './CharacterEditor';
 import { CatalogEditor } from './CatalogEditor';
 import { ManualiTab } from '../ManualiTab';
+import { ChatbotPanel } from './ChatbotPanel';
+import { ChatPopup } from '../ChatPopup';
 import { StaffEventi } from './StaffEventi';
 import { ImpostazioniMissive, StaffMissive } from './StaffMissive';
 import { Seal } from '../Seal';
@@ -34,8 +36,8 @@ export function StaffApp({ user, spells, onLogout, onToast }: { user: User; spel
 
   const reload = useCallback(async () => {
     try {
-      const [a, b, c, m] = await Promise.all([api.allCharacters(), api.profiles(), api.catalog(), api.allLetters()]);
-      setPgs(a); setProfiles(b); setCatalog(c); setNuoveMissive(m.filter((x) => x.stato === 'inviata').length); setErr('');
+      const [a, b, c, m, q] = await Promise.all([api.allCharacters(), api.profiles(), api.catalog(), api.allLetters(), api.allQuestions().catch(() => [])]);
+      setPgs(a); setProfiles(b); setCatalog(c); setNuoveMissive(m.filter((x) => x.stato === 'inviata').length + q.filter((x) => x.stato === 'aperta').length); setErr('');
     } catch (e) { setErr((e as Error).message); }
   }, []);
   useEffect(() => { reload(); }, [reload]);
@@ -119,11 +121,12 @@ export function StaffApp({ user, spells, onLogout, onToast }: { user: User; spel
           )}
           {altro === 'account' && <Accounts me={user} profiles={profiles} pgs={pgs} onChange={reload} onToast={onToast} onLogout={onLogout} />}
           {altro === 'impostazioni' && <div className="page"><h1>Tipi di missiva</h1><ImpostazioniMissive onToast={onToast} /></div>}
-          {altro === 'manuali' && <ManualiTab />}
+          {altro === 'manuali' && <><div className="page" style={{ paddingBottom: 0 }}><ChatbotPanel onToast={onToast} /></div><ManualiTab /></>}
         </>
       )}
 
       </div>
+      <ChatPopup />
       <nav className="tabbar" aria-label="Sezioni staff">
         <div className="tabbar-inner">
           {(['personaggi', 'eventi', 'missive', 'altro'] as Tab[]).map((t) => {

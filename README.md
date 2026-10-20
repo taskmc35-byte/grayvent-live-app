@@ -14,7 +14,9 @@ Senza le variabili Supabase l'app parte in **modalità prova** (dati di esempio 
    - Project Settings → API: copia *Project URL* e chiave *anon public*.
 2. **Vercel o Netlify**: importa questo repository; il build è già configurato (`npm run build`, cartella `dist`).
    Aggiungi le variabili d'ambiente `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`, poi pubblica.
-3. **Primo account staff**: registrati dall'app, poi in Supabase (SQL Editor) esegui la riga in fondo a `schema.sql`
+3. **Avvisi email**: esegui anche `supabase/notifiche.sql`, poi inserisci chiave Brevo e mittente (istruzioni in fondo al file).
+4. **Chatbot dei manuali**: esegui `supabase/chatbot.sql`, inserisci la chiave di Gemini (istruzioni in fondo al file), poi dal pannello staff (Altro → Manuali) premi "Aggiorna il chatbot".
+5. **Primo account staff**: registrati dall'app, poi in Supabase (SQL Editor) esegui la riga in fondo a `schema.sql`
    con la tua email per diventare staff.
 
 ## Sviluppo

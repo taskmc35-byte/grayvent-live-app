@@ -9,6 +9,7 @@ import { Login } from './components/Login';
 import { PersonaggioTab, SchedaTab } from './components/SchedaTab';
 import { AbilitaTab } from './components/AbilitaTab';
 import { PoteriTab } from './components/PoteriTab';
+import { ChatPopup } from './components/ChatPopup';
 import { ManualiTab } from './components/ManualiTab';
 import { StaffApp } from './components/staff/StaffApp';
 import { CreaPersonaggio, nuovaScheda } from './components/CreaPersonaggio';
@@ -147,6 +148,7 @@ export default function App() {
         </div>
       </nav>
       {toast && <div className="toast" role="status">{toast}</div>}
+      <ChatPopup />
     </div>
   );
 }

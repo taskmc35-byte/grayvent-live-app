@@ -161,3 +161,13 @@ export interface Impostazioni {
   /** costo in Astri d'Argento (AA); rispostaApp: lo staff può rispondere dall'app */
   missive: Record<TipoMissiva, { costo: number; descrizione: string; rispostaApp: boolean }>;
 }
+
+/** Chatbot "Chiedi ai manuali" */
+export interface FonteManuale { manuale: string; titolo: string; pagina: number }
+export interface RispostaChat { risposta: string; fonti: FonteManuale[]; rimaste?: number }
+export interface ParteManuale { manuale: string; titolo: string; pagina: number; testo: string }
+/** Domanda inviata allo staff quando la risposta del chatbot non basta */
+export interface DomandaStaff {
+  id: string; utente: string; domanda: string; rispostaBot?: string; messaggio?: string;
+  stato: 'aperta' | 'risposta'; risposta?: string; rispostaIl?: string; creata: string;
+}

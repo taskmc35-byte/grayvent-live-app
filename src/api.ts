@@ -1,6 +1,6 @@
 // Livello dati: modalità demo (tutto nel browser) oppure Supabase (account reali).
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { Ability, Character, DatiIscrizione, Evento, Impostazioni, Iscrizione, Missiva, Nota, StatoScheda } from './data/types';
+import type { Ability, Character, DatiIscrizione, Evento, Impostazioni, Iscrizione, Missiva, Nota, StatoScheda, DomandaStaff, ParteManuale, RispostaChat } from './data/types';
 import { DEMO_CHARACTERS } from './data/demo';
 import { ALL_ABILITIES } from './data/abilities';
 
@@ -60,6 +60,16 @@ export interface Api {
   markLetterRead(id: string): Promise<void>;
   replyLetter(id: string, testo: string): Promise<void>;
   saveSettings(s: Impostazioni): Promise<void>;
+  // chatbot "Chiedi ai manuali"
+  chiedi(domanda: string, storia: { ruolo: 'utente' | 'bot'; testo: string }[]): Promise<RispostaChat>;
+  myQuestions(): Promise<DomandaStaff[]>;
+  askStaff(d: { domanda: string; rispostaBot?: string; messaggio?: string }): Promise<void>;
+  allQuestions(): Promise<DomandaStaff[]>;
+  replyQuestion(id: string, testo: string): Promise<void>;
+  /** staff: sostituisce i testi di un manuale usati dal chatbot */
+  indexManual(manuale: string, parti: ParteManuale[]): Promise<void>;
+  /** staff: quanti passaggi ha il chatbot per ogni manuale */
+  manualIndexStats(files: string[]): Promise<Record<string, number>>;
 }
 
 const URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
@@ -87,7 +97,7 @@ function mergeCatalog(custom: Ability[]) {
 interface DemoDb {
   v: number; pg: StaffCharacter[]; profili: Profile[]; abilita: Ability[];
   eventi: Evento[]; iscrizioni: Iscrizione[]; note: (Nota & { utente: string })[]; missive: Missiva[];
-  impostazioni: Impostazioni; files: Record<string, string>;
+  impostazioni: Impostazioni; files: Record<string, string>; domande?: DomandaStaff[];
 }
 const DEMO_V = 5;
 function demoSeed(): DemoDb {
@@ -211,7 +221,48 @@ function demoApi(): Api {
       db.missive = db.missive.map((x) => (x.id === id ? { ...x, stato: 'risposta', risposta: testo, rispostaIl: now() } : x)); persist();
     },
     async saveSettings(s) { db.impostazioni = s; persist(); },
+    async chiedi(domanda) {
+      // Versione di prova: nessuna AI, mostra i passaggi più pertinenti trovati nei manuali caricati
+      const parti = demoManuali();
+      if (!parti.length) throw new Error('Il chatbot non ha ancora i testi dei manuali: lo staff deve premere “Aggiorna il chatbot” (pannello staff, Altro, Manuali).');
+      const parole = paroleChiave(domanda);
+      const norm = (t: string) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const top = parti.map((p) => {
+        const t = norm(p.titolo + ' ' + p.testo);
+        let s = 0;
+        for (const w of parole) { const n = t.split(w).length - 1; if (n) s += 3 + Math.min(n, 5); }
+        for (let i = 0; i + 1 < parole.length; i++) if (new RegExp(parole[i] + '\\w*\\s+' + parole[i + 1]).test(t)) s += 8;
+        return { p, s: s / Math.sqrt(1 + t.length / 1500) };
+      }).filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 3);
+      if (!top.length) return { risposta: 'Nei manuali non ho trovato passaggi su questo argomento. Prova con altre parole oppure contatta lo staff.', fonti: [] };
+      return {
+        risposta: 'Versione di prova: qui non c’è l’intelligenza artificiale, ti mostro i passaggi più pertinenti dei manuali.\n\n'
+          + top.map((x) => `${x.p.titolo}, pag. ${x.p.pagina}:\n${x.p.testo.slice(0, 350)}${x.p.testo.length > 350 ? '…' : ''}`).join('\n\n'),
+        fonti: top.map((x) => ({ manuale: x.p.manuale, titolo: x.p.titolo, pagina: x.p.pagina })),
+      };
+    },
+    async myQuestions() { return (db.domande ?? []).filter((d) => d.utente === user?.id).sort((a, b) => b.creata.localeCompare(a.creata)); },
+    async askStaff(d) { db.domande = [{ ...d, id: uid(), utente: me().id, stato: 'aperta', creata: now() }, ...(db.domande ?? [])]; persist(); },
+    async allQuestions() { return [...(db.domande ?? [])].sort((a, b) => b.creata.localeCompare(a.creata)); },
+    async replyQuestion(id, testo) { db.domande = (db.domande ?? []).map((d) => (d.id === id ? { ...d, stato: 'risposta', risposta: testo, rispostaIl: now() } : d)); persist(); },
+    async indexManual(manuale, parti) {
+      const tutte = demoManuali().filter((p) => p.manuale !== manuale).concat(parti);
+      try { localStorage.setItem('gv-demo-manuali', JSON.stringify(tutte)); } catch { throw new Error('Spazio del browser esaurito: nella versione di prova i manuali più grandi non entrano.'); }
+    },
+    async manualIndexStats() {
+      const out: Record<string, number> = {};
+      for (const p of demoManuali()) out[p.manuale] = (out[p.manuale] ?? 0) + 1;
+      return out;
+    },
   };
+}
+
+function demoManuali(): ParteManuale[] {
+  try { return JSON.parse(safeGet('gv-demo-manuali') ?? '[]'); } catch { return []; }
+}
+const STOP = new Set('il lo la i gli le un uno una di a da in con su per tra fra e o ma se che chi cosa come quando dove quanto quanti quale quali posso puo può si no non del della dei delle degli al alla ai alle nel nella nei nelle sul sulla mio mia tuo tua suo sua è ha ho hanno sono essere avere fare'.split(' '));
+function paroleChiave(t: string) {
+  return [...new Set(t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^a-z0-9]+/).filter((w) => w.length > 2 && !STOP.has(w)).map((w) => w.slice(0, Math.max(4, w.length - 2))))];
 }
 
 // ---------- Supabase ----------
@@ -234,6 +285,11 @@ function supabaseApi(sb: SupabaseClient): Api {
     id: r.id as string, utente: r.utente as string, personaggioId: r.personaggio_id as string | null, mittente: r.mittente as string,
     tipo: r.tipo as Missiva['tipo'], destinatario: r.destinatario as string, testo: r.testo as string, inviata: r.inviata_il as string,
     stato: r.stato as Missiva['stato'], risposta: (r.risposta as string) ?? undefined, rispostaIl: (r.risposta_il as string) ?? undefined,
+  });
+  const toDomanda = (r: Record<string, unknown>): DomandaStaff => ({
+    id: r.id as string, utente: r.utente as string, domanda: r.domanda as string, rispostaBot: (r.risposta_bot as string) ?? undefined,
+    messaggio: (r.messaggio as string) ?? undefined, stato: r.stato as DomandaStaff['stato'], risposta: (r.risposta as string) ?? undefined,
+    rispostaIl: (r.risposta_il as string) ?? undefined, creata: r.creata_il as string,
   });
   const redirect = () => window.location.origin + window.location.pathname;
   return {
@@ -357,6 +413,38 @@ function supabaseApi(sb: SupabaseClient): Api {
     async markLetterRead(id) { fail((await sb.from('missive').update({ stato: 'letta' }).eq('id', id).eq('stato', 'inviata')).error); },
     async replyLetter(id, testo) { fail((await sb.from('missive').update({ stato: 'risposta', risposta: testo, risposta_il: now() }).eq('id', id)).error); },
     async saveSettings(s) { fail((await sb.from('impostazioni').upsert({ chiave: 'generale', valore: s })).error); },
+    async chiedi(domanda, storia) {
+      const { data, error } = await sb.rpc('chiedi_manuali', { p_domanda: domanda, p_storia: storia });
+      if (error) throw new Error(error.message.includes('chiedi_manuali') ? 'Il chatbot non è ancora installato: lo staff deve completare la configurazione.' : error.message);
+      return data as RispostaChat;
+    },
+    async myQuestions() {
+      const id = await myId();
+      const { data, error } = await sb.from('domande_staff').select('*').eq('utente', id).order('creata_il', { ascending: false });
+      fail(error); return (data ?? []).map(toDomanda);
+    },
+    async askStaff(d) {
+      const utente = await myId();
+      fail((await sb.from('domande_staff').insert({ utente, domanda: d.domanda, risposta_bot: d.rispostaBot ?? null, messaggio: d.messaggio ?? null })).error);
+    },
+    async allQuestions() {
+      const { data, error } = await sb.from('domande_staff').select('*').order('creata_il', { ascending: false });
+      fail(error); return (data ?? []).map(toDomanda);
+    },
+    async replyQuestion(id, testo) { fail((await sb.from('domande_staff').update({ stato: 'risposta', risposta: testo, risposta_il: now() }).eq('id', id)).error); },
+    async indexManual(manuale, parti) {
+      fail((await sb.from('manuali_parti').delete().eq('manuale', manuale)).error);
+      for (let i = 0; i < parti.length; i += 200) fail((await sb.from('manuali_parti').insert(parti.slice(i, i + 200))).error);
+    },
+    async manualIndexStats(files) {
+      const out: Record<string, number> = {};
+      for (const f of files) {
+        const { count, error } = await sb.from('manuali_parti').select('id', { count: 'exact', head: true }).eq('manuale', f);
+        if (error) return {}; // tabella non ancora creata
+        out[f] = count ?? 0;
+      }
+      return out;
+    },
   };
 }
 

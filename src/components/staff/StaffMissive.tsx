@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { api, IMPOSTAZIONI_DEFAULT } from '../../api';
-import type { Evento, Impostazioni, Missiva } from '../../data/types';
+import type { DomandaStaff, Evento, Impostazioni, Missiva } from '../../data/types';
 import { TIPI, dataOra } from '../MissiveTab';
 
-type Filtro = 'da_leggere' | 'tutte' | 'addebiti';
+type Filtro = 'da_leggere' | 'tutte' | 'domande' | 'addebiti';
 
 export function StaffMissive({ onToast, onCount }: { onToast: (t: string) => void; onCount?: (n: number) => void }) {
   const [list, setList] = useState<Missiva[]>([]);
@@ -11,12 +11,17 @@ export function StaffMissive({ onToast, onCount }: { onToast: (t: string) => voi
   const [imp, setImp] = useState<Impostazioni>(IMPOSTAZIONI_DEFAULT);
   const [filtro, setFiltro] = useState<Filtro>('da_leggere');
   const [aperta, setAperta] = useState<Missiva | null>(null);
+  const [domande, setDomande] = useState<DomandaStaff[]>([]);
+  const [domanda, setDomanda] = useState<DomandaStaff | null>(null);
   const reload = async () => {
-    const [l, e, s] = await Promise.all([api.allLetters(), api.events(), api.settings()]);
-    setList(l); setEventi(e); setImp(s); onCount?.(l.filter((m) => m.stato === 'inviata').length);
+    const [l, e, s, q] = await Promise.all([api.allLetters(), api.events(), api.settings(), api.allQuestions().catch(() => [])]);
+    setList(l); setEventi(e); setImp(s); setDomande(q);
+    onCount?.(l.filter((m) => m.stato === 'inviata').length + q.filter((d) => d.stato === 'aperta').length);
   };
   useEffect(() => { reload(); }, []);
 
+  if (domanda) return <Domanda d={domanda} onBack={() => setDomanda(null)}
+    onReply={async (t) => { await api.replyQuestion(domanda.id, t); onToast('Risposta inviata'); setDomanda(null); await reload(); }} />;
   if (aperta) return <Lettera m={aperta} imp={imp} onBack={async () => { setAperta(null); await reload(); }}
     onReply={async (t) => { await api.replyLetter(aperta.id, t); onToast('Risposta inviata'); setAperta(null); await reload(); }} />;
 
@@ -32,11 +37,23 @@ export function StaffMissive({ onToast, onCount }: { onToast: (t: string) => voi
     <div className="page">
       <h1>Missive</h1>
       <div className="seg" role="tablist">
-        <button role="tab" aria-selected={filtro === 'da_leggere'} onClick={() => setFiltro('da_leggere')}>Da leggere ({list.filter((m) => m.stato === 'inviata').length})</button>
+        <button role="tab" aria-selected={filtro === 'da_leggere'} onClick={() => setFiltro('da_leggere')}>Nuove ({list.filter((m) => m.stato === 'inviata').length})</button>
         <button role="tab" aria-selected={filtro === 'tutte'} onClick={() => setFiltro('tutte')}>Tutte</button>
+        <button role="tab" aria-selected={filtro === 'domande'} onClick={() => setFiltro('domande')}>Domande{domande.some((d) => d.stato === 'aperta') ? ` (${domande.filter((d) => d.stato === 'aperta').length})` : ''}</button>
         <button role="tab" aria-selected={filtro === 'addebiti'} onClick={() => setFiltro('addebiti')}>Addebiti</button>
       </div>
-      {filtro === 'addebiti' ? (
+      {filtro === 'domande' ? (
+        <section>
+          <p className="hint">Domande dei giocatori che non hanno trovato risposta nel chatbot dei manuali. La risposta arriva al giocatore nell’app e per email.</p>
+          {!domande.length && <p className="hint">Nessuna domanda ricevuta.</p>}
+          {domande.map((d) => (
+            <button key={d.id} className="row-btn" onClick={() => setDomanda(d)}>
+              <span>{d.domanda}</span>
+              <small>{dataOra(d.creata)}, <b className={d.stato === 'aperta' ? 'gold' : ''}>{d.stato === 'aperta' ? 'da rispondere' : 'risposta inviata'}</b></small>
+            </button>
+          ))}
+        </section>
+      ) : filtro === 'addebiti' ? (
         <section>
           <p className="hint">Missive spedite {ultimo ? `dopo ${ultimo.titolo}` : 'finora'}, da scalare in Astri d’Argento all’inizio del prossimo evento. I costi si cambiano in Altro, Missive.</p>
           {!perPg.size && <p className="hint">Nessuna missiva da addebitare.</p>}
@@ -115,5 +132,34 @@ export function ImpostazioniMissive({ onToast }: { onToast: (t: string) => void 
       ))}
       <button className="btn primary block">Salva impostazioni</button>
     </form>
+  );
+}
+
+function Domanda({ d, onBack, onReply }: { d: DomandaStaff; onBack: () => void; onReply: (t: string) => Promise<void> }) {
+  const [testo, setTesto] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  return (
+    <div className="page">
+      <button className="link" style={{ alignSelf: 'flex-start' }} onClick={onBack}>Torna alle domande</button>
+      <article className="letter">
+        <span className="tag">Domanda allo staff, {dataOra(d.creata)}</span>
+        <h2 style={{ fontSize: '1.4rem' }}>{d.domanda}</h2>
+        {d.messaggio && <p className="letter-body">{d.messaggio}</p>}
+        {d.rispostaBot && (<><span className="tag">Risposta del chatbot (non soddisfacente)</span><p className="letter-body hint">{d.rispostaBot}</p></>)}
+      </article>
+      {d.risposta ? (
+        <article className="letter reply"><span className="tag">Risposta inviata{d.rispostaIl ? `, ${dataOra(d.rispostaIl)}` : ''}</span><p className="letter-body">{d.risposta}</p></article>
+      ) : (
+        <div className="form">
+          <div className="field"><label htmlFor="dom-r">Risposta</label><textarea id="dom-r" rows={6} value={testo} onChange={(e) => setTesto(e.target.value)} /></div>
+          {err && <p className="error">{err}</p>}
+          <button className="btn primary block" disabled={busy || !testo.trim()} onClick={async () => {
+            setBusy(true); setErr('');
+            try { await onReply(testo.trim()); } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+          }}>{busy ? 'Invio…' : 'Invia la risposta'}</button>
+        </div>
+      )}
+    </div>
   );
 }

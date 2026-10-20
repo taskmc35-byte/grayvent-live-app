@@ -30,7 +30,7 @@ export function ManualiTab() {
   );
 }
 
-function PdfViewer({ file, title, onClose }: { file: string; title: string; onClose: () => void }) {
+export function PdfViewer({ file, title, pagina, onClose }: { file: string; title: string; pagina?: number; onClose: () => void }) {
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null);
   const [error, setError] = useState('');
   const [zoom, setZoom] = useState(1);
@@ -54,6 +54,13 @@ function PdfViewer({ file, title, onClose }: { file: string; title: string; onCl
   }, [file, onClose]);
 
   const width = Math.min(window.innerWidth - 16, 900) * zoom;
+
+  // aperto da una fonte del chatbot: va alla pagina citata
+  useEffect(() => {
+    if (!doc || !pagina || pagina < 2) return;
+    const t = setTimeout(() => box.current?.querySelector(`[aria-label="Pagina ${pagina}"]`)?.scrollIntoView({ block: 'start' }), 50);
+    return () => clearTimeout(t);
+  }, [doc, pagina]);
 
   return (
     <div className="viewer" role="dialog" aria-modal="true" aria-label={title}>
