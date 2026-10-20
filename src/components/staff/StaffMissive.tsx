@@ -47,7 +47,9 @@ export function StaffMissive({ onToast, onCount }: { onToast: (t: string) => voi
 
   const oggi = new Date().toISOString().slice(0, 10);
   const ultimo = [...eventi].filter((e) => (e.dataFine || e.dataInizio) < oggi).pop();
-  const da = ultimo ? (ultimo.dataFine || ultimo.dataInizio) + 'T23:59:59' : '';
+  const daEvento = ultimo ? new Date((ultimo.dataFine || ultimo.dataInizio) + 'T23:59:59').toISOString() : '';
+  const azzerati = imp.addebitiAzzeratiIl ?? '';
+  const da = azzerati > daEvento ? azzerati : daEvento;
   const recenti = list.filter((m) => !da || m.inviata > da);
   const perPg = new Map<string, Missiva[]>();
   for (const m of recenti) perPg.set(m.mittente, [...(perPg.get(m.mittente) ?? []), m]);
@@ -90,8 +92,13 @@ export function StaffMissive({ onToast, onCount }: { onToast: (t: string) => voi
         </section>
       ) : filtro === 'addebiti' ? (
         <section>
-          <p className="hint">Missive spedite {ultimo ? `dopo ${ultimo.titolo}` : 'finora'}, da scalare in Astri d’Argento all’inizio del prossimo evento. I costi si cambiano in Altro, Missive.</p>
+          <p className="hint">Missive spedite {da === azzerati && azzerati ? `dopo l’azzeramento del ${dataOra(azzerati)}` : ultimo ? `dopo ${ultimo.titolo}` : 'finora'}, da scalare in Astri d’Argento all’inizio del prossimo evento. I costi si cambiano in Altro, Missive.</p>
           {!perPg.size && <p className="hint">Nessuna missiva da addebitare.</p>}
+          {perPg.size > 0 && <Azzera onAzzera={async () => {
+            const s = await api.settings();
+            await api.saveSettings({ ...s, addebitiAzzeratiIl: new Date().toISOString() });
+            await reload(); onToast('Addebiti azzerati');
+          }} />}
           {[...perPg.entries()].map(([pg, ms]) => {
             const tot = ms.reduce((s, m) => s + (imp.missive[m.tipo]?.costo ?? 0), 0);
             const conta = TIPI.map((t) => ({ t, n: ms.filter((m) => m.tipo === t.id).length })).filter((x) => x.n);
@@ -260,5 +267,21 @@ function ScriviMissiva({ onCancel, onSent }: { onCancel: () => void; onSent: (n:
       {err && <p className="error">{err}</p>}
       <button className="btn primary block" disabled={busy}>{busy ? 'Spedisco…' : scelti.size > 1 ? `Spedisci a ${scelti.size} personaggi` : 'Spedisci'}</button>
     </form>
+  );
+}
+
+/** Azzera gli addebiti di tutti: le missive restano, ma da adesso si ricomincia a contare */
+function Azzera({ onAzzera }: { onAzzera: () => Promise<void> }) {
+  const [conferma, setConferma] = useState(false);
+  const [busy, setBusy] = useState(false);
+  if (!conferma) return <button className="btn ghost block" onClick={() => setConferma(true)}>Azzera tutti gli addebiti</button>;
+  return (
+    <div className="azzera-box">
+      <p>Azzerare gli addebiti delle missive di tutti i personaggi? Le missive restano nell’archivio; da adesso il conteggio riparte da zero.</p>
+      <div className="sheet-actions">
+        <button className="btn ghost" disabled={busy} onClick={() => setConferma(false)}>Annulla</button>
+        <button className="btn danger" disabled={busy} onClick={async () => { setBusy(true); try { await onAzzera(); } finally { setBusy(false); setConferma(false); } }}>{busy ? 'Azzero…' : 'Sì, azzera'}</button>
+      </div>
+    </div>
   );
 }

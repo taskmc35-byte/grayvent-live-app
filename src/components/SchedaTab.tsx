@@ -135,13 +135,17 @@ function useFitHeight() {
     if (!el) return;
     const upd = () => {
       const top = el.getBoundingClientRect().top + window.scrollY;
+      // spazio della barra in basso; il pulsante "?" sta a destra delle ultime righe (vedi CSS), non serve altro margine
       const app = document.querySelector('.app');
-      const bar = app ? parseFloat(getComputedStyle(app).paddingBottom) || 0 : 0;
-      el.style.height = `${Math.max(560, window.innerHeight - top - bar)}px`;
+      const ultimo = [...el.children].filter((c) => (c as HTMLElement).offsetParent !== null).pop();
+      const bar = (app ? parseFloat(getComputedStyle(app).paddingBottom) || 0 : 0) + (ultimo && !ultimo.matches('.power-mini, .affl-riga') ? 66 : 0);
+      el.style.height = `${Math.max(400, window.innerHeight - top - bar)}px`;
     };
     upd();
     window.addEventListener('resize', upd);
-    return () => window.removeEventListener('resize', upd);
+    const mo = new MutationObserver(upd); // la riga di benedizioni/maledizioni arriva dopo il caricamento
+    mo.observe(el, { childList: true });
+    return () => { window.removeEventListener('resize', upd); mo.disconnect(); };
   }, []);
   return ref;
 }

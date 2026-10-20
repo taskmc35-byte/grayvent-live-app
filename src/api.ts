@@ -106,6 +106,7 @@ const now = () => new Date().toISOString();
 export function mergeSettings(v?: Partial<Impostazioni> | null): Impostazioni {
   const out = structuredClone(IMPOSTAZIONI_DEFAULT);
   for (const [k, val] of Object.entries(v?.missive ?? {})) out.missive[k as keyof Impostazioni['missive']] = { ...out.missive[k as keyof Impostazioni['missive']], ...val };
+  if (v?.addebitiAzzeratiIl) out.addebitiAzzeratiIl = v.addebitiAzzeratiIl;
   return out;
 }
 

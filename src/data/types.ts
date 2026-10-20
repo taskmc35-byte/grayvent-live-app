@@ -160,6 +160,8 @@ export interface Missiva {
 export interface Impostazioni {
   /** costo in Astri d'Argento (AA); rispostaApp: lo staff può rispondere dall'app */
   missive: Record<TipoMissiva, { costo: number; descrizione: string; rispostaApp: boolean }>;
+  /** gli addebiti delle missive contano solo le missive spedite dopo questo momento (azzeramento dello staff) */
+  addebitiAzzeratiIl?: string;
 }
 
 /** Chatbot "Chiedi ai manuali" */

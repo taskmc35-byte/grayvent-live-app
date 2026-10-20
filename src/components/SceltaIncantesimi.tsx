@@ -42,7 +42,7 @@ export function SceltaIncantesimi({ pg, dovute, onConferma, onChiudi }: {
       <div className="scelta page">
         {!conferma ? (<>
           <h1 style={{ fontSize: '1.8rem' }}>Scegli i tuoi poteri</h1>
-          <p className="hint">Tocca il nome per leggere l’effetto, la casella per sceglierlo. La scelta è definitiva.</p>
+          <p className="hint">Tocca «Leggi» per vedere cosa fa ogni potere prima di sceglierlo, poi spunta la casella. La scelta è definitiva.</p>
           {dovute.gruppi.map((g) => {
             const n = sel[g.chiave]?.length ?? 0;
             return (
