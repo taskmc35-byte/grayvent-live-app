@@ -9,6 +9,8 @@ import { Login } from './components/Login';
 import { PersonaggioTab, SchedaTab } from './components/SchedaTab';
 import { AbilitaTab } from './components/AbilitaTab';
 import { PoteriTab } from './components/PoteriTab';
+import { AvvisoScelta, SceltaIncantesimi } from './components/SceltaIncantesimi';
+import { scelteDovute } from './scelte';
 import { ChatPopup } from './components/ChatPopup';
 import { ManualiTab } from './components/ManualiTab';
 import { StaffApp } from './components/staff/StaffApp';
@@ -58,6 +60,12 @@ export default function App() {
   const pg = approvati[0];
   const inAttesa = pgs.find((p) => p.stato === 'in_approvazione' || p.stato === 'da_rivedere');
   const calc = useMemo(() => (pg && catalog.length ? compute(pg, catalog, RACES) : null), [pg, catalog]);
+  const dovute = useMemo(() => (pg ? scelteDovute(pg, SPELLS, (id) => catalog.find((a) => a.id === id)?.nome ?? id) : null), [pg, catalog]);
+  const daScegliere = !!dovute && dovute.gruppi.length > 0;
+  const [sceltaAperta, setSceltaAperta] = useState(false);
+  const [sceltaVista, setSceltaVista] = useState(false);
+  // la schermata si apre da sola la prima volta che ci sono poteri da scegliere; poi resta l'avviso
+  useEffect(() => { if (daScegliere && !sceltaVista && user?.ruolo !== 'staff') { setSceltaAperta(true); setSceltaVista(true); } }, [daScegliere, sceltaVista, user]);
 
   if (user === undefined) return <div className="center">Caricamento…</div>;
   if (!user) return <Login onLogin={load} />;
@@ -99,10 +107,17 @@ export default function App() {
           </div>
         </div>
         {inAttesa && <div className="page" style={{ paddingBottom: 0 }}><StatoCard c={inAttesa} onEdit={() => setCrea(inAttesa)} compatto /></div>}
+        {activeSub === 'scheda' && daScegliere && dovute && <div className="page" style={{ paddingBottom: 0 }}><AvvisoScelta dovute={dovute} onApri={() => setSceltaAperta(true)} /></div>}
         {activeSub === 'scheda' && <SchedaTab pg={pg} calc={calc} races={RACES} catalog={catalog} onSaveEq={saveEq} onPoteri={hasPoteri ? () => setSub('poteri') : undefined} />}
         {activeSub === 'personaggio' && <PersonaggioTab pg={pg} races={RACES} />}
         {activeSub === 'abilita' && <AbilitaTab pg={pg} catalog={catalog} />}
-        {activeSub === 'poteri' && <PoteriTab pg={pg} calc={calc} spells={SPELLS} />}
+        {activeSub === 'poteri' && <PoteriTab pg={pg} calc={calc} spells={SPELLS} avviso={dovute && <AvvisoScelta dovute={dovute} onApri={() => setSceltaAperta(true)} />} />}
+        {sceltaAperta && daScegliere && dovute && <SceltaIncantesimi pg={pg} dovute={dovute} onChiudi={() => setSceltaAperta(false)}
+          onConferma={async (ids) => {
+            await api.chooseSpells(pg.id, ids);
+            setPgs((list) => list.map((c) => (c.id === pg.id ? { ...c, incantesimi: [...c.incantesimi, ...ids.filter((x) => !c.incantesimi.includes(x))] } : c)));
+            setSceltaAperta(false); setSub('poteri'); setToast('Scelta salvata'); window.scrollTo(0, 0);
+          }} />}
       </>
     );
   } else if (inAttesa) {

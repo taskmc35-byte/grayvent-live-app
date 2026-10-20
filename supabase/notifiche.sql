@@ -168,7 +168,10 @@ begin
     || '<br>Biglietto: ' || privato.h(coalesce(d->>'biglietto', ''))
     || '<br>Pernotto extra venerdì: ' || case when (d->>'pernottoVenerdi')::boolean then 'Sì' else 'No' end
     || '<br>Pernotto extra domenica: ' || case when (d->>'pernottoDomenica')::boolean then 'Sì' else 'No' end
-    || '<br>Pranzo sabato: ' || case when (d->>'pranzoSabato')::boolean then 'Sì' else 'No' end
+    || '<br>Pasti: ' || coalesce(nullif(concat_ws(', ',
+         case when coalesce((d->>'cenaVenerdi')::boolean, false) then 'cena del venerdì' end,
+         case when coalesce((d->>'pranzoSabato')::boolean, false) then 'pranzo del sabato' end,
+         case when coalesce((d->>'cenaDomenica')::boolean, false) then 'cena della domenica' end), ''), 'nessuno')
     || '<br>Pagamento: ' || privato.h(coalesce(d->>'pagamento', '')) || '</p>'
     || case when coalesce(d->>'note', '') <> '' then '<p>Note: ' || privato.h(d->>'note') || '</p>' else '' end);
   return new;

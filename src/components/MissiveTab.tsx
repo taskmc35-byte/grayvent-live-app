@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, IMPOSTAZIONI_DEFAULT } from '../api';
-import type { Character, Impostazioni, Missiva, TipoMissiva } from '../data/types';
+import type { Character, Impostazioni, Missiva, MissivaStaff, TipoMissiva } from '../data/types';
 import { Seal } from './Seal';
 
 export const TIPI: { id: TipoMissiva; nome: string }[] = [
@@ -16,9 +16,28 @@ export function MissiveTab({ pgs, onToast }: { pgs: Character[]; onToast: (t: st
   const [scrivi, setScrivi] = useState(false);
   const [aperta, setAperta] = useState<Missiva | null>(null);
   const [sigillo, setSigillo] = useState(false);
+  const [ricevute, setRicevute] = useState<MissivaStaff[]>([]);
+  const [vista, setVista] = useState<'ricevute' | 'inviate'>('inviate');
+  const [apertaR, setApertaR] = useState<MissivaStaff | null>(null);
   const approvati = pgs.filter((p) => p.stato === 'approvato' || !p.stato);
   const reload = async () => { const [l, s] = await Promise.all([api.myLetters(), api.settings()]); setList(l); setImp(s); };
   useEffect(() => { reload().catch(() => setList([])); }, []);
+  const reloadR = () => api.myStaffLetters().then((r) => { setRicevute(r); if (r.some((m) => !m.letta)) setVista('ricevute'); }).catch(() => setRicevute([]));
+  useEffect(() => { reloadR(); }, []);
+  const nuove = ricevute.filter((m) => !m.letta).length;
+
+  if (apertaR) return (
+    <div className="page">
+      <button className="link" style={{ alignSelf: 'flex-start' }} onClick={() => { setApertaR(null); api.myStaffLetters().then(setRicevute).catch(() => {}); }}>Torna alle missive</button>
+      <article className="letter">
+        <span className="tag">Ricevuta il {dataOra(apertaR.inviata)}</span>
+        <h2>A {apertaR.destinatario}</h2>
+        <p className="letter-body">{apertaR.testo}</p>
+        <p className="letter-sign">{apertaR.mittente}</p>
+      </article>
+      <p className="hint">A questa missiva non si risponde dall’app.</p>
+    </div>
+  );
 
   if (scrivi) return <Componi pgs={approvati} imp={imp} onCancel={() => setScrivi(false)}
     onSent={async () => { await reload(); setScrivi(false); setSigillo(true); window.scrollTo(0, 0); }} />;
@@ -49,6 +68,22 @@ export function MissiveTab({ pgs, onToast }: { pgs: Character[]; onToast: (t: st
         <h1>Missive</h1>
         <button className="btn primary" disabled={!approvati.length} onClick={() => setScrivi(true)}>Scrivi</button>
       </div>
+      {ricevute.length > 0 && (
+        <div className="seg" role="tablist">
+          <button role="tab" aria-selected={vista === 'ricevute'} onClick={() => setVista('ricevute')}>Ricevute{nuove ? ` (${nuove} ${nuove === 1 ? 'nuova' : 'nuove'})` : ''}</button>
+          <button role="tab" aria-selected={vista === 'inviate'} onClick={() => setVista('inviate')}>Inviate</button>
+        </div>
+      )}
+      {vista === 'ricevute' && ricevute.length > 0 ? (
+        <div>
+          {ricevute.map((m) => (
+            <button key={m.id} className="row-btn" onClick={() => { if (!m.letta) api.markStaffLetterRead(m.id).catch(() => {}); setApertaR(m); }}>
+              <span>Da {m.mittente}</span>
+              <small>A {m.destinatario}, {dataOra(m.inviata)}{!m.letta && <>, <b className="gold">nuova</b></>}</small>
+            </button>
+          ))}
+        </div>
+      ) : (<>
       <p className="hint">Scrivi ai personaggi tra un evento e l’altro. Le lettere arrivano allo staff; il costo in Astri d’Argento viene scalato all’inizio dell’evento successivo.</p>
       {!approvati.length && <p className="hint">Potrai scrivere quando la tua scheda sarà approvata.</p>}
       {list?.length === 0 && approvati.length > 0 && <p className="hint">Non hai ancora spedito missive.</p>}
@@ -60,6 +95,7 @@ export function MissiveTab({ pgs, onToast }: { pgs: Character[]; onToast: (t: st
           </button>
         ))}
       </div>
+      </>)}
     </div>
   );
 }

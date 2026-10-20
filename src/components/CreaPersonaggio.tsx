@@ -146,14 +146,14 @@ export function CreaPersonaggio({ initial, catalog, notaStaff, onSubmit, onCance
                 </optgroup>
               ))}
             </select>
-            <span className="hint">Obbligatoria solo per chi prende Legame Divino Minore. Odino, Surtur e Morte non si possono scegliere in creazione.{race?.dei ? ` Dei tipici della tua razza: ${race.dei}.` : ''}</span>
+            <span className="hint">Obbligatoria solo per chi prende Legame Divino Minore: dopo l’approvazione scegli tu 2 miracoli generici e 2 della tua divinità. Odino, Surtur e Morte non si possono scegliere in creazione.{race?.dei ? ` Dei tipici della tua razza: ${race.dei}.` : ''}</span>
           </div>
           <div className="field"><label htmlFor="w-el">Elemento</label>
             <select id="w-el" value={c.elemento ?? ''} onChange={(e) => set('elemento', e.target.value || undefined)}>
               <option value="">Nessuno</option>
               {['Fuoco', 'Acqua', 'Terra', 'Aria'].map((x) => <option key={x}>{x}</option>)}
             </select>
-            <span className="hint">Solo per chi prende Conoscenze Magiche o Dono Arcano Minore. Gli incantesimi li assegnano i Master a caso.</span>
+            <span className="hint">Solo per chi prende Conoscenze Magiche o Dono Arcano Minore. Con Conoscenze Magiche, dopo l’approvazione scegli tu 2 incantesimi del tuo elemento; con Dono Arcano li assegnano i Master a caso.</span>
           </div>
         </section>
       )}

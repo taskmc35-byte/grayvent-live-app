@@ -85,7 +85,7 @@ function paginaIdentita(pg: Character): Draw {
       const rh = 8;
       d.setLineWidth(0.25); d.line(x, cy + rh, x + W, cy + rh); d.line(x + lw, cy, x + lw, cy + rh);
       testo(d, lab, x + 1.2, cy + rh / 2 + 1.2, 7.5);
-      adatta(d, val, x + lw + 1.2, cy + rh / 2 + 1.2, W - lw - 2.4, 8);
+      riquadro(d, val, x + lw + 1, cy + 0.5, W - lw - 2, rh - 1, 8);
       cy += rh;
     };
     riga('Titolo:', pg.titolo ?? '');
@@ -95,13 +95,12 @@ function paginaIdentita(pg: Character): Draw {
     // Varie
     const vh = 17;
     testo(d, 'Varie', x + 1.2, cy + 3.6, 7.5);
-    d.setFontSize(8); d.setFont('helvetica', 'normal');
-    d.text(d.splitTextToSize(pulisci(pg.varie ?? ''), W - 2.4).slice(0, 3), x + 1.2, cy + 7.6);
+    riquadro(d, pg.varie ?? '', x + 1.2, cy + 4.6, W - 2.4, vh - 5.2, 8, { valign: 'top' });
     cy += vh; d.setLineWidth(0.35); d.line(x, cy, x + W, cy);
     cy = intestazione(d, x, cy, 'DATI GIOCATORE', 6, false);
     cy = intestazione(d, x, cy, 'Cognome e Nome', 5.5, false, 7.5);
     const gh = y + h - cy - 6;
-    d.setFont('helvetica', 'normal'); adatta(d, pg.giocatore ?? '', x + W / 2, cy + gh / 2 + 1.8, W - 4, 12, 'center');
+    riquadro(d, pg.giocatore ?? '', x + 2, cy + 1, W - 4, gh - 2, 12, { align: 'center' });
     cy += gh; d.setLineWidth(0.25); d.line(x, cy, x + W, cy); d.line(x + 13, cy, x + 13, y + h);
     testo(d, 'Codice:', x + 1.2, cy + 4, 7.5);
   };
@@ -143,12 +142,12 @@ function paginaTabella(titolo: string, colonna: string, voci: string[]): Draw[] 
     const C = 18;
     d.setLineWidth(0.25); d.line(x, cy + 5.5, x + W, cy + 5.5);
     testo(d, 'COD', x + C / 2, cy + 4, 7.5, 'center', false);
-    adatta(d, colonna, x + C + (W - C) / 2, cy + 4, W - C - 2, 7.5, 'center');
+    riquadro(d, colonna, x + C + 1, cy + 0.3, W - C - 2, 4.9, 7.5, { align: 'center' });
     cy += 5.5;
     d.line(x + C, y + 5.5, x + C, y + h);
     for (let r = 0; cy + RH <= y + h + 0.01; r++, cy += RH) {
       if (cy + RH < y + h - 0.1) d.line(x, cy + RH, x + W, cy + RH);
-      if (b[r]) adatta(d, b[r], x + C + 1.2, cy + RH - 1.2, W - C - 2.4, 8);
+      if (b[r]) riquadro(d, b[r], x + C + 1.2, cy + 0.25, W - C - 2.4, RH - 0.5, 8);
     }
   }));
   return pagine;
@@ -178,15 +177,14 @@ function paginaAddestramenti(pg: Character, nomeAb: (id: string) => string): Dra
       testo(d, 'Abilità:', x + 1.2, cy + 8, 6.5, 'left', false);
       testo(d, 'Maestro IG/FG', mid + 1.2, cy + 8, 6.5, 'left', false);
       if (sl) {
-        d.setFont('helvetica', 'normal'); d.setFontSize(7.5);
-        d.text(d.splitTextToSize(pulisci(nomeAb(sl.abilita)), mid - x - 2.4).slice(0, 2), x + 1.2, cy + 11.5);
-        d.text(d.splitTextToSize(pulisci(sl.insegnante), x + W - mid - 2.4).slice(0, 2), mid + 1.2, cy + 11.5);
+        riquadro(d, nomeAb(sl.abilita), x + 1.2, cy + 9, mid - x - 2.4, bh - 4.5, 7.5, { valign: 'top' });
+        riquadro(d, sl.insegnante, mid + 1.2, cy + 9, x + W - mid - 2.4, bh - 4.5, 7.5, { valign: 'top' });
       }
       // evento | talento
       const ey = cy + 5 + bh;
       d.line(x, ey + 5, x + W, ey + 5); d.line(mid, ey, mid, ey + 5); d.line(x + W - 5, ey, x + W - 5, ey + 5);
       testo(d, 'Evento n°', x + 1.2, ey + 3.6, 6.5, 'left', false);
-      if (sl?.eventoInizio) adatta(d, sl.eventoInizio, x + 13, ey + 3.6, mid - x - 14, 6.5);
+      if (sl?.eventoInizio) riquadro(d, sl.eventoInizio, x + 13, ey + 0.3, mid - x - 14, 4.4, 6.5);
       testo(d, 'Talento', mid + 1.2, ey + 3.6, 6.5, 'left', false);
       cy += SH;
     }
@@ -199,8 +197,7 @@ function paginaAddestramenti(pg: Character, nomeAb: (id: string) => string): Dra
 
 /** riga d'intestazione centrata in grassetto, con filetto sotto; restituisce la nuova y */
 function intestazione(d: jsPDF, x: number, y: number, t: string, h: number, maiuscolo = true, size = 8.5) {
-  d.setFont('helvetica', 'bold'); d.setFontSize(size);
-  d.text(pulisci(maiuscolo ? t.toUpperCase() : t), x + W / 2, y + h / 2 + size * 0.13, { align: 'center' });
+  riquadro(d, maiuscolo ? t.toUpperCase() : t, x + 1, y + 0.3, W - 2, h - 0.6, size, { align: 'center', bold: true });
   d.setLineWidth(0.3); d.line(x, y + h, x + W, y + h);
   return y + h;
 }
@@ -208,10 +205,15 @@ function intestazione(d: jsPDF, x: number, y: number, t: string, h: number, maiu
 /** blocco di righe con titolo: le voci si scrivono sulle prime righe, le altre restano libere */
 function righe(d: jsPDF, x: number, y0: number, y1: number, titolo: string, voci: string[]) {
   let cy = intestazione(d, x, y0, titolo, 5.5, true, 8);
+  // una voce lunga continua sulle righe successive (come scritta a mano); se le righe non bastano, si rimpicciolisce
+  const n = Math.floor((y1 - cy + 0.01) / RH);
+  d.setFont('helvetica', 'normal'); d.setFontSize(8);
+  const aCapo = voci.flatMap((v) => d.splitTextToSize(pulisci(v), W - 2.4) as string[]);
+  if (aCapo.length <= n) voci = aCapo;
   d.setLineWidth(0.25);
   for (let r = 0; cy + RH <= y1 + 0.01; r++, cy += RH) {
     if (cy + RH < y1 - 0.1) d.line(x, cy + RH, x + W, cy + RH);
-    if (voci[r]) adatta(d, voci[r], x + 1.2, cy + RH - 1.2, W - 2.4, 8);
+    if (voci[r]) riquadro(d, voci[r], x + 1.2, cy + 0.25, W - 2.4, RH - 0.5, 8);
   }
 }
 
@@ -220,14 +222,37 @@ function testo(d: jsPDF, t: string, x: number, y: number, size: number, align: '
   d.text(pulisci(t), x, y, { align });
 }
 
-/** scrive su una riga riducendo il corpo finché il testo entra nella larghezza */
-function adatta(d: jsPDF, t: string, x: number, y: number, maxW: number, size: number, align: 'left' | 'center' = 'left') {
-  const s = pulisci(t);
-  d.setFont('helvetica', 'normal');
-  let fs = size;
-  d.setFontSize(fs);
-  while (fs > 5 && d.getTextWidth(s) > maxW) { fs -= 0.25; d.setFontSize(fs); }
-  d.text(s, x, y, { align });
+/**
+ * Scrive il testo dentro una casella (x, y, larghezza, altezza in mm): prima prova a capo,
+ * poi riduce il corpo finché tutto sta dentro; solo se non basta nemmeno il corpo minimo taglia con "...".
+ */
+export function riquadro(d: jsPDF, t: string, x: number, y: number, w: number, h: number, size: number,
+  o: { align?: 'left' | 'center'; valign?: 'top' | 'middle'; bold?: boolean; min?: number } = {}) {
+  const s = pulisci(t).trim();
+  if (!s || w <= 0 || h <= 0) return;
+  const LH = 1.15, PT = 0.3528, min = o.min ?? 4;
+  d.setFont('helvetica', o.bold ? 'bold' : 'normal');
+  let fs = size, righe: string[] = [];
+  for (; fs >= min; fs -= 0.25) {
+    d.setFontSize(fs);
+    righe = d.splitTextToSize(s, w) as string[];
+    if (righe.length * fs * PT * LH <= h + 0.01 && righe.every((r) => d.getTextWidth(r) <= w + 0.01)) break;
+  }
+  if (fs < min) {
+    fs = min; d.setFontSize(fs);
+    righe = d.splitTextToSize(s, w) as string[];
+    const max = Math.max(1, Math.floor(h / (fs * PT * LH)));
+    if (righe.length > max) {
+      righe = righe.slice(0, max);
+      let u = righe[max - 1];
+      while (u && d.getTextWidth(u + '...') > w) u = u.slice(0, -1);
+      righe[max - 1] = u.trimEnd() + '...';
+    }
+  }
+  const lh = fs * PT * LH, tot = righe.length * lh;
+  const top = o.valign === 'top' ? y : y + (h - tot) / 2;
+  const base = top + lh / 2 + fs * PT * 0.35; // linea di base della prima riga, centrata nella sua interlinea
+  d.text(righe, o.align === 'center' ? x + w / 2 : x, base, { align: o.align ?? 'left', lineHeightFactor: LH });
 }
 
 function taglio(d: jsPDF, x: number, y: number) {

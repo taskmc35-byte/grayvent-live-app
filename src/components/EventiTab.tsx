@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { api, type User } from '../api';
 import type { Biglietto, Character, DatiIscrizione, Evento, Iscrizione } from '../data/types';
 
@@ -6,14 +6,19 @@ export const dataLunga = (d: string) => new Date(d + 'T12:00:00').toLocaleDateSt
 export const periodo = (e: Evento) => (e.dataFine && e.dataFine !== e.dataInizio ? `dal ${dataLunga(e.dataInizio)} al ${dataLunga(e.dataFine)}` : dataLunga(e.dataInizio));
 export const euro = (n: number) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
 
+/** Pasti: compaiono (annuncio e iscrizione) solo se lo staff ne ha scritto il prezzo */
+export const PASTI = [
+  { k: 'cenaVenerdi', nome: 'Cena del venerdì' }, { k: 'pranzoSabato', nome: 'Pranzo del sabato' }, { k: 'cenaDomenica', nome: 'Cena della domenica' },
+] as const;
+const pastiOfferti = (e: Evento) => PASTI.filter((p) => e.prezzi[p.k] != null);
 const PREZZO_BIGLIETTO: Record<Biglietto, keyof Evento['prezzi']> = { '1 giorno': 'giorno1', '1 giorno + pernotto': 'giorno1Pernotto', '2 giorni': 'giorni2' };
 
 /** Totale dovuto, se lo staff ha inserito tutti i prezzi che servono */
 export function totale(e: Evento, d: DatiIscrizione): number | null {
-  const voci: (number | null)[] = [e.prezzi[PREZZO_BIGLIETTO[d.biglietto]]];
+  const voci: (number | null)[] = [e.prezzi[PREZZO_BIGLIETTO[d.biglietto]] ?? null];
   if (d.pernottoVenerdi) voci.push(e.prezzi.pernottoVenerdi);
   if (d.pernottoDomenica) voci.push(e.prezzi.pernottoDomenica);
-  if (d.pranzoSabato) voci.push(e.prezzi.pranzoSabato);
+  for (const p of PASTI) if (d[p.k] && e.prezzi[p.k] != null) voci.push(e.prezzi[p.k] ?? null);
   if (voci.some((v) => v == null)) return null;
   return (voci as number[]).reduce((a, b) => a + b, 0);
 }
@@ -71,6 +76,11 @@ function EventoCard({ e, grande, isc, onIscriviti }: { e: Evento; grande?: boole
       <p className="ev-when">{periodo(e)}</p>
       {e.luogo && <p className="hint">{e.luogo}</p>}
       {grande && e.descrizione && <p className="ev-desc">{e.descrizione}</p>}
+      {pastiOfferti(e).length > 0 && (
+        <dl className="facts ev-pasti">
+          {pastiOfferti(e).map((p) => (<Fragment key={p.k}><dt>{p.nome}</dt><dd>{euro(e.prezzi[p.k] as number)}</dd></Fragment>))}
+        </dl>
+      )}
       {isc ? (
         <div className="ev-status">
           <span className={`pill ${isc.pagata ? 'ok' : 'wait'}`}>{isc.pagata ? 'Iscritto, pagamento ricevuto' : 'Iscritto, in attesa di pagamento'}</span>
@@ -152,7 +162,7 @@ function Iscrizione({ evento, user, pg, esistente, onCancel, onDone }: {
       </div>
       {yesNo('i-ven', `Pernotto extra venerdì?${prezzo(pr.pernottoVenerdi)}`, d.pernottoVenerdi, (v) => set('pernottoVenerdi', v))}
       {yesNo('i-dom', `Pernotto extra domenica?${prezzo(pr.pernottoDomenica)}`, d.pernottoDomenica, (v) => set('pernottoDomenica', v))}
-      {yesNo('i-pranzo', `Pranzo del sabato?${prezzo(pr.pranzoSabato)}`, d.pranzoSabato, (v) => set('pranzoSabato', v))}
+      {pastiOfferti(evento).map((p) => <Fragment key={p.k}>{yesNo(`i-${p.k}`, `${p.nome}?${prezzo(pr[p.k] ?? null)}`, !!d[p.k], (v) => set(p.k, v))}</Fragment>)}
       {yesNo('i-pag', 'Metodo di pagamento', d.pagamento === 'PayPal', (v) => set('pagamento', v ? 'PayPal' : 'Bonifico'), 'PayPal', 'Bonifico')}
       <div className="field"><label htmlFor="i-note">Note per lo staff (facoltative)</label><textarea id="i-note" rows={2} value={d.note ?? ''} onChange={(e) => set('note', e.target.value || undefined)} /></div>
       {tot != null && <p className="total">Totale: <strong>{euro(tot)}</strong></p>}

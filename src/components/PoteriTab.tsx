@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { Character, Spell } from '../data/types';
 import type { Computed, PowerStats } from '../rules';
 import { BottomSheet } from './Sheet';
@@ -22,12 +22,12 @@ export function PowerCard({ p }: { p: PowerStats }) {
   );
 }
 
-const SCUOLA_LABEL: Record<string, string> = {
+export const SCUOLA_LABEL: Record<string, string> = {
   Fuoco: 'Scuola del Fuoco', Acqua: 'Scuola dell’Acqua', Terra: 'Scuola della Terra', Aria: 'Scuola dell’Aria', Sintesi: 'Incantesimi di Sintesi',
   Madre: 'Miracoli della Madre', Padre: 'Miracoli del Padre', Spada: 'Miracoli della Spada', Generico: 'Miracoli Generici',
 };
 
-export function PoteriTab({ pg, calc, spells }: { pg: Character; calc: Computed; spells: Spell[] }) {
+export function PoteriTab({ pg, calc, spells, avviso }: { pg: Character; calc: Computed; spells: Spell[]; avviso?: ReactNode }) {
   const [open, setOpen] = useState<Spell | null>(null);
   const known = pg.incantesimi.map((id) => spells.find((s) => s.id === id)).filter(Boolean) as Spell[];
   const groups = new Map<string, Spell[]>();
@@ -37,9 +37,10 @@ export function PoteriTab({ pg, calc, spells }: { pg: Character; calc: Computed;
   return (
     <div className="page">
       <h1 style={{ fontSize: '2rem' }}>{soloMiracoli ? 'Miracoli' : 'Poteri'}</h1>
+      {avviso}
       {calc.potere.map((p) => <PowerCard key={p.via} p={p} />)}
       {known.length === 0 ? (
-        <p className="hint">Non conosci ancora incantesimi o miracoli. Li aggiungono i Master quando li apprendi.</p>
+        <p className="hint">Non conosci ancora incantesimi o miracoli.</p>
       ) : (
         <div>
           {[...groups.entries()].map(([scuola, list]) => (
@@ -57,7 +58,7 @@ export function PoteriTab({ pg, calc, spells }: { pg: Character; calc: Computed;
   );
 }
 
-function SpellCard({ s, pg, onClose }: { s: Spell; pg: Character; onClose: () => void }) {
+export function SpellCard({ s, pg, onClose }: { s: Spell; pg: Character; onClose: () => void }) {
   // Sostituisce i segnaposto delle formule generiche con elemento/astro del PG, quando noti
   const el = pg.elemento ? ELEMENTO[pg.elemento] : undefined;
   const as = astro(pg.divinita);

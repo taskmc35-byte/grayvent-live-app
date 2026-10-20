@@ -1,6 +1,6 @@
 // Livello dati: modalità demo (tutto nel browser) oppure Supabase (account reali).
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { Ability, Character, DatiIscrizione, Evento, Impostazioni, Iscrizione, Missiva, Nota, StatoScheda, Afflizione, DomandaStaff, Manuale, ParteManuale, RispostaChat } from './data/types';
+import type { Ability, Character, DatiIscrizione, Evento, Impostazioni, Iscrizione, Missiva, Nota, StatoScheda, Afflizione, DomandaStaff, Manuale, MissivaStaff, ParteManuale, RispostaChat } from './data/types';
 import { unisciManuali } from './manuali/base';
 import { DEMO_CHARACTERS } from './data/demo';
 import { ALL_ABILITIES } from './data/abilities';
@@ -25,10 +25,14 @@ export interface Api {
   signIn(email: string, password: string): Promise<User>;
   signUp(email: string, password: string, nome: string): Promise<{ confermaEmail: boolean }>;
   sendLoginLink(email: string): Promise<void>;
+  /** rimanda l'email di conferma dell'account */
+  resendConfirmation(email: string): Promise<void>;
   signOut(): Promise<void>;
   setPassword(password: string): Promise<void>;
   myCharacters(): Promise<StaffCharacter[]>;
   saveEquipment(id: string, eq: Character['equipaggiamento']): Promise<void>;
+  /** il giocatore conferma (una volta sola) gli incantesimi o miracoli scelti */
+  chooseSpells(id: string, ids: string[]): Promise<void>;
   /** il giocatore invia (o reinvia) la scheda creata con la creazione guidata */
   submitCharacter(c: Character, bgFile?: File | null): Promise<void>;
   catalog(): Promise<Ability[]>;
@@ -76,6 +80,11 @@ export interface Api {
   afflictions(personaggioId: string): Promise<Afflizione[]>;
   // manuali: quelli di base più quelli aggiunti o modificati dallo staff
   manuals(): Promise<Manuale[]>;
+  // missive dallo staff ai personaggi
+  myStaffLetters(): Promise<MissivaStaff[]>;
+  markStaffLetterRead(id: string): Promise<void>;
+  allStaffLetters(): Promise<MissivaStaff[]>;
+  sendStaffLetter(mittente: string, testo: string, destinatari: { id: string; nome: string }[]): Promise<void>;
   manualUrl(m: Manuale): Promise<string>;
   saveManual(m: Manuale, file?: File | null): Promise<Manuale>;
   deleteManual(m: Manuale): Promise<void>;
@@ -88,6 +97,8 @@ const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
 function safeGet(k: string) { try { return localStorage.getItem(k); } catch { return null; } }
 function safeSet(k: string, v: string | null) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch { /* storage non disponibile */ } }
+/** messaggio mostrato quando l'account esiste ma l'email non è ancora stata confermata */
+export const NON_CONFERMATO = 'Il tuo account non è ancora confermato: apri il link nell’email che ti abbiamo mandato. Se il link non funziona o l’email non è arrivata, fattela rimandare qui sotto.';
 export const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
 const now = () => new Date().toISOString();
 
@@ -108,7 +119,7 @@ function mergeCatalog(custom: Ability[]) {
 interface DemoDb {
   v: number; pg: StaffCharacter[]; profili: Profile[]; abilita: Ability[];
   eventi: Evento[]; iscrizioni: Iscrizione[]; note: (Nota & { utente: string })[]; missive: Missiva[];
-  impostazioni: Impostazioni; files: Record<string, string>; domande?: DomandaStaff[]; afflizioni?: Afflizione[]; manuali?: Manuale[];
+  impostazioni: Impostazioni; files: Record<string, string>; domande?: DomandaStaff[]; afflizioni?: Afflizione[]; manuali?: Manuale[]; missiveStaff?: MissivaStaff[];
 }
 const DEMO_V = 6;
 function demoSeed(): DemoDb {
@@ -124,7 +135,7 @@ function demoSeed(): DemoDb {
       id: 'ev-esempio', titolo: 'Evento di esempio', dataInizio: `${y + 1}-03-14`, dataFine: `${y + 1}-03-15`, luogo: 'Da definire',
       descrizione: 'Evento inserito come esempio per provare l’iscrizione. Lo staff può modificarlo dal pannello.',
       iscrizioniAperte: true,
-      prezzi: { giorno1: null, giorno1Pernotto: null, giorni2: null, pernottoVenerdi: null, pernottoDomenica: null, pranzoSabato: null },
+      prezzi: { giorno1: null, giorno1Pernotto: null, giorni2: null, pernottoVenerdi: null, pernottoDomenica: null, pranzoSabato: null, cenaVenerdi: null, cenaDomenica: null },
       pagamento: { iban: '', intestatario: '', paypal: '', causale: '' },
     }],
     iscrizioni: [], note: [], impostazioni: IMPOSTAZIONI_DEFAULT,
@@ -167,10 +178,14 @@ function demoApi(): Api {
       return { confermaEmail: false };
     },
     async sendLoginLink() { /* niente in demo */ },
+    async resendConfirmation() { /* niente in demo */ },
     async signOut() { user = null; safeSet('gv-demo-user', null); },
     async setPassword() { /* niente in demo */ },
     async myCharacters() { return db.pg.filter((c) => c.proprietario === user?.id && (c.attivo || c.stato !== 'approvato')); },
     async saveEquipment(id, eq) { db.pg = db.pg.map((c) => (c.id === id ? { ...c, equipaggiamento: eq } : c)); persist(); },
+    async chooseSpells(id, ids) {
+      db.pg = db.pg.map((c) => (c.id === id && c.proprietario === user?.id ? { ...c, incantesimi: [...c.incantesimi, ...ids.filter((x) => !c.incantesimi.includes(x))] } : c)); persist();
+    },
     async submitCharacter(c, file) {
       const u = me();
       let bgFile = c.bgFile;
@@ -267,6 +282,13 @@ function demoApi(): Api {
     },
     async deleteAffliction(id) { db.afflizioni = (db.afflizioni ?? []).filter((a) => a.id !== id); persist(); },
     async manuals() { return unisciManuali(db.manuali ?? []); },
+    async myStaffLetters() { return (db.missiveStaff ?? []).filter((m) => m.utente === user?.id).sort((a, b) => b.inviata.localeCompare(a.inviata)); },
+    async markStaffLetterRead(id) { db.missiveStaff = (db.missiveStaff ?? []).map((m) => (m.id === id && !m.letta && m.utente === user?.id ? { ...m, letta: now() } : m)); persist(); },
+    async allStaffLetters() { return [...(db.missiveStaff ?? [])].sort((a, b) => b.inviata.localeCompare(a.inviata)); },
+    async sendStaffLetter(mittente, testo, destinatari) {
+      const nuove = destinatari.map((d) => ({ id: uid(), personaggioId: d.id, utente: db.pg.find((c) => c.id === d.id)?.proprietario ?? null, destinatario: d.nome, mittente, testo, inviata: now() }));
+      db.missiveStaff = [...nuove, ...(db.missiveStaff ?? [])]; persist();
+    },
     async manualUrl(m) { return m.filePath ? db.files[m.filePath] ?? '' : `manuali/${m.id}`; },
     async saveManual(m, file) {
       const saved: Manuale = { ...m, id: m.id || `m-${Date.now()}` };
@@ -345,12 +367,18 @@ function supabaseApi(sb: SupabaseClient): Api {
     messaggio: (r.messaggio as string) ?? undefined, stato: r.stato as DomandaStaff['stato'], risposta: (r.risposta as string) ?? undefined,
     rispostaIl: (r.risposta_il as string) ?? undefined, creata: r.creata_il as string,
   });
+  const toMissStaff = (r: Record<string, unknown>): MissivaStaff => ({
+    id: r.id as string, personaggioId: (r.personaggio_id as string) ?? null, utente: (r.utente as string) ?? null,
+    destinatario: r.destinatario as string, mittente: r.mittente as string, testo: r.testo as string,
+    inviata: r.inviata_il as string, letta: (r.letta_il as string) ?? undefined,
+  });
   const redirect = () => window.location.origin + window.location.pathname;
   return {
     demo: false,
     currentUser: toUser,
     async signIn(email, password) {
       const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error && /not confirmed/i.test(error.message)) throw new Error(NON_CONFERMATO);
       if (error) throw new Error(error.message === 'Invalid login credentials' ? 'Email o password non corretti.' : error.message);
       return (await toUser())!;
     },
@@ -363,6 +391,10 @@ function supabaseApi(sb: SupabaseClient): Api {
       const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: redirect() } });
       if (error) throw new Error(error.message.includes('Signups not allowed') ? 'Non c’è un account con questa email. Registrati o chiedilo agli organizzatori.' : error.message);
     },
+    async resendConfirmation(email) {
+      const { error } = await sb.auth.resend({ type: 'signup', email, options: { emailRedirectTo: redirect() } });
+      if (error) throw new Error(/rate|seconds/i.test(error.message) ? 'Hai già chiesto un’email da poco: aspetta un minuto e riprova.' : error.message);
+    },
     async signOut() { await sb.auth.signOut(); },
     async setPassword(password) { fail((await sb.auth.updateUser({ password })).error); },
     async myCharacters() {
@@ -372,6 +404,10 @@ function supabaseApi(sb: SupabaseClient): Api {
       return (data ?? []).map(toStaff);
     },
     async saveEquipment(id, eq) { fail((await sb.rpc('salva_equipaggiamento', { p_id: id, p_eq: eq })).error); },
+    async chooseSpells(id, ids) {
+      const { error } = await sb.rpc('scegli_incantesimi', { p_id: id, p_ids: ids });
+      if (error) throw new Error(error.message.includes('scegli_incantesimi') ? 'Scelta degli incantesimi non ancora attiva: lo staff deve eseguire scelta_incantesimi.sql in Supabase.' : error.message);
+    },
     async submitCharacter(c, file) {
       const u = await myId();
       let bgFile = c.bgFile;
@@ -550,6 +586,22 @@ function supabaseApi(sb: SupabaseClient): Api {
       if (error) throw new Error(error.message.includes('afflizioni') ? 'Benedizioni e maledizioni non sono ancora installate: esegui benedizioni.sql in Supabase.' : error.message);
     },
     async deleteAffliction(id) { fail((await sb.from('afflizioni').delete().eq('id', id)).error); },
+    async myStaffLetters() {
+      const id = await myId();
+      const { data, error } = await sb.from('missive_staff').select('*').eq('utente', id).order('inviata_il', { ascending: false });
+      if (error) return []; // tabella non ancora creata
+      return (data ?? []).map(toMissStaff);
+    },
+    async markStaffLetterRead(id) { await sb.rpc('segna_missiva_staff_letta', { p_id: id }); },
+    async allStaffLetters() {
+      const { data, error } = await sb.from('missive_staff').select('*').order('inviata_il', { ascending: false });
+      if (error) return [];
+      return (data ?? []).map(toMissStaff);
+    },
+    async sendStaffLetter(mittente, testo, destinatari) {
+      const { error } = await sb.from('missive_staff').insert(destinatari.map((d) => ({ personaggio_id: d.id, destinatario: d.nome, mittente, testo })));
+      if (error) throw new Error(error.message.includes('missive_staff') ? 'Missive dello staff non installate: esegui missive_staff.sql in Supabase.' : error.message);
+    },
     async manuals() {
       const { data, error } = await sb.from('manuali').select('*');
       if (error) return unisciManuali([]); // tabella non ancora creata: solo i manuali di base

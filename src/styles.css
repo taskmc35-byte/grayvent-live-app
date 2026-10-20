@@ -715,8 +715,10 @@ details.ab:last-child, .spell-group .spell-btn:last-child { border-bottom: 0; }
 .esito textarea { font: inherit; background: #f6eedc; color: var(--ink); border: 1px solid #c2ae8a; border-radius: 4px; padding: 8px; }
 .esito .flabel { color: #6f604e; font-size: 0.88rem; }
 .esito-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-.esito-btns .btn { flex: 1; min-width: 120px; color: var(--ink); border-color: #b49c75; }
-.esito-btns .btn.primary { color: #fff; }
+.esito-btns .btn { flex: 1; min-width: 120px; }
+/* dentro la risposta del chatbot (pergamena chiara) i pulsanti sono scuri; altrove restano quelli normali */
+.bubble .esito-btns .btn { color: var(--ink); border-color: #b49c75; }
+.bubble .esito-btns .btn.primary { color: #fff; }
 .typing { display: flex; align-items: center; gap: 4px; }
 .typing span { width: 6px; height: 6px; border-radius: 50%; background: #8f3324; opacity: 0.4; }
 .typing em { margin-left: 6px; font-size: 0.88rem; color: #6f604e; }
@@ -805,3 +807,27 @@ body:has(.savebar) .chat-fab { bottom: calc(132px + env(safe-area-inset-bottom, 
 .man-admin li div { display: flex; flex-direction: column; }
 .man-admin small { color: var(--muted); font-size: 0.82rem; }
 .man-admin li.ended { opacity: 0.55; }
+
+/* missive dello staff ai personaggi */
+.seg.seg-wrap { flex-wrap: wrap; }
+.seg.seg-wrap > button { flex: 1 1 auto; }
+.dest-list { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; margin-top: 8px; }
+.dest-azioni { display: flex; gap: 16px; margin-top: 6px; }
+
+/* scelta di incantesimi e miracoli */
+.scelta-avviso { display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left; padding: 12px 14px; margin: 0 0 12px;
+  border: 1px solid var(--gold); border-radius: var(--r-sm); background: color-mix(in srgb, var(--gold) 14%, var(--surface)); color: var(--fg); cursor: pointer; font: inherit; }
+.scelta-avviso span { color: var(--muted); font-size: .9rem; }
+.scelta-avviso.info { border-color: var(--line); background: var(--surface); cursor: default; font-size: .95rem; }
+.scelta-overlay { position: fixed; inset: 0; z-index: 60; background: var(--bg); overflow-y: auto; }
+.scelta { max-width: 640px; margin: 0 auto; padding-bottom: 40px; }
+.scelta-gruppo { display: flex; flex-direction: column; gap: 2px; }
+.scelta-voce { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-radius: var(--r-sm); padding: 0 6px; }
+.scelta-voce.on { background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.scelta-voce.off { opacity: .5; }
+.scelta-voce .check { flex: 1; }
+.scelta-azioni { display: flex; gap: 10px; margin-top: 8px; }
+.scelta-azioni .btn { flex: 1; }
+.scelta-riepilogo { display: flex; flex-direction: column; gap: 8px; padding-left: 20px; margin: 0; }
+.scelta-riepilogo li span { display: block; font-size: .85rem; }
+.scelta-attenzione { border-left: 3px solid var(--gold); padding-left: 10px; color: var(--fg); }

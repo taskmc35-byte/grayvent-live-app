@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { api, IMPOSTAZIONI_DEFAULT } from '../../api';
-import type { DomandaStaff, Evento, Impostazioni, Missiva } from '../../data/types';
+import type { DomandaStaff, Evento, Impostazioni, Missiva, MissivaStaff } from '../../data/types';
+import type { StaffCharacter } from '../../api';
 import { TIPI, dataOra } from '../MissiveTab';
 
-type Filtro = 'da_leggere' | 'tutte' | 'domande' | 'addebiti';
+type Filtro = 'da_leggere' | 'tutte' | 'domande' | 'addebiti' | 'spedite';
 
 export function StaffMissive({ onToast, onCount }: { onToast: (t: string) => void; onCount?: (n: number) => void }) {
   const [list, setList] = useState<Missiva[]>([]);
@@ -13,6 +14,11 @@ export function StaffMissive({ onToast, onCount }: { onToast: (t: string) => voi
   const [aperta, setAperta] = useState<Missiva | null>(null);
   const [domande, setDomande] = useState<DomandaStaff[]>([]);
   const [domanda, setDomanda] = useState<DomandaStaff | null>(null);
+  const [scrivi, setScrivi] = useState(false);
+  const [spedite, setSpedite] = useState<MissivaStaff[]>([]);
+  const [spedita, setSpedita] = useState<MissivaStaff | null>(null);
+  const reloadSpedite = () => api.allStaffLetters().then(setSpedite).catch(() => setSpedite([]));
+  useEffect(() => { reloadSpedite(); }, []);
   const reload = async () => {
     const [l, e, s, q] = await Promise.all([api.allLetters(), api.events(), api.settings(), api.allQuestions().catch(() => [])]);
     setList(l); setEventi(e); setImp(s); setDomande(q);
@@ -20,6 +26,20 @@ export function StaffMissive({ onToast, onCount }: { onToast: (t: string) => voi
   };
   useEffect(() => { reload(); }, []);
 
+  if (scrivi) return <ScriviMissiva onCancel={() => setScrivi(false)}
+    onSent={async (n) => { setScrivi(false); onToast(n === 1 ? 'Missiva spedita' : `${n} missive spedite`); setFiltro('spedite'); await reloadSpedite(); }} />;
+  if (spedita) return (
+    <div className="page">
+      <button className="link" style={{ alignSelf: 'flex-start' }} onClick={() => setSpedita(null)}>Torna alle missive</button>
+      <article className="letter">
+        <span className="tag">Spedita dallo staff, {dataOra(spedita.inviata)}</span>
+        <h2>A {spedita.destinatario}</h2>
+        <p className="letter-body">{spedita.testo}</p>
+        <p className="letter-sign">{spedita.mittente}</p>
+      </article>
+      <p className="hint">{spedita.letta ? `Letta dal giocatore il ${dataOra(spedita.letta)}.` : 'Il giocatore non l’ha ancora aperta.'}</p>
+    </div>
+  );
   if (domanda) return <Domanda d={domanda} onBack={() => setDomanda(null)}
     onReply={async (t) => { await api.replyQuestion(domanda.id, t); onToast('Risposta inviata'); setDomanda(null); await reload(); }} />;
   if (aperta) return <Lettera m={aperta} imp={imp} onBack={async () => { setAperta(null); await reload(); }}
@@ -35,14 +55,29 @@ export function StaffMissive({ onToast, onCount }: { onToast: (t: string) => voi
   const vis = filtro === 'da_leggere' ? list.filter((m) => m.stato === 'inviata') : list;
   return (
     <div className="page">
-      <h1>Missive</h1>
-      <div className="seg" role="tablist">
+      <div className="list-head">
+        <h1>Missive</h1>
+        <button className="btn primary" onClick={() => setScrivi(true)}>Scrivi</button>
+      </div>
+      <div className="seg seg-wrap" role="tablist">
         <button role="tab" aria-selected={filtro === 'da_leggere'} onClick={() => setFiltro('da_leggere')}>Nuove ({list.filter((m) => m.stato === 'inviata').length})</button>
         <button role="tab" aria-selected={filtro === 'tutte'} onClick={() => setFiltro('tutte')}>Tutte</button>
         <button role="tab" aria-selected={filtro === 'domande'} onClick={() => setFiltro('domande')}>Domande{domande.some((d) => d.stato === 'aperta') ? ` (${domande.filter((d) => d.stato === 'aperta').length})` : ''}</button>
         <button role="tab" aria-selected={filtro === 'addebiti'} onClick={() => setFiltro('addebiti')}>Addebiti</button>
+        <button role="tab" aria-selected={filtro === 'spedite'} onClick={() => setFiltro('spedite')}>Spedite</button>
       </div>
-      {filtro === 'domande' ? (
+      {filtro === 'spedite' ? (
+        <section>
+          <p className="hint">Missive scritte dallo staff ai personaggi. Il giocatore le riceve nell’app e per email, e non può rispondere.</p>
+          {!spedite.length && <p className="hint">Nessuna missiva spedita dallo staff.</p>}
+          {spedite.map((m) => (
+            <button key={m.id} className="row-btn" onClick={() => setSpedita(m)}>
+              <span>{m.mittente} a {m.destinatario}</span>
+              <small>{dataOra(m.inviata)}, <b className={m.letta ? '' : 'gold'}>{m.letta ? 'letta' : 'non ancora letta'}</b></small>
+            </button>
+          ))}
+        </section>
+      ) : filtro === 'domande' ? (
         <section>
           <p className="hint">Domande dei giocatori che non hanno trovato risposta nel chatbot dei manuali. La risposta arriva al giocatore nell’app e per email.</p>
           {!domande.length && <p className="hint">Nessuna domanda ricevuta.</p>}
@@ -161,5 +196,69 @@ function Domanda({ d, onBack, onReply }: { d: DomandaStaff; onBack: () => void; 
         </div>
       )}
     </div>
+  );
+}
+
+/** Lo staff scrive una missiva (firmata da un PNG o da chi vuole) a uno o più personaggi in gioco */
+function ScriviMissiva({ onCancel, onSent }: { onCancel: () => void; onSent: (n: number) => Promise<void> }) {
+  const [pgs, setPgs] = useState<StaffCharacter[] | null>(null);
+  const [scelti, setScelti] = useState<Set<string>>(new Set());
+  const [cerca, setCerca] = useState('');
+  const [mittente, setMittente] = useState('');
+  const [testo, setTesto] = useState('');
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    api.allCharacters().then((l) => setPgs(l.filter((c) => c.attivo && c.stato === 'approvato' && c.proprietario)
+      .sort((a, b) => `${a.nome} ${a.cognome}`.localeCompare(`${b.nome} ${b.cognome}`)))).catch(() => setPgs([]));
+  }, []);
+  const nome = (c: StaffCharacter) => `${c.nome} ${c.cognome}`.trim();
+  const q = cerca.trim().toLowerCase();
+  const vis = (pgs ?? []).filter((c) => !q || nome(c).toLowerCase().includes(q) || (c.giocatore ?? '').toLowerCase().includes(q));
+  const tocca = (id: string) => setScelti((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const send = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mittente.trim()) { setErr('Scrivi chi firma la missiva.'); return; }
+    if (!scelti.size) { setErr('Scegli almeno un destinatario.'); return; }
+    if (!testo.trim()) { setErr('Scrivi il testo della missiva.'); return; }
+    setBusy(true); setErr('');
+    try {
+      const dest = (pgs ?? []).filter((c) => scelti.has(c.id)).map((c) => ({ id: c.id, nome: nome(c) }));
+      await api.sendStaffLetter(mittente.trim(), testo.trim(), dest);
+      await onSent(dest.length);
+    } catch (x) { setErr((x as Error).message); } finally { setBusy(false); }
+  };
+  return (
+    <form className="page form" onSubmit={send}>
+      <button type="button" className="link" style={{ alignSelf: 'flex-start' }} onClick={onCancel}>Annulla</button>
+      <h1 style={{ fontSize: '1.9rem' }}>Missiva ai personaggi</h1>
+      <div className="field"><label htmlFor="ms-mitt">Firmata da</label>
+        <input id="ms-mitt" value={mittente} onChange={(e) => setMittente(e.target.value)} placeholder="Es. Jarl Raven, un messaggero, la Gilda dei Mercanti" />
+      </div>
+      <fieldset className="fs">
+        <legend>Destinatari{scelti.size ? ` (${scelti.size})` : ''}</legend>
+        <input type="search" className="search" value={cerca} onChange={(e) => setCerca(e.target.value)} placeholder="Cerca personaggio o giocatore" aria-label="Cerca personaggio o giocatore" />
+        <div className="dest-list">
+          {pgs === null && <p className="hint">Carico i personaggi…</p>}
+          {pgs?.length === 0 && <p className="hint">Nessun personaggio approvato e in gioco.</p>}
+          {vis.map((c) => (
+            <label key={c.id} className="check">
+              <input type="checkbox" checked={scelti.has(c.id)} onChange={() => tocca(c.id)} />
+              <span>{nome(c)}{c.giocatore && <small className="hint"> ({c.giocatore})</small>}</span>
+            </label>
+          ))}
+        </div>
+        {(pgs?.length ?? 0) > 1 && (
+          <div className="dest-azioni">
+            <button type="button" className="link" onClick={() => setScelti(new Set([...scelti, ...vis.map((c) => c.id)]))}>Seleziona {q ? 'quelli trovati' : 'tutti'}</button>
+            {scelti.size > 0 && <button type="button" className="link" onClick={() => setScelti(new Set())}>Togli tutti</button>}
+          </div>
+        )}
+      </fieldset>
+      <div className="field"><label htmlFor="ms-testo">Testo</label><textarea id="ms-testo" rows={10} value={testo} onChange={(e) => setTesto(e.target.value)} /></div>
+      <p className="hint">Ogni personaggio riceve la sua copia nell’app e per email, con il testo completo. Non potrà rispondere dall’app.</p>
+      {err && <p className="error">{err}</p>}
+      <button className="btn primary block" disabled={busy}>{busy ? 'Spedisco…' : scelti.size > 1 ? `Spedisci a ${scelti.size} personaggi` : 'Spedisci'}</button>
+    </form>
   );
 }

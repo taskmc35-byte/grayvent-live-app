@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { api } from '../api';
+import { useEffect, useState } from 'react';
+import { api, NON_CONFERMATO } from '../api';
 import { DEMO_CHARACTERS } from '../data/demo';
 import { raceById, raceLabel } from '../data/races';
 import LOGO from '../../public/brand/logo-ink.png';
@@ -14,6 +14,26 @@ export function Login({ onLogin }: { onLogin: () => void }) {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [busy, setBusy] = useState(false);
+  const [rimanda, setRimanda] = useState(false);
+
+  // ritorno dal link dell'email con un errore (es. link scaduto o già usato)
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.hash.slice(1) || window.location.search.slice(1));
+    const code = p.get('error_code');
+    if (!code && !p.get('error')) return;
+    setError(code === 'otp_expired'
+      ? 'Il link dell’email è scaduto o è già stato usato. Prova ad accedere: se l’account non risulta confermato, fatti rimandare l’email qui sotto (vale solo il link dell’ultima email ricevuta).'
+      : `Il link dell’email non ha funzionato (${p.get('error_description') ?? code}). Prova ad accedere o fatti rimandare l’email.`);
+    setRimanda(true);
+    history.replaceState(null, '', window.location.pathname);
+  }, []);
+
+  const rimandaConferma = async () => {
+    if (!email.trim()) { setError('Scrivi la tua email qui sopra, poi tocca “Rimandami l’email di conferma”.'); return; }
+    setBusy(true);
+    try { await api.resendConfirmation(email.trim().toLowerCase()); setInfo('Ti abbiamo rimandato l’email di conferma: apri il link dell’ultima email ricevuta (controlla anche lo spam).'); setError(''); }
+    catch (err) { setError((err as Error).message); } finally { setBusy(false); }
+  };
 
   const sendLink = async () => {
     if (!email.trim()) { setError('Scrivi la tua email, poi tocca “Mandami un link di accesso”.'); return; }
@@ -27,7 +47,7 @@ export function Login({ onLogin }: { onLogin: () => void }) {
     if (!password) { await sendLink(); return; }
     setBusy(true);
     try { await api.signIn(email.trim(), password); onLogin(); }
-    catch (err) { setError((err as Error).message); } finally { setBusy(false); }
+    catch (err) { setError((err as Error).message); if ((err as Error).message === NON_CONFERMATO) setRimanda(true); } finally { setBusy(false); }
   };
   const registrati = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +57,7 @@ export function Login({ onLogin }: { onLogin: () => void }) {
     setBusy(true);
     try {
       const r = await api.signUp(email.trim().toLowerCase(), password, nome.trim());
-      if (r.confermaEmail) setInfo('Ti abbiamo mandato un’email: apri il link per confermare l’account, poi accedi.');
+      if (r.confermaEmail) { setInfo('Ti abbiamo mandato un’email: apri il link per confermare l’account, poi accedi. Controlla anche lo spam.'); setRimanda(true); }
       else onLogin();
     } catch (err) { setError((err as Error).message); } finally { setBusy(false); }
   };
@@ -58,6 +78,7 @@ export function Login({ onLogin }: { onLogin: () => void }) {
       {error && <p className="error" role="alert">{error}</p>}
       {info && <p className="hint" role="status">{info}</p>}
       <button className="btn primary block" disabled={busy}>{busy ? 'Creo l’account…' : 'Crea l’account'}</button>
+      {rimanda && <button type="button" className="btn ghost block" onClick={rimandaConferma} disabled={busy}>Non è arrivata? Rimandami l’email di conferma</button>}
     </form>
   );
 
@@ -89,6 +110,7 @@ export function Login({ onLogin }: { onLogin: () => void }) {
           {error && <p className="error" role="alert">{error}</p>}
           {info && <p className="hint" role="status">{info}</p>}
           <button className="btn primary block" disabled={busy}>{busy ? 'Accesso…' : 'Accedi'}</button>
+          {rimanda && <button type="button" className="btn ghost block" onClick={rimandaConferma} disabled={busy}>Rimandami l’email di conferma</button>}
           <button type="button" className="btn ghost block" onClick={sendLink} disabled={busy}>Mandami un link di accesso</button>
           <p className="hint">Password dimenticata o account creato dallo staff? Usa il link via email.</p>
         </form>

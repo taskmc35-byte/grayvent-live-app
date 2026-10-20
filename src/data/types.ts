@@ -136,7 +136,7 @@ export interface Evento {
   luogo: string;
   descrizione: string;
   iscrizioniAperte: boolean;
-  prezzi: { giorno1: number | null; giorno1Pernotto: number | null; giorni2: number | null; pernottoVenerdi: number | null; pernottoDomenica: number | null; pranzoSabato: number | null };
+  prezzi: { giorno1: number | null; giorno1Pernotto: number | null; giorni2: number | null; pernottoVenerdi: number | null; pernottoDomenica: number | null; pranzoSabato: number | null; cenaVenerdi?: number | null; cenaDomenica?: number | null };
   pagamento: { iban: string; intestatario: string; paypal: string; causale: string };
 }
 
@@ -144,7 +144,7 @@ export type Biglietto = '1 giorno' | '1 giorno + pernotto' | '2 giorni';
 export interface DatiIscrizione {
   nome: string; cognome: string; nomePg: string;
   nuovoGiocatore: boolean; associato: boolean; email: string;
-  biglietto: Biglietto; pernottoVenerdi: boolean; pernottoDomenica: boolean; pranzoSabato: boolean;
+  biglietto: Biglietto; pernottoVenerdi: boolean; pernottoDomenica: boolean; pranzoSabato: boolean; cenaVenerdi?: boolean; cenaDomenica?: boolean;
   pagamento: 'PayPal' | 'Bonifico'; note?: string;
 }
 export interface Iscrizione { id: string; eventoId: string; utente: string; dati: DatiIscrizione; creata: string; pagata: boolean }
@@ -188,4 +188,10 @@ export interface Manuale {
   nascosto: boolean;
   /** uno dei manuali inclusi nell'app */
   base: boolean;
+}
+
+/** Missiva scritta dallo staff (mittente libero, es. un PNG) a un personaggio; il giocatore non può rispondere */
+export interface MissivaStaff {
+  id: string; personaggioId: string | null; utente: string | null; destinatario: string;
+  mittente: string; testo: string; inviata: string; letta?: string;
 }
