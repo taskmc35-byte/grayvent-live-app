@@ -798,3 +798,5 @@ body:has(.savebar) .chat-fab { bottom: calc(132px + env(safe-area-inset-bottom, 
 .affl-row small { color: var(--muted); }
 .affl-row.ended { opacity: 0.55; }
 .affl-form { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.cursore { display: inline-block; width: 7px; height: 1em; margin-left: 2px; vertical-align: text-bottom; background: #8f3324; opacity: 0.7; }
+@media (prefers-reduced-motion: no-preference) { .cursore { animation: blink 0.9s infinite; } }

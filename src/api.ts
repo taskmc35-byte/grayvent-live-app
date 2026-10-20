@@ -61,7 +61,8 @@ export interface Api {
   replyLetter(id: string, testo: string): Promise<void>;
   saveSettings(s: Impostazioni): Promise<void>;
   // chatbot "Chiedi ai manuali"
-  chiedi(domanda: string, storia: { ruolo: 'utente' | 'bot'; testo: string }[]): Promise<RispostaChat>;
+  /** onTesto riceve i pezzi della risposta man mano che arrivano (se il servizio lo permette) */
+  chiedi(domanda: string, storia: { ruolo: 'utente' | 'bot'; testo: string }[], onTesto?: (pezzo: string) => void): Promise<RispostaChat>;
   myQuestions(): Promise<DomandaStaff[]>;
   askStaff(d: { domanda: string; rispostaBot?: string; messaggio?: string }): Promise<void>;
   allQuestions(): Promise<DomandaStaff[]>;
@@ -230,25 +231,10 @@ function demoApi(): Api {
       db.missive = db.missive.map((x) => (x.id === id ? { ...x, stato: 'risposta', risposta: testo, rispostaIl: now() } : x)); persist();
     },
     async saveSettings(s) { db.impostazioni = s; persist(); },
-    async chiedi(domanda) {
-      // Versione di prova: nessuna AI, mostra i passaggi più pertinenti trovati nei manuali caricati
-      const parti = demoManuali();
-      if (!parti.length) throw new Error('Il chatbot non ha ancora i testi dei manuali: lo staff deve premere “Aggiorna il chatbot” (pannello staff, Altro, Manuali).');
-      const parole = paroleChiave(domanda);
-      const norm = (t: string) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const top = parti.map((p) => {
-        const t = norm(p.titolo + ' ' + p.testo);
-        let s = 0;
-        for (const w of parole) { const n = t.split(w).length - 1; if (n) s += 3 + Math.min(n, 5); }
-        for (let i = 0; i + 1 < parole.length; i++) if (new RegExp(parole[i] + '\\w*\\s+' + parole[i + 1]).test(t)) s += 8;
-        return { p, s: s / Math.sqrt(1 + t.length / 1500) };
-      }).filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 3);
-      if (!top.length) return { risposta: 'Nei manuali non ho trovato passaggi su questo argomento. Prova con altre parole oppure contatta lo staff.', fonti: [] };
-      return {
-        risposta: 'Versione di prova: qui non c’è l’intelligenza artificiale, ti mostro i passaggi più pertinenti dei manuali.\n\n'
-          + top.map((x) => `${x.p.titolo}, pag. ${x.p.pagina}:\n${x.p.testo.slice(0, 350)}${x.p.testo.length > 350 ? '…' : ''}`).join('\n\n'),
-        fonti: top.map((x) => ({ manuale: x.p.manuale, titolo: x.p.titolo, pagina: x.p.pagina })),
-      };
+    async chiedi(domanda, _storia, onTesto) {
+      const r = await demoChiedi(domanda);
+      if (onTesto) for (const parola of r.risposta.split(/(?<= )/)) { onTesto(parola); await new Promise((ok) => setTimeout(ok, 18)); }
+      return r;
     },
     async myQuestions() { return (db.domande ?? []).filter((d) => d.utente === user?.id).sort((a, b) => b.creata.localeCompare(a.creata)); },
     async askStaff(d) { db.domande = [{ ...d, id: uid(), utente: me().id, stato: 'aperta', creata: now() }, ...(db.domande ?? [])]; persist(); },
@@ -274,6 +260,27 @@ function demoApi(): Api {
       persist();
     },
     async deleteAffliction(id) { db.afflizioni = (db.afflizioni ?? []).filter((a) => a.id !== id); persist(); },
+  };
+}
+
+async function demoChiedi(domanda: string): Promise<RispostaChat> {
+  // Versione di prova: nessuna AI, mostra i passaggi più pertinenti trovati nei manuali caricati
+  const parti = demoManuali();
+  if (!parti.length) throw new Error('Il chatbot non ha ancora i testi dei manuali: lo staff deve premere “Aggiorna il chatbot” (pannello staff, Altro, Manuali).');
+  const parole = paroleChiave(domanda);
+  const norm = (t: string) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const top = parti.map((p) => {
+    const t = norm(p.titolo + ' ' + p.testo);
+    let s = 0;
+    for (const w of parole) { const n = t.split(w).length - 1; if (n) s += 3 + Math.min(n, 5); }
+    for (let i = 0; i + 1 < parole.length; i++) if (new RegExp(parole[i] + '\\w*\\s+' + parole[i + 1]).test(t)) s += 8;
+    return { p, s: s / Math.sqrt(1 + t.length / 1500) };
+  }).filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 3);
+  if (!top.length) return { risposta: 'Nei manuali non ho trovato passaggi su questo argomento. Prova con altre parole oppure contatta lo staff.', fonti: [] };
+  return {
+    risposta: 'Versione di prova: qui non c’è l’intelligenza artificiale, ti mostro i passaggi più pertinenti dei manuali.\n\n'
+      + top.map((x) => `${x.p.titolo}, pag. ${x.p.pagina}:\n${x.p.testo.slice(0, 350)}${x.p.testo.length > 350 ? '…' : ''}`).join('\n\n'),
+    fonti: top.map((x) => ({ manuale: x.p.manuale, titolo: x.p.titolo, pagina: x.p.pagina })),
   };
 }
 
@@ -433,7 +440,43 @@ function supabaseApi(sb: SupabaseClient): Api {
     async markLetterRead(id) { fail((await sb.from('missive').update({ stato: 'letta' }).eq('id', id).eq('stato', 'inviata')).error); },
     async replyLetter(id, testo) { fail((await sb.from('missive').update({ stato: 'risposta', risposta: testo, risposta_il: now() }).eq('id', id)).error); },
     async saveSettings(s) { fail((await sb.from('impostazioni').upsert({ chiave: 'generale', valore: s })).error); },
-    async chiedi(domanda, storia) {
+    async chiedi(domanda, storia, onTesto) {
+      // 1) risposta parola per parola dalla Edge Function "chiedi", se è installata
+      const { data: sess } = await sb.auth.getSession();
+      const token = sess.session?.access_token;
+      if (token && onTesto) {
+        let res: Response | null = null;
+        try {
+          res = await fetch(`${URL}/functions/v1/chiedi`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}`, apikey: KEY!, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domanda, storia }),
+          });
+        } catch { res = null; }
+        if (res && res.ok && res.body) {
+          const out: RispostaChat = { risposta: '', fonti: [] };
+          const reader = res.body.getReader();
+          const dec = new TextDecoder();
+          let buf = '';
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += dec.decode(value, { stream: true });
+            let i;
+            while ((i = buf.indexOf('\n')) >= 0) {
+              const riga = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+              if (!riga) continue;
+              const ev = JSON.parse(riga);
+              if (ev.tipo === 'fonti') { out.fonti = ev.fonti ?? []; out.rimaste = ev.rimaste; }
+              else if (ev.tipo === 'testo') { out.risposta += ev.t; onTesto(ev.t); }
+              else if (ev.tipo === 'errore') throw new Error(ev.messaggio);
+            }
+          }
+          return out;
+        }
+        // funzione non installata o non raggiungibile: si usa il metodo classico qui sotto
+      }
+      // 2) risposta tutta insieme dal database
       const { data, error } = await sb.rpc('chiedi_manuali', { p_domanda: domanda, p_storia: storia });
       if (error) throw new Error(error.message.includes('chiedi_manuali') ? 'Il chatbot non è ancora installato: lo staff deve completare la configurazione.' : error.message);
       return data as RispostaChat;

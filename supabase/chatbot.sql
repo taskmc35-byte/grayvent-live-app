@@ -79,8 +79,9 @@ create policy ds_ins on public.domande_staff for insert with check (utente = aut
 drop policy if exists ds_upd on public.domande_staff;
 create policy ds_upd on public.domande_staff for update using (public.is_staff()) with check (public.is_staff());
 
--- ---------- la domanda al chatbot ----------
-create or replace function public.chiedi_manuali(p_domanda text, p_storia jsonb default '[]'::jsonb) returns jsonb
+-- ---------- preparazione della domanda: controlli, limite giornaliero, ricerca nei manuali ----------
+-- Usata sia dalla funzione chiedi_manuali (risposta tutta insieme) sia dalla Edge Function "chiedi" (risposta parola per parola).
+create or replace function privato.prepara(p_domanda text, p_storia jsonb) returns jsonb
 language plpgsql security definer set search_path = public, extensions, privato as $$
 declare
   v_utente uuid := auth.uid();
@@ -92,10 +93,6 @@ declare
   v_fonti jsonb;
   v_contents jsonb := '[]'::jsonb;
   v_turno jsonb;
-  v_resp extensions.http_response;
-  v_testo text;
-  v_modello text;
-  v_inizio timestamptz := clock_timestamp();
   v_istruzioni text := 'Sei l''assistente delle regole di Grayvent Live, un gioco di ruolo dal vivo (LARP). '
     || 'Rispondi in italiano basandoti ESCLUSIVAMENTE sugli estratti dei manuali che ti vengono forniti. '
     || 'Sii breve: vai dritto al punto in poche frasi (al massimo circa 120 parole), approfondisci solo se il giocatore lo chiede. '
@@ -105,6 +102,7 @@ declare
 begin
   if v_utente is null then raise exception 'Accedi per usare il chatbot.'; end if;
   p_domanda := trim(coalesce(p_domanda, ''));
+  p_storia := coalesce(p_storia, '[]'::jsonb);
   if length(p_domanda) < 3 then raise exception 'Scrivi una domanda un po'' più lunga.'; end if;
   if length(p_domanda) > 1000 then raise exception 'La domanda è troppo lunga (massimo 1000 caratteri).'; end if;
 
@@ -151,20 +149,60 @@ begin
   v_contents := v_contents || jsonb_build_array(jsonb_build_object('role', 'user', 'parts', jsonb_build_array(jsonb_build_object(
     'text', E'Estratti dei manuali di Grayvent:\n\n' || v_contesto || E'\n\n===\n\nDomanda del giocatore: ' || p_domanda))));
 
+  return jsonb_build_object(
+    'domanda', p_domanda,
+    'richiesta', jsonb_build_object(
+      'systemInstruction', jsonb_build_object('parts', jsonb_build_array(jsonb_build_object('text', v_istruzioni))),
+      'contents', v_contents,
+      'generationConfig', jsonb_build_object('temperature', 0.2, 'maxOutputTokens', 2048)),
+    'fonti', v_fonti,
+    'modelli', to_jsonb(array_remove(array[cfg.modello, nullif(cfg.modello_riserva, cfg.modello)], null)),
+    'rimaste', greatest(cfg.limite_giornaliero - v_usate - 1, 0));
+end $$;
+revoke all on function privato.prepara(text, jsonb) from public, anon, authenticated;
+
+-- per la Edge Function: prepara la domanda dell'utente collegato (la chiave di Gemini NON è inclusa)
+create or replace function public.prepara_domanda(p_domanda text, p_storia jsonb default '[]'::jsonb) returns jsonb
+language sql security definer set search_path = public, privato as $$ select privato.prepara(p_domanda, p_storia); $$;
+revoke all on function public.prepara_domanda(text, jsonb) from public, anon;
+grant execute on function public.prepara_domanda(text, jsonb) to authenticated;
+
+-- per la Edge Function: registra la risposta (conta per il limite giornaliero dell'utente collegato)
+create or replace function public.registra_risposta(p_domanda text, p_risposta text, p_durata_ms int, p_modello text) returns void
+language sql security definer set search_path = public as $$
+  insert into public.chat_log (utente, domanda, risposta, durata_ms, modello)
+  select auth.uid(), left(p_domanda, 1000), p_risposta, p_durata_ms, p_modello where auth.uid() is not null;
+$$;
+revoke all on function public.registra_risposta(text, text, int, text) from public, anon;
+grant execute on function public.registra_risposta(text, text, int, text) to authenticated;
+
+-- per la Edge Function: la chiave di Gemini, leggibile SOLO con la chiave di servizio (mai dall'app)
+create or replace function public.ai_chiave() returns text
+language sql security definer set search_path = privato as $$ select gemini_api_key from privato.ai_config where id = 1; $$;
+revoke all on function public.ai_chiave() from public, anon, authenticated;
+grant execute on function public.ai_chiave() to service_role;
+
+-- ---------- la domanda al chatbot, risposta tutta insieme (usata se la Edge Function non è installata) ----------
+create or replace function public.chiedi_manuali(p_domanda text, p_storia jsonb default '[]'::jsonb) returns jsonb
+language plpgsql security definer set search_path = public, extensions, privato as $$
+declare
+  v_prep jsonb := privato.prepara(p_domanda, p_storia);
+  v_chiave text := (select gemini_api_key from privato.ai_config where id = 1);
+  v_resp extensions.http_response;
+  v_testo text;
+  v_modello text;
+  v_inizio timestamptz := clock_timestamp();
+begin
   perform extensions.http_set_curlopt('CURLOPT_TIMEOUT', '40');
   -- prova il modello principale; se è sovraccarico o non disponibile, il modello di riserva
-  foreach v_modello in array array_remove(array[cfg.modello, nullif(cfg.modello_riserva, cfg.modello)], null) loop
+  for v_modello in select jsonb_array_elements_text(v_prep->'modelli') loop
     -- la chiave va nell'intestazione x-goog-api-key: funziona sia con le chiavi AIza... sia con quelle nuove AQ....
     select * into v_resp from extensions.http((
       'POST',
       'https://generativelanguage.googleapis.com/v1beta/models/' || v_modello || ':generateContent',
-      array[extensions.http_header('x-goog-api-key', cfg.gemini_api_key)],
+      array[extensions.http_header('x-goog-api-key', v_chiave)],
       'application/json',
-      jsonb_build_object(
-        'systemInstruction', jsonb_build_object('parts', jsonb_build_array(jsonb_build_object('text', v_istruzioni))),
-        'contents', v_contents,
-        'generationConfig', jsonb_build_object('temperature', 0.2, 'maxOutputTokens', 2048)
-      )::text
+      (v_prep->'richiesta')::text
     )::extensions.http_request);
     exit when v_resp.status not in (404, 429, 500, 502, 503, 504);
     raise warning 'Gemini % su %: provo il modello di riserva', v_resp.status, v_modello;
@@ -190,9 +228,8 @@ begin
   end if;
 
   insert into public.chat_log (utente, domanda, risposta, durata_ms, modello)
-    values (v_utente, p_domanda, v_testo, (extract(epoch from clock_timestamp() - v_inizio) * 1000)::int, v_modello);
-  return jsonb_build_object('risposta', v_testo, 'fonti', v_fonti,
-    'rimaste', greatest(cfg.limite_giornaliero - v_usate - 1, 0));
+    values (auth.uid(), v_prep->>'domanda', v_testo, (extract(epoch from clock_timestamp() - v_inizio) * 1000)::int, v_modello);
+  return jsonb_build_object('risposta', v_testo, 'fonti', v_prep->'fonti', 'rimaste', (v_prep->>'rimaste')::int);
 end $$;
 
 revoke all on function public.chiedi_manuali(text, jsonb) from public, anon;

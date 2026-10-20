@@ -21,6 +21,7 @@ export function ChiediTab({ onApri }: { onApri: (f: FonteManuale) => void }) {
   const [msgs, setMsgs] = useState<Msg[]>(memoria);
   const [testo, setTesto] = useState('');
   const [busy, setBusy] = useState(false);
+  const [scrivendo, setScrivendo] = useState('');
   const [rimaste, setRimaste] = useState<number | undefined>();
   const [domande, setDomande] = useState<DomandaStaff[]>([]);
   const fondo = useRef<HTMLDivElement>(null);
@@ -28,7 +29,8 @@ export function ChiediTab({ onApri }: { onApri: (f: FonteManuale) => void }) {
   const aggiorna = (m: Msg[]) => { memoria = m; setMsgs(m); };
   const ricaricaDomande = () => api.myQuestions().then(setDomande).catch(() => setDomande([]));
   useEffect(() => { ricaricaDomande(); }, []);
-  useEffect(() => { fondo.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [msgs.length, busy]);
+  useEffect(() => { fondo.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [msgs.length, busy, scrivendo.length > 0]);
+  useEffect(() => { if (scrivendo) fondo.current?.scrollIntoView({ block: 'end' }); }, [scrivendo]);
 
   const invia = async (q: string) => {
     q = q.trim();
@@ -36,13 +38,18 @@ export function ChiediTab({ onApri }: { onApri: (f: FonteManuale) => void }) {
     const storia = msgs.filter((m) => m.ruolo !== 'errore').slice(-6).map((m) => ({ ruolo: m.ruolo as 'utente' | 'bot', testo: m.testo }));
     const conDomanda: Msg[] = [...msgs.map((m) => (m.ruolo === 'bot' && !m.esito ? { ...m, esito: 'si' as const } : m)), { ruolo: 'utente', testo: q }];
     aggiorna(conDomanda); setTesto(''); setBusy(true);
+    let parziale = '';
     try {
-      const r = await api.chiedi(q, storia);
+      // la risposta compare man mano che arriva; fonti e domanda di chiusura solo alla fine
+      const r = await api.chiedi(q, storia, (pezzo) => {
+        parziale += pezzo;
+        setScrivendo(parziale);
+      });
       setRimaste(r.rimaste);
       aggiorna([...conDomanda, { ruolo: 'bot', testo: r.risposta, fonti: r.fonti ?? [], domanda: q }]);
     } catch (e) {
       aggiorna([...conDomanda, { ruolo: 'errore', testo: (e as Error).message }]);
-    } finally { setBusy(false); }
+    } finally { setBusy(false); setScrivendo(''); }
   };
 
   const esito = (i: number, e: 'si' | 'scrivi' | 'inviato') =>
@@ -97,7 +104,7 @@ export function ChiediTab({ onApri }: { onApri: (f: FonteManuale) => void }) {
               onInviato={() => { esito(i, 'inviato'); ricaricaDomande(); }} />}
           </div>
         ))}
-        {busy && <Attesa />}
+        {busy && (scrivendo ? <div className="bubble bot"><div className="bot-text">{scrivendo}<span className="cursore" aria-hidden="true" /></div></div> : <Attesa />)}
         <div ref={fondo} />
       </div>
       </div>
