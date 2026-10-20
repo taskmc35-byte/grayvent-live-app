@@ -6,8 +6,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdf.worker.min.mjs', document.bas
 const MAX = 1400; // caratteri per passaggio: abbastanza per il contesto, abbastanza piccolo per una ricerca precisa
 
 /** Estrae il testo di un manuale PDF e lo divide in passaggi (con il numero di pagina) per il chatbot */
-export async function estraiParti(file: string, titolo: string, onPagina?: (n: number, tot: number) => void): Promise<ParteManuale[]> {
-  const doc = await pdfjs.getDocument(`manuali/${file}`).promise;
+export async function estraiParti(url: string, id: string, titolo: string, onPagina?: (n: number, tot: number) => void): Promise<ParteManuale[]> {
+  const doc = await pdfjs.getDocument(url).promise;
   const out: ParteManuale[] = [];
   try {
     for (let n = 1; n <= doc.numPages; n++) {
@@ -16,7 +16,7 @@ export async function estraiParti(file: string, titolo: string, onPagina?: (n: n
       let t = '';
       for (const it of tc.items) if ('str' in it) t += it.str + (it.hasEOL ? '\n' : ' ');
       t = pulisci(t);
-      for (const pezzo of dividi(t)) if (pezzo.length >= 30) out.push({ manuale: file, titolo, pagina: n, testo: pezzo });
+      for (const pezzo of dividi(t)) if (pezzo.length >= 30) out.push({ manuale: id, titolo, pagina: n, testo: pezzo });
       onPagina?.(n, doc.numPages);
     }
   } finally {

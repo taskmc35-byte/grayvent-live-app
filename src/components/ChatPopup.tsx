@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChiediTab } from './ChiediTab';
-import { PdfViewer } from './ManualiTab';
+import { ApriManuale, useManuali } from './ManualiTab';
 import type { FonteManuale } from '../data/types';
 
 /** Pulsante sempre visibile che apre il chatbot dei manuali in un pannello, da qualsiasi pagina */
 export function ChatPopup() {
   const [aperto, setAperto] = useState(false);
   const [fonte, setFonte] = useState<FonteManuale | null>(null);
+  const { list: manuali } = useManuali();
+  const manualeFonte = fonte && (manuali.find((m) => m.id === fonte.manuale) ?? { id: fonte.manuale, nome: fonte.titolo, descrizione: '', sigla: '', ordine: 0, nascosto: false, base: true });
 
   useEffect(() => {
     if (!aperto) return;
@@ -40,7 +42,7 @@ export function ChatPopup() {
           </div>
         </div>
       )}
-      {fonte && <PdfViewer file={fonte.manuale} title={fonte.titolo} pagina={fonte.pagina} onClose={() => setFonte(null)} />}
+      {fonte && manualeFonte && <ApriManuale m={manualeFonte} pagina={fonte.pagina} onClose={() => setFonte(null)} />}
     </>,
     document.body,
   );

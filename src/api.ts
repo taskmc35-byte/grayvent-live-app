@@ -1,6 +1,7 @@
 // Livello dati: modalità demo (tutto nel browser) oppure Supabase (account reali).
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { Ability, Character, DatiIscrizione, Evento, Impostazioni, Iscrizione, Missiva, Nota, StatoScheda, Afflizione, DomandaStaff, ParteManuale, RispostaChat } from './data/types';
+import type { Ability, Character, DatiIscrizione, Evento, Impostazioni, Iscrizione, Missiva, Nota, StatoScheda, Afflizione, DomandaStaff, Manuale, ParteManuale, RispostaChat } from './data/types';
+import { unisciManuali } from './manuali/base';
 import { DEMO_CHARACTERS } from './data/demo';
 import { ALL_ABILITIES } from './data/abilities';
 
@@ -73,6 +74,11 @@ export interface Api {
   manualIndexStats(files: string[]): Promise<Record<string, number>>;
   // benedizioni e maledizioni (il giocatore riceve solo quelle visibili e attive)
   afflictions(personaggioId: string): Promise<Afflizione[]>;
+  // manuali: quelli di base più quelli aggiunti o modificati dallo staff
+  manuals(): Promise<Manuale[]>;
+  manualUrl(m: Manuale): Promise<string>;
+  saveManual(m: Manuale, file?: File | null): Promise<Manuale>;
+  deleteManual(m: Manuale): Promise<void>;
   saveAffliction(a: Afflizione): Promise<void>;
   deleteAffliction(id: string): Promise<void>;
 }
@@ -102,7 +108,7 @@ function mergeCatalog(custom: Ability[]) {
 interface DemoDb {
   v: number; pg: StaffCharacter[]; profili: Profile[]; abilita: Ability[];
   eventi: Evento[]; iscrizioni: Iscrizione[]; note: (Nota & { utente: string })[]; missive: Missiva[];
-  impostazioni: Impostazioni; files: Record<string, string>; domande?: DomandaStaff[]; afflizioni?: Afflizione[];
+  impostazioni: Impostazioni; files: Record<string, string>; domande?: DomandaStaff[]; afflizioni?: Afflizione[]; manuali?: Manuale[];
 }
 const DEMO_V = 6;
 function demoSeed(): DemoDb {
@@ -260,6 +266,27 @@ function demoApi(): Api {
       persist();
     },
     async deleteAffliction(id) { db.afflizioni = (db.afflizioni ?? []).filter((a) => a.id !== id); persist(); },
+    async manuals() { return unisciManuali(db.manuali ?? []); },
+    async manualUrl(m) { return m.filePath ? db.files[m.filePath] ?? '' : `manuali/${m.id}`; },
+    async saveManual(m, file) {
+      const saved: Manuale = { ...m, id: m.id || `m-${Date.now()}` };
+      if (file) {
+        if (file.size > 4_000_000) throw new Error('Nella versione di prova si possono caricare solo PDF piccoli (fino a 4 MB). Sul sito vero non c’è questo limite.');
+        const path = `${saved.id}/${Date.now()}.pdf`;
+        db.files[path] = await new Promise<string>((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(file); });
+        saved.filePath = path;
+      }
+      const { base: _b, ...riga } = saved;
+      db.manuali = [...(db.manuali ?? []).filter((x) => x.id !== saved.id), riga as Manuale];
+      try { persist(); } catch { throw new Error('Spazio del browser esaurito.'); }
+      return saved;
+    },
+    async deleteManual(m) {
+      db.manuali = (db.manuali ?? []).filter((x) => x.id !== m.id);
+      if (m.filePath) delete db.files[m.filePath];
+      persist();
+      await this.indexManual(m.id, []);
+    },
   };
 }
 
@@ -523,6 +550,40 @@ function supabaseApi(sb: SupabaseClient): Api {
       if (error) throw new Error(error.message.includes('afflizioni') ? 'Benedizioni e maledizioni non sono ancora installate: esegui benedizioni.sql in Supabase.' : error.message);
     },
     async deleteAffliction(id) { fail((await sb.from('afflizioni').delete().eq('id', id)).error); },
+    async manuals() {
+      const { data, error } = await sb.from('manuali').select('*');
+      if (error) return unisciManuali([]); // tabella non ancora creata: solo i manuali di base
+      return unisciManuali((data ?? []).map((r) => ({
+        id: r.id, nome: r.nome, descrizione: r.descrizione ?? '', sigla: r.sigla ?? '', ordine: r.ordine ?? 100,
+        filePath: r.file_path ?? undefined, nascosto: r.nascosto, base: false,
+      })));
+    },
+    async manualUrl(m) {
+      if (!m.filePath) return `manuali/${m.id}`;
+      const { data, error } = await sb.storage.from('manuali').createSignedUrl(m.filePath, 3600);
+      fail(error); return data!.signedUrl;
+    },
+    async saveManual(m, file) {
+      const saved: Manuale = { ...m, id: m.id || `m-${Date.now()}` };
+      if (file) {
+        const path = `${saved.id}/${Date.now()}.pdf`;
+        const up = await sb.storage.from('manuali').upload(path, file, { contentType: 'application/pdf', upsert: true });
+        if (up.error) throw new Error(up.error.message.includes('not found') ? 'Archivio dei manuali non installato: esegui manuali.sql in Supabase.' : up.error.message);
+        if (m.filePath) await sb.storage.from('manuali').remove([m.filePath]); // versione precedente
+        saved.filePath = path;
+      }
+      const { error } = await sb.from('manuali').upsert({
+        id: saved.id, nome: saved.nome, descrizione: saved.descrizione, sigla: saved.sigla, ordine: saved.ordine,
+        file_path: saved.filePath ?? null, nascosto: saved.nascosto, aggiornato_il: now(),
+      });
+      if (error) throw new Error(error.message.includes('manuali') ? 'Gestione manuali non installata: esegui manuali.sql in Supabase.' : error.message);
+      return saved;
+    },
+    async deleteManual(m) {
+      fail((await sb.from('manuali').delete().eq('id', m.id)).error);
+      if (m.filePath) await sb.storage.from('manuali').remove([m.filePath]);
+      await sb.from('manuali_parti').delete().eq('manuale', m.id);
+    },
   };
 }
 

@@ -179,3 +179,13 @@ export interface Afflizione {
   /** il giocatore non la vede */ nascosta: boolean;
   /** conclusa: resta solo nello storico dello staff */ terminata: boolean;
 }
+
+/** Manuale consultabile nell'app: di base (PDF incluso nell'app) o caricato dallo staff */
+export interface Manuale {
+  id: string; nome: string; descrizione: string; sigla: string; ordine: number;
+  /** PDF caricato nell'archivio; assente = PDF di base dell'app */
+  filePath?: string;
+  nascosto: boolean;
+  /** uno dei manuali inclusi nell'app */
+  base: boolean;
+}
