@@ -135,6 +135,8 @@ export interface Evento {
   dataFine: string;
   luogo: string;
   descrizione: string;
+  /** immagine banner (indirizzo pubblico) */
+  banner?: string;
   iscrizioniAperte: boolean;
   prezzi: { giorno1: number | null; giorno1Pernotto: number | null; giorni2: number | null; pernottoVenerdi: number | null; pernottoDomenica: number | null; pranzoSabato: number | null; cenaVenerdi?: number | null; cenaDomenica?: number | null };
   pagamento: { iban: string; intestatario: string; paypal: string; causale: string };

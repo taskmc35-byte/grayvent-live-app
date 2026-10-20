@@ -4,6 +4,7 @@ import type { Ability, Character, DatiIscrizione, Evento, Impostazioni, Iscrizio
 import { unisciManuali } from './manuali/base';
 import { DEMO_CHARACTERS } from './data/demo';
 import { ALL_ABILITIES } from './data/abilities';
+import { blobToDataUrl, ridimensiona } from './immagine';
 
 export interface User { id: string; email: string; ruolo: 'giocatore' | 'staff'; nome?: string }
 export interface Profile { id: string; email: string; nome?: string; ruolo: 'giocatore' | 'staff' }
@@ -59,6 +60,8 @@ export interface Api {
   deleteAbility(id: string): Promise<void>;
   saveEvent(e: Evento): Promise<void>;
   deleteEvent(id: string): Promise<void>;
+  /** carica l'immagine banner di un evento e ne restituisce l'indirizzo */
+  uploadEventBanner(img: Blob): Promise<string>;
   registrations(eventoId: string): Promise<Iscrizione[]>;
   setPaid(id: string, pagata: boolean): Promise<void>;
   allLetters(): Promise<Missiva[]>;
@@ -241,6 +244,11 @@ function demoApi(): Api {
       const saved = { ...e, id: e.id || uid() };
       db.eventi = db.eventi.some((x) => x.id === saved.id) ? db.eventi.map((x) => (x.id === saved.id ? saved : x)) : [...db.eventi, saved];
       persist();
+    },
+    async uploadEventBanner(img) {
+      // in prova l'immagine resta nel browser: la si rimpicciolisce di più per non riempire la memoria
+      const piccola = await ridimensiona(new File([img], 'b.jpg', { type: 'image/jpeg' }), 900, 0.7);
+      return blobToDataUrl(piccola);
     },
     async deleteEvent(id) { db.eventi = db.eventi.filter((e) => e.id !== id); db.iscrizioni = db.iscrizioni.filter((i) => i.eventoId !== id); persist(); },
     async registrations(eventoId) { return db.iscrizioni.filter((i) => i.eventoId === eventoId); },
@@ -492,6 +500,12 @@ function supabaseApi(sb: SupabaseClient): Api {
       fail((await sb.from('eventi').upsert({ ...(id ? { id } : {}), dati, data_inizio: e.dataInizio })).error);
     },
     async deleteEvent(id) { fail((await sb.from('eventi').delete().eq('id', id)).error); },
+    async uploadEventBanner(img) {
+      const path = `banner/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+      const up = await sb.storage.from('eventi').upload(path, img, { contentType: 'image/jpeg', cacheControl: '31536000' });
+      if (up.error) throw new Error(/not found/i.test(up.error.message) ? 'Archivio immagini non installato: esegui eventi_banner.sql in Supabase.' : up.error.message);
+      return sb.storage.from('eventi').getPublicUrl(path).data.publicUrl;
+    },
     async registrations(eventoId) {
       const { data, error } = await sb.from('iscrizioni').select('*').eq('evento_id', eventoId).order('creata_il');
       fail(error); return (data ?? []).map(toIscr);

@@ -4,7 +4,7 @@
 -- Ogni giocatore riceve la sua email (gli indirizzi non sono visibili agli altri).
 -- =====================================================================
 
--- "sabato 14 marzo 2027" / "dal sabato 14 al domenica 15 marzo 2027"
+-- "sabato 13 marzo 2027" / "da sabato 13 a domenica 14 marzo 2027"
 create or replace function privato.data_it(d date) returns text language sql immutable as $$
   select (array['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'])[extract(dow from d)::int + 1]
       || ' ' || extract(day from d)::int || ' '
@@ -16,7 +16,9 @@ create or replace function privato.periodo_it(inizio date, fine date) returns te
   select case
     when inizio is null then 'data da definire'
     when fine is null or fine = inizio then privato.data_it(inizio)
-    else 'dal ' || privato.data_it(inizio) || ' al ' || privato.data_it(fine)
+    when extract(year from inizio) = extract(year from fine) and extract(month from inizio) = extract(month from fine)
+      then 'da ' || split_part(privato.data_it(inizio), ' ', 1) || ' ' || extract(day from inizio)::int || ' a ' || privato.data_it(fine)
+    else 'da ' || privato.data_it(inizio) || ' a ' || privato.data_it(fine)
   end;
 $$;
 

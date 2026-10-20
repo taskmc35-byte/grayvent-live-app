@@ -3,7 +3,47 @@ import { api, type User } from '../api';
 import type { Biglietto, Character, DatiIscrizione, Evento, Iscrizione } from '../data/types';
 
 export const dataLunga = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-export const periodo = (e: Evento) => (e.dataFine && e.dataFine !== e.dataInizio ? `dal ${dataLunga(e.dataInizio)} al ${dataLunga(e.dataFine)}` : dataLunga(e.dataInizio));
+/** "sabato 13 marzo 2027" / "da sabato 13 a domenica 14 marzo 2027" / "da sabato 30 maggio a lunedì 1 giugno 2027" */
+export function periodo(e: Evento) {
+  if (!e.dataFine || e.dataFine === e.dataInizio) return dataLunga(e.dataInizio);
+  const a = new Date(e.dataInizio + 'T12:00:00'), b = new Date(e.dataFine + 'T12:00:00');
+  const opz: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric' };
+  if (a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()) return `da ${a.toLocaleDateString('it-IT', opz)} a ${dataLunga(e.dataFine)}`;
+  if (a.getFullYear() === b.getFullYear()) return `da ${a.toLocaleDateString('it-IT', { ...opz, month: 'long' })} a ${dataLunga(e.dataFine)}`;
+  return `da ${dataLunga(e.dataInizio)} a ${dataLunga(e.dataFine)}`;
+}
+const MESI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+/** Giorni e mese brevi per il bollo sulla locandina: "13–14" / "mar" */
+export function bollo(e: Evento) {
+  if (!e.dataInizio) return null;
+  const a = new Date(e.dataInizio + 'T12:00:00'), b = new Date((e.dataFine || e.dataInizio) + 'T12:00:00');
+  const giorni = a.getTime() === b.getTime() ? `${a.getDate()}` : a.getMonth() === b.getMonth() ? `${a.getDate()}–${b.getDate()}` : `${a.getDate()}/${a.getMonth() + 1}–${b.getDate()}/${b.getMonth() + 1}`;
+  return { giorni, mese: a.getMonth() === b.getMonth() ? MESI[a.getMonth()] : '', anno: a.getFullYear() };
+}
+
+/** Locandina dell'evento: immagine dello staff oppure un fondo decorativo, con il bollo della data */
+export function EventoBanner({ e, children, compatto }: { e: Evento; children?: React.ReactNode; compatto?: boolean }) {
+  const b = bollo(e);
+  return (
+    <div className={`ev-banner${e.banner ? '' : ' vuoto'}${compatto ? ' compatto' : ''}`}>
+      {e.banner
+        ? <img src={e.banner} alt="" loading="lazy" />
+        : (
+          <svg className="ev-emblema" viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="44" /><circle cx="50" cy="50" r="36" />
+            <path d="M50 18 L50 82 M50 34 L66 22 M50 34 L34 22 M50 62 L66 78 M50 62 L34 78" />
+          </svg>
+        )}
+      {b && (
+        <div className="ev-bollo" aria-hidden="true">
+          <strong>{b.giorni}</strong>{b.mese && <span>{b.mese}</span>}<small>{b.anno}</small>
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
 export const euro = (n: number) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
 
 /** Pasti: compaiono (annuncio e iscrizione) solo se lo staff ne ha scritto il prezzo */
@@ -71,10 +111,11 @@ function EventoCard({ e, grande, isc, onIscriviti }: { e: Evento; grande?: boole
   const tot = isc ? totale(e, isc.dati) : null;
   return (
     <article className={`ev-card${grande ? ' big' : ''}`}>
+      <EventoBanner e={e} compatto={!grande} />
       {grande && <span className="tag">Prossimo evento</span>}
       <h2>{e.titolo}</h2>
       <p className="ev-when">{periodo(e)}</p>
-      {e.luogo && <p className="hint">{e.luogo}</p>}
+      {e.luogo && <p className="ev-luogo"><IconaLuogo /> {e.luogo}</p>}
       {grande && e.descrizione && <p className="ev-desc">{e.descrizione}</p>}
       {pastiOfferti(e).length > 0 && (
         <dl className="facts ev-pasti">
@@ -171,3 +212,7 @@ function Iscrizione({ evento, user, pg, esistente, onCancel, onDone }: {
     </form>
   );
 }
+
+export const IconaLuogo = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></svg>
+);

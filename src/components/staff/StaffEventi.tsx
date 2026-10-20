@@ -2,7 +2,8 @@ import { salvaFile } from '../../download';
 import { useEffect, useState } from 'react';
 import { api, type Profile } from '../../api';
 import type { Evento, Iscrizione } from '../../data/types';
-import { euro, periodo, totale } from '../EventiTab';
+import { EventoBanner, IconaLuogo, euro, periodo, totale } from '../EventiTab';
+import { ridimensiona } from '../../immagine';
 
 const vuoto = (): Evento => ({
   id: '', titolo: '', dataInizio: '', dataFine: '', luogo: '', descrizione: '', iscrizioniAperte: false,
@@ -14,7 +15,13 @@ export function StaffEventi({ profiles, onToast }: { profiles: Profile[]; onToas
   const [eventi, setEventi] = useState<Evento[]>([]);
   const [edit, setEdit] = useState<Evento | null>(null);
   const [iscritti, setIscritti] = useState<Evento | null>(null);
-  const reload = async () => setEventi(await api.events());
+  const [conti, setConti] = useState<Record<string, { n: number; pagati: number }>>({});
+  const reload = async () => {
+    const ev = await api.events(); setEventi(ev);
+    const c: Record<string, { n: number; pagati: number }> = {};
+    await Promise.all(ev.map(async (e) => { const l = await api.registrations(e.id).catch(() => []); c[e.id] = { n: l.length, pagati: l.filter((i) => i.pagata).length }; }));
+    setConti(c);
+  };
   useEffect(() => { reload(); }, []);
 
   if (edit) return <EventoForm e={edit} onCancel={() => setEdit(null)}
@@ -23,26 +30,62 @@ export function StaffEventi({ profiles, onToast }: { profiles: Profile[]; onToas
   if (iscritti) return <Iscritti e={iscritti} profiles={profiles} onBack={() => setIscritti(null)} onToast={onToast} />;
 
   const oggi = new Date().toISOString().slice(0, 10);
+  const futuri = eventi.filter((e) => (e.dataFine || e.dataInizio) >= oggi || !e.dataInizio);
+  const passati = eventi.filter((e) => !futuri.includes(e)).reverse();
   return (
     <div className="page">
       <div className="list-head">
         <h1>Eventi</h1>
         <button className="btn primary" onClick={() => setEdit(vuoto())}>Nuovo evento</button>
       </div>
-      {!eventi.length && <p className="hint">Nessun evento. Crea il prossimo live con “Nuovo evento”: i giocatori lo vedranno nella loro app.</p>}
-      {eventi.map((e) => (
-        <div key={e.id} className={`ev-row${(e.dataFine || e.dataInizio) < oggi ? ' past' : ''}`}>
-          <div>
-            <strong>{e.titolo}</strong>
-            <small>{e.dataInizio ? periodo(e) : 'Data da definire'}, {e.iscrizioniAperte ? 'iscrizioni aperte' : 'iscrizioni chiuse'}</small>
-          </div>
-          <div className="ev-actions">
-            <button className="btn ghost" onClick={() => setIscritti(e)}>Iscritti</button>
-            <button className="btn ghost" onClick={() => setEdit(e)}>Modifica</button>
-          </div>
+      {!eventi.length && (
+        <div className="sev-vuoto">
+          <p>Nessun evento in programma.</p>
+          <p className="hint">Crea il prossimo live con “Nuovo evento”: i giocatori lo vedranno nella loro app e riceveranno un’email.</p>
         </div>
-      ))}
+      )}
+      {futuri.length > 0 && (
+        <div className="sev-list">
+          {futuri.map((e) => <SevCard key={e.id} e={e} conti={conti[e.id]} onIscritti={() => setIscritti(e)} onModifica={() => setEdit(e)} />)}
+        </div>
+      )}
+      {passati.length > 0 && (
+        <details className="sev-passati">
+          <summary>Eventi passati ({passati.length})</summary>
+          <div className="sev-list">
+            {passati.map((e) => <SevCard key={e.id} e={e} passato conti={conti[e.id]} onIscritti={() => setIscritti(e)} onModifica={() => setEdit(e)} />)}
+          </div>
+        </details>
+      )}
     </div>
+  );
+}
+
+function SevCard({ e, passato, conti, onIscritti, onModifica }: {
+  e: Evento; passato?: boolean; conti?: { n: number; pagati: number }; onIscritti: () => void; onModifica: () => void;
+}) {
+  const stato = passato ? { t: 'Concluso', c: 'fine' } : e.iscrizioniAperte ? { t: 'Iscrizioni aperte', c: 'aperte' } : { t: 'Iscrizioni chiuse', c: 'chiuse' };
+  return (
+    <article className={`sev-card${passato ? ' passato' : ''}`}>
+      <EventoBanner e={e} compatto={passato}>
+        <span className={`sev-stato ${stato.c}`}>{stato.t}</span>
+      </EventoBanner>
+      <div className="sev-body">
+        <h2>{e.titolo || 'Senza titolo'}</h2>
+        <p className="sev-quando">{e.dataInizio ? periodo(e) : 'Data da definire'}</p>
+        {e.luogo && <p className="sev-luogo"><IconaLuogo /> {e.luogo}</p>}
+        {conti && (
+          <div className="sev-conti">
+            <span><strong>{conti.n}</strong> {conti.n === 1 ? 'iscritto' : 'iscritti'}</span>
+            <span><strong>{conti.pagati}</strong> {conti.pagati === 1 ? 'ha pagato' : 'hanno pagato'}</span>
+          </div>
+        )}
+        <div className="sev-azioni">
+          <button className="btn ghost" onClick={onIscritti}>Iscritti</button>
+          <button className="btn ghost" onClick={onModifica}>Modifica</button>
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -69,6 +112,7 @@ function EventoForm({ e: init, onCancel, onSave, onDelete }: { e: Evento; onCanc
       <h1>{init.id ? 'Modifica evento' : 'Nuovo evento'}</h1>
       <fieldset className="fs">
         <legend>Evento</legend>
+        <BannerField url={e.banner} onChange={(banner) => setE({ ...e, banner })} />
         <div className="field"><label htmlFor="e-tit">Titolo</label><input id="e-tit" value={e.titolo} onChange={(x) => setE({ ...e, titolo: x.target.value })} /></div>
         <div className="grid2">
           <div className="field"><label htmlFor="e-da">Inizio</label><input id="e-da" type="date" value={e.dataInizio} onChange={(x) => setE({ ...e, dataInizio: x.target.value })} /></div>
@@ -158,6 +202,35 @@ function Iscritti({ e, onBack, onToast }: { e: Evento; profiles: Profile[]; onBa
           );
         })}
       </div>
+    </div>
+  );
+}
+
+/** Immagine banner: si sceglie una foto, si rimpicciolisce e si carica subito; anteprima come la vedranno i giocatori */
+function BannerField({ url, onChange }: { url?: string; onChange: (u: string | undefined) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const scegli = async (f?: File | null) => {
+    if (!f) return;
+    setBusy(true); setErr('');
+    try { onChange(await api.uploadEventBanner(await ridimensiona(f))); }
+    catch (x) { setErr((x as Error).message); } finally { setBusy(false); }
+  };
+  return (
+    <div className="field">
+      <span className="flabel">Immagine banner (facoltativa)</span>
+      <div className={`banner-pick${url ? ' piena' : ''}`}>
+        {url ? <img src={url} alt="Anteprima del banner" /> : <span className="hint">{busy ? 'Carico l’immagine…' : 'Nessuna immagine: si vedrà il fondo decorativo.'}</span>}
+      </div>
+      <div className="banner-azioni">
+        <label className="btn ghost">
+          {busy ? 'Carico…' : url ? 'Cambia immagine' : 'Scegli immagine'}
+          <input type="file" accept="image/*" hidden disabled={busy} onChange={(x) => { scegli(x.target.files?.[0]); x.target.value = ''; }} />
+        </label>
+        {url && !busy && <button type="button" className="btn ghost" onClick={() => onChange(undefined)}>Togli</button>}
+      </div>
+      <span className="hint">Meglio un’immagine orizzontale: viene tagliata in formato panoramico.</span>
+      {err && <p className="error">{err}</p>}
     </div>
   );
 }
