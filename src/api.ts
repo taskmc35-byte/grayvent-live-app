@@ -1,6 +1,6 @@
 // Livello dati: modalità demo (tutto nel browser) oppure Supabase (account reali).
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { Ability, Character, DatiIscrizione, Evento, Impostazioni, Iscrizione, Missiva, Nota, StatoScheda, DomandaStaff, ParteManuale, RispostaChat } from './data/types';
+import type { Ability, Character, DatiIscrizione, Evento, Impostazioni, Iscrizione, Missiva, Nota, StatoScheda, Afflizione, DomandaStaff, ParteManuale, RispostaChat } from './data/types';
 import { DEMO_CHARACTERS } from './data/demo';
 import { ALL_ABILITIES } from './data/abilities';
 
@@ -70,6 +70,10 @@ export interface Api {
   indexManual(manuale: string, parti: ParteManuale[]): Promise<void>;
   /** staff: quanti passaggi ha il chatbot per ogni manuale */
   manualIndexStats(files: string[]): Promise<Record<string, number>>;
+  // benedizioni e maledizioni (il giocatore riceve solo quelle visibili e attive)
+  afflictions(personaggioId: string): Promise<Afflizione[]>;
+  saveAffliction(a: Afflizione): Promise<void>;
+  deleteAffliction(id: string): Promise<void>;
 }
 
 const URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
@@ -97,9 +101,9 @@ function mergeCatalog(custom: Ability[]) {
 interface DemoDb {
   v: number; pg: StaffCharacter[]; profili: Profile[]; abilita: Ability[];
   eventi: Evento[]; iscrizioni: Iscrizione[]; note: (Nota & { utente: string })[]; missive: Missiva[];
-  impostazioni: Impostazioni; files: Record<string, string>; domande?: DomandaStaff[];
+  impostazioni: Impostazioni; files: Record<string, string>; domande?: DomandaStaff[]; afflizioni?: Afflizione[];
 }
-const DEMO_V = 5;
+const DEMO_V = 6;
 function demoSeed(): DemoDb {
   const profili: Profile[] = [
     { id: 'staff-demo', email: 'staff@esempio.it', nome: 'Organizzatore (esempio)', ruolo: 'staff' },
@@ -117,6 +121,11 @@ function demoSeed(): DemoDb {
       pagamento: { iban: '', intestatario: '', paypal: '', causale: '' },
     }],
     iscrizioni: [], note: [], impostazioni: IMPOSTAZIONI_DEFAULT,
+    afflizioni: [
+      { id: 'af-1', personaggioId: 'demo-sigurd', tipo: 'benedizione', nome: 'Benedizione di esempio', effetto: 'Esempio inserito per provare la funzione: qui lo staff scrive cosa fa la benedizione.', origine: 'Thor', durata: 'Fino al prossimo live', nascosta: false, terminata: false },
+      { id: 'af-2', personaggioId: 'demo-sigurd', tipo: 'maledizione', nome: 'Maledizione di esempio', effetto: 'Esempio di maledizione visibile al giocatore.', origine: 'Un altare profanato', durata: 'Permanente', nascosta: false, terminata: false },
+      { id: 'af-3', personaggioId: 'demo-sigurd', tipo: 'maledizione', nome: 'Maledizione nascosta di esempio', effetto: 'La vede solo lo staff.', nascosta: true, terminata: false },
+    ],
     missive: [{
       id: 'm-esempio', utente: 'p1', personaggioId: 'demo-sigurd', mittente: 'Sigurd Vreitsson', tipo: 'rapida',
       destinatario: 'Jarl Raven Crowsson', testo: 'Mio signore, chiedo udienza al prossimo raduno dei Fyrd. Porto notizie dai villaggi del nord.',
@@ -254,6 +263,17 @@ function demoApi(): Api {
       for (const p of demoManuali()) out[p.manuale] = (out[p.manuale] ?? 0) + 1;
       return out;
     },
+    async afflictions(personaggioId) {
+      const tutte = (db.afflizioni ?? []).filter((a) => a.personaggioId === personaggioId);
+      return user?.ruolo === 'staff' ? tutte : tutte.filter((a) => !a.nascosta && !a.terminata);
+    },
+    async saveAffliction(a) {
+      const saved = { ...a, id: a.id || uid() };
+      const list = db.afflizioni ?? [];
+      db.afflizioni = list.some((x) => x.id === saved.id) ? list.map((x) => (x.id === saved.id ? saved : x)) : [...list, saved];
+      persist();
+    },
+    async deleteAffliction(id) { db.afflizioni = (db.afflizioni ?? []).filter((a) => a.id !== id); persist(); },
   };
 }
 
@@ -445,6 +465,21 @@ function supabaseApi(sb: SupabaseClient): Api {
       }
       return out;
     },
+    async afflictions(personaggioId) {
+      const { data, error } = await sb.from('afflizioni').select('*').eq('personaggio_id', personaggioId).order('creata_il');
+      if (error) return []; // tabella non ancora creata
+      return (data ?? []).map((r) => ({
+        id: r.id, personaggioId: r.personaggio_id, tipo: r.tipo, nome: r.nome, effetto: r.effetto ?? '',
+        origine: r.origine ?? undefined, durata: r.durata ?? undefined, nascosta: r.nascosta, terminata: r.terminata,
+      }));
+    },
+    async saveAffliction(a) {
+      const row = { ...(a.id ? { id: a.id } : {}), personaggio_id: a.personaggioId, tipo: a.tipo, nome: a.nome, effetto: a.effetto,
+        origine: a.origine || null, durata: a.durata || null, nascosta: a.nascosta, terminata: a.terminata };
+      const { error } = await sb.from('afflizioni').upsert(row);
+      if (error) throw new Error(error.message.includes('afflizioni') ? 'Benedizioni e maledizioni non sono ancora installate: esegui benedizioni.sql in Supabase.' : error.message);
+    },
+    async deleteAffliction(id) { fail((await sb.from('afflizioni').delete().eq('id', id)).error); },
   };
 }
 

@@ -5,6 +5,7 @@ import { ARMOR, ARMOR_ORDER, effectiveRace, type Computed } from '../rules';
 import { raceLabel } from '../data/races';
 import { BodyFigure } from './BodyFigure';
 import { BottomSheet } from './Sheet';
+import { AfflizioniRiga, AfflizioniSezione } from './Afflizioni';
 import { astroOf, PANTHEON } from '../data/deities';
 
 const ARMOR_SKILL: Record<ArmorType, string> = {
@@ -52,6 +53,8 @@ export function SchedaTab({ pg, calc, races, onSaveEq, onPoteri }: {
           <span className="pm-qta"><strong key={p.qta}>{p.qta}</strong> {p.risorsa === 'Punti Potere' ? 'PP' : p.risorsa}</span>
         </button>
       ))}
+
+      <AfflizioniRiga personaggioId={pg.id} />
 
       {editLoc && (
         <EquipEditor
@@ -119,6 +122,7 @@ export function PersonaggioTab({ pg, races }: { pg: Character; races: Race[] }) 
         )}
         {pg.note && <div><span className="tag">Note dei Master</span><p>{pg.note}</p></div>}
       </section>
+      <AfflizioniSezione personaggioId={pg.id} />
     </div>
   );
 }

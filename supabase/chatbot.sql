@@ -36,9 +36,11 @@ revoke all on schema privato from public, anon, authenticated;
 create table if not exists privato.ai_config (
   id int primary key default 1 check (id = 1),
   gemini_api_key text,
-  modello text not null default 'gemini-2.5-flash',
+  modello text not null default 'gemini-3.5-flash-lite',
   limite_giornaliero int not null default 30      -- domande per giocatore nelle ultime 24 ore
 );
+-- modello di riserva, usato quando quello principale è sovraccarico o non disponibile
+alter table privato.ai_config add column if not exists modello_riserva text default 'gemini-flash-latest';
 insert into privato.ai_config (id) values (1) on conflict (id) do nothing;
 revoke all on privato.ai_config from public, anon, authenticated;
 
@@ -90,6 +92,7 @@ declare
   v_turno jsonb;
   v_resp extensions.http_response;
   v_testo text;
+  v_modello text;
   v_istruzioni text := 'Sei l''assistente delle regole di Grayvent Live, un gioco di ruolo dal vivo (LARP). '
     || 'Rispondi in italiano, in modo chiaro e conciso, basandoti ESCLUSIVAMENTE sugli estratti dei manuali che ti vengono forniti. '
     || 'Se gli estratti non contengono la risposta, dillo apertamente e suggerisci di chiedere allo staff: non inventare mai regole, numeri o eccezioni. '
@@ -145,27 +148,39 @@ begin
     'text', E'Estratti dei manuali di Grayvent:\n\n' || v_contesto || E'\n\n===\n\nDomanda del giocatore: ' || p_domanda))));
 
   perform extensions.http_set_curlopt('CURLOPT_TIMEOUT', '40');
-  -- la chiave va nell'intestazione x-goog-api-key: funziona sia con le chiavi AIza... sia con quelle nuove AQ....
-  select * into v_resp from extensions.http((
-    'POST',
-    'https://generativelanguage.googleapis.com/v1beta/models/' || cfg.modello || ':generateContent',
-    array[extensions.http_header('x-goog-api-key', cfg.gemini_api_key)],
-    'application/json',
-    jsonb_build_object(
-      'systemInstruction', jsonb_build_object('parts', jsonb_build_array(jsonb_build_object('text', v_istruzioni))),
-      'contents', v_contents,
-      'generationConfig', jsonb_build_object('temperature', 0.2, 'maxOutputTokens', 1024)
-    )::text
-  )::extensions.http_request);
+  -- prova il modello principale; se è sovraccarico o non disponibile, il modello di riserva
+  foreach v_modello in array array_remove(array[cfg.modello, nullif(cfg.modello_riserva, cfg.modello)], null) loop
+    -- la chiave va nell'intestazione x-goog-api-key: funziona sia con le chiavi AIza... sia con quelle nuove AQ....
+    select * into v_resp from extensions.http((
+      'POST',
+      'https://generativelanguage.googleapis.com/v1beta/models/' || v_modello || ':generateContent',
+      array[extensions.http_header('x-goog-api-key', cfg.gemini_api_key)],
+      'application/json',
+      jsonb_build_object(
+        'systemInstruction', jsonb_build_object('parts', jsonb_build_array(jsonb_build_object('text', v_istruzioni))),
+        'contents', v_contents,
+        'generationConfig', jsonb_build_object('temperature', 0.2, 'maxOutputTokens', 8192)
+      )::text
+    )::extensions.http_request);
+    exit when v_resp.status not in (404, 429, 500, 502, 503, 504);
+    raise warning 'Gemini % su %: provo il modello di riserva', v_resp.status, v_modello;
+  end loop;
 
-  if v_resp.status = 429 then
+  if v_resp.status = 404 then
+    raise exception 'Il modello di Gemini impostato non è disponibile: lo staff deve aggiornare il nome del modello.';
+  elsif v_resp.status = 429 then
     raise exception 'Il chatbot ha ricevuto troppe domande in poco tempo. Riprova tra qualche minuto.';
+  elsif v_resp.status in (500, 502, 503, 504) then
+    raise exception 'Il servizio di intelligenza artificiale è sovraccarico in questo momento. Riprova tra qualche minuto.';
   elsif v_resp.status <> 200 then
     raise warning 'Gemini % : %', v_resp.status, left(v_resp.content, 500);
     raise exception 'Il chatbot al momento non risponde (errore %). Riprova più tardi.', v_resp.status;
   end if;
 
-  v_testo := (v_resp.content::jsonb) #>> '{candidates,0,content,parts,0,text}';
+  -- unisce i pezzi di testo della risposta, saltando eventuali "pensieri" del modello
+  select string_agg(p->>'text', '' order by o) into v_testo
+    from jsonb_array_elements(coalesce((v_resp.content::jsonb) #> '{candidates,0,content,parts}', '[]'::jsonb)) with ordinality as t(p, o)
+    where coalesce((p->>'thought')::boolean, false) = false;
   if coalesce(v_testo, '') = '' then
     v_testo := 'Non sono riuscito a formulare una risposta. Prova a riformulare la domanda oppure contatta lo staff.';
   end if;
@@ -176,6 +191,10 @@ begin
 end $$;
 
 revoke all on function public.chiedi_manuali(text, jsonb) from public, anon;
+
+-- Supabase interrompe le richieste dell'app dopo 8 secondi: all'AI serve più tempo per rispondere
+alter role authenticated set statement_timeout = '60s';
+notify pgrst, 'reload config';
 grant execute on function public.chiedi_manuali(text, jsonb) to authenticated;
 
 -- ---------- avvisi email per le domande allo staff (se notifiche.sql è installato) ----------
@@ -218,5 +237,6 @@ create trigger avviso_domanda after insert or update of risposta on public.doman
 --
 -- Facoltativo:
 -- update privato.ai_config set limite_giornaliero = 30;          -- domande al giorno per giocatore
--- update privato.ai_config set modello = 'gemini-2.5-flash';     -- modello di Gemini da usare
+-- update privato.ai_config set modello = 'gemini-3.5-flash-lite';          -- modello principale (leggero e veloce)
+-- update privato.ai_config set modello_riserva = 'gemini-flash-latest';   -- usato se il principale è sovraccarico
 -- =====================================================================

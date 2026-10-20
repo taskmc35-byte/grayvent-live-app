@@ -8,6 +8,7 @@ import { DEI_MINORI, PANTHEON, astroOf } from '../../data/deities';
 import { ARMOR, ARMOR_ORDER, compute } from '../../rules';
 import { gruppiSlot } from '../../slots';
 import { motivoIncompatibile } from '../../incompat';
+import { AfflizioniEditor } from '../Afflizioni';
 
 const CAT: { id: Categoria; nome: string }[] = [
   { id: 'fisico', nome: 'Fisico' }, { id: 'mentale', nome: 'Mentale' }, { id: 'sovrannaturale', nome: 'Sovrannaturale' },
@@ -336,10 +337,12 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
         )}
       </fieldset>
 
+      <AfflizioniEditor personaggioId={initial.id || undefined} />
+
       <fieldset className="fs">
         <legend>Abilità speciali e note</legend>
         <div className="field">
-          <label htmlFor="abspec">Una per riga (es. tatuaggi, benedizioni, oggetti legati al personaggio)</label>
+          <label htmlFor="abspec">Una per riga (es. tatuaggi, oggetti legati al personaggio)</label>
           <textarea id="abspec" rows={4} value={c.abilitaSpeciali ?? ''} onChange={(e) => set('abilitaSpeciali', e.target.value || undefined)} />
         </div>
       </fieldset>

@@ -171,3 +171,11 @@ export interface DomandaStaff {
   id: string; utente: string; domanda: string; rispostaBot?: string; messaggio?: string;
   stato: 'aperta' | 'risposta'; risposta?: string; rispostaIl?: string; creata: string;
 }
+
+/** Benedizione o Maledizione che affligge un personaggio (inserita dallo staff) */
+export interface Afflizione {
+  id: string; personaggioId: string; tipo: 'benedizione' | 'maledizione';
+  nome: string; effetto: string; origine?: string; durata?: string;
+  /** il giocatore non la vede */ nascosta: boolean;
+  /** conclusa: resta solo nello storico dello staff */ terminata: boolean;
+}
