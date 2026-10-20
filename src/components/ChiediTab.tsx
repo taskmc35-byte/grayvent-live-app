@@ -97,7 +97,7 @@ export function ChiediTab({ onApri }: { onApri: (f: FonteManuale) => void }) {
               onInviato={() => { esito(i, 'inviato'); ricaricaDomande(); }} />}
           </div>
         ))}
-        {busy && <div className="bubble bot typing" aria-label="Sto consultando i manuali"><span /><span /><span /> <em>Sto consultando i manuali…</em></div>}
+        {busy && <Attesa />}
         <div ref={fondo} />
       </div>
       </div>
@@ -150,3 +150,11 @@ function Esito({ m, onSi, onScrivi, onAnnulla, onInviato }: {
 }
 
 const dedup = (f: FonteManuale[]) => f.filter((x, i) => f.findIndex((y) => y.manuale === x.manuale && y.pagina === x.pagina) === i).slice(0, 5);
+
+/** Messaggio di attesa che cambia col passare dei secondi, così si capisce che il chatbot sta lavorando */
+function Attesa() {
+  const [s, setS] = useState(0);
+  useEffect(() => { const t = setInterval(() => setS((x) => x + 1), 1000); return () => clearInterval(t); }, []);
+  const testo = s < 4 ? 'Sto consultando i manuali…' : s < 10 ? 'Sto leggendo i passaggi giusti…' : s < 20 ? 'Sto scrivendo la risposta…' : 'Ci vuole un po’ più del solito, quasi fatto…';
+  return <div className="bubble bot typing" role="status" aria-label={testo}><span /><span /><span /> <em>{testo}</em></div>;
+}

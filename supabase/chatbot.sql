@@ -53,6 +53,8 @@ create table if not exists public.chat_log (
   creata_il timestamptz not null default now()
 );
 create index if not exists chat_log_utente on public.chat_log (utente, creata_il);
+alter table public.chat_log add column if not exists durata_ms int;
+alter table public.chat_log add column if not exists modello text;
 alter table public.chat_log enable row level security;
 drop policy if exists cl_sel on public.chat_log;
 create policy cl_sel on public.chat_log for select using (utente = auth.uid() or public.is_staff());
@@ -93,8 +95,10 @@ declare
   v_resp extensions.http_response;
   v_testo text;
   v_modello text;
+  v_inizio timestamptz := clock_timestamp();
   v_istruzioni text := 'Sei l''assistente delle regole di Grayvent Live, un gioco di ruolo dal vivo (LARP). '
-    || 'Rispondi in italiano, in modo chiaro e conciso, basandoti ESCLUSIVAMENTE sugli estratti dei manuali che ti vengono forniti. '
+    || 'Rispondi in italiano basandoti ESCLUSIVAMENTE sugli estratti dei manuali che ti vengono forniti. '
+    || 'Sii breve: vai dritto al punto in poche frasi (al massimo circa 120 parole), approfondisci solo se il giocatore lo chiede. '
     || 'Se gli estratti non contengono la risposta, dillo apertamente e suggerisci di chiedere allo staff: non inventare mai regole, numeri o eccezioni. '
     || 'Quando usi un''informazione, indica tra parentesi manuale e pagina, per esempio (Manuale del Giocatore, pag. 12). '
     || 'Usa testo semplice: al massimo elenchi puntati con il trattino. Rispondi solo a domande sul gioco Grayvent.';
@@ -126,7 +130,7 @@ begin
       from (
         select manuale, titolo, pagina, testo, ts_rank_cd(tsv, v_query) as rank
         from public.manuali_parti where tsv @@ v_query
-        order by rank desc limit 8
+        order by rank desc limit 6
       ) t;
   end if;
 
@@ -159,7 +163,7 @@ begin
       jsonb_build_object(
         'systemInstruction', jsonb_build_object('parts', jsonb_build_array(jsonb_build_object('text', v_istruzioni))),
         'contents', v_contents,
-        'generationConfig', jsonb_build_object('temperature', 0.2, 'maxOutputTokens', 8192)
+        'generationConfig', jsonb_build_object('temperature', 0.2, 'maxOutputTokens', 2048)
       )::text
     )::extensions.http_request);
     exit when v_resp.status not in (404, 429, 500, 502, 503, 504);
@@ -185,7 +189,8 @@ begin
     v_testo := 'Non sono riuscito a formulare una risposta. Prova a riformulare la domanda oppure contatta lo staff.';
   end if;
 
-  insert into public.chat_log (utente, domanda, risposta) values (v_utente, p_domanda, v_testo);
+  insert into public.chat_log (utente, domanda, risposta, durata_ms, modello)
+    values (v_utente, p_domanda, v_testo, (extract(epoch from clock_timestamp() - v_inizio) * 1000)::int, v_modello);
   return jsonb_build_object('risposta', v_testo, 'fonti', v_fonti,
     'rimaste', greatest(cfg.limite_giornaliero - v_usate - 1, 0));
 end $$;
@@ -230,6 +235,9 @@ end $$;
 drop trigger if exists avviso_domanda on public.domande_staff;
 create trigger avviso_domanda after insert or update of risposta on public.domande_staff
   for each row execute function privato.avviso_domanda();
+
+-- Tempi di risposta delle ultime domande (per capire se il chatbot è lento):
+-- select creata_il, modello, durata_ms, left(domanda, 60) from public.chat_log order by creata_il desc limit 10;
 
 -- =====================================================================
 -- ULTIMO PASSO: inserisci la chiave di Gemini (Google AI Studio) ed esegui.
