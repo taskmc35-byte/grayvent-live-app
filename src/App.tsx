@@ -67,11 +67,13 @@ export default function App() {
   const dovute = useMemo(() => (pg ? scelteDovute(pg, SPELLS, (id) => catalog.find((a) => a.id === id)?.nome ?? id) : null), [pg, catalog]);
   const daScegliere = !!dovute && dovute.gruppi.length > 0;
   const [sceltaAperta, setSceltaAperta] = useState(false);
+  const [impostazioni, setImpostazioni] = useState(false);
   const [sceltaVista, setSceltaVista] = useState(false);
   useIndietroBase(setToast);
   useIndietro(!!user && user.ruolo !== 'staff' && tab !== 'scheda', () => { setTab('scheda'); window.scrollTo(0, 0); });
   useIndietro(!!user && user.ruolo !== 'staff' && tab === 'scheda' && sub !== 'scheda' && !crea, () => setSub('scheda'));
   useIndietro(sceltaAperta && daScegliere, () => setSceltaAperta(false));
+  useIndietro(impostazioni, () => setImpostazioni(false));
   // la schermata si apre da sola la prima volta che ci sono poteri da scegliere; poi resta l'avviso
   useEffect(() => { if (daScegliere && !sceltaVista && user?.ruolo !== 'staff') { setSceltaAperta(true); setSceltaVista(true); } }, [daScegliere, sceltaVista, user]);
 
@@ -106,13 +108,14 @@ export default function App() {
   } else if (pg && calc) {
     schedaView = (
       <>
-        <div className="subnav-wrap">
+        <div className="subnav-wrap con-ingranaggio">
           <div className="seg subnav" role="tablist" aria-label="Scheda">
             <button role="tab" aria-selected={activeSub === 'scheda'} onClick={() => setSub('scheda')}>Scheda</button>
             <button role="tab" aria-selected={activeSub === 'personaggio'} onClick={() => setSub('personaggio')}>Personaggio</button>
             <button role="tab" aria-selected={activeSub === 'abilita'} onClick={() => setSub('abilita')}>Abilità</button>
             {hasPoteri && <button role="tab" aria-selected={activeSub === 'poteri'} onClick={() => setSub('poteri')}>Poteri</button>}
           </div>
+          <BottoneImpostazioni onClick={() => setImpostazioni(true)} />
         </div>
         {inAttesa && <div className="page" style={{ paddingBottom: 0 }}><StatoCard c={inAttesa} onEdit={() => setCrea(inAttesa)} compatto /></div>}
         {activeSub === 'scheda' && daScegliere && dovute && <div className="page" style={{ paddingBottom: 0 }}><AvvisoScelta dovute={dovute} onApri={() => setSceltaAperta(true)} /></div>}
@@ -155,15 +158,12 @@ export default function App() {
         {tab === 'taccuino' && <TaccuinoTab onToast={setToast} />}
         {tab === 'manuali' && <ManualiTab />}
       </div>
-      {tab === 'scheda' && !crea && (activeSub === 'personaggio' || !pg) && (
-        <div className="page" style={{ paddingTop: 0, paddingBottom: 0 }}><InterruttoreNotifiche onToast={setToast} /></div>
-      )}
-      {!api.demo && tab === 'scheda' && !crea && (
+      {tab === 'scheda' && !crea && !(pg && calc) && (
         <div className="page" style={{ paddingTop: 0 }}>
-          <PasswordForm onDone={() => setToast('Password salvata')} />
-          <button className="btn ghost block" onClick={logout}>Esci</button>
+          <button className="btn ghost block" onClick={() => setImpostazioni(true)}>Impostazioni</button>
         </div>
       )}
+      {impostazioni && <Impostazioni user={user} onClose={() => setImpostazioni(false)} onToast={setToast} onLogout={() => { setImpostazioni(false); logout(); }} />}
 
       <nav className="tabbar" aria-label="Sezioni">
         <div className="tabbar-inner">
@@ -193,6 +193,47 @@ function StatoCard({ c, onEdit, compatto }: { c: Character; onEdit: () => void; 
       {rivedere && c.notaStaff && <blockquote className="staff-note">{c.notaStaff}</blockquote>}
       <button className={`btn ${rivedere ? 'primary' : 'ghost'}`} onClick={onEdit}>{rivedere ? 'Modifica e reinvia' : 'Modifica la scheda inviata'}</button>
     </section>
+  );
+}
+
+function BottoneImpostazioni({ onClick }: { onClick: () => void }) {
+  return (
+    <button className="ingranaggio" onClick={onClick} aria-label="Impostazioni">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
+      </svg>
+    </button>
+  );
+}
+
+/** Impostazioni del giocatore: notifiche, password, uscita */
+function Impostazioni({ user, onClose, onToast, onLogout }: { user: User; onClose: () => void; onToast: (t: string) => void; onLogout: () => void }) {
+  return (
+    <div className="impostazioni" role="dialog" aria-modal="true" aria-label="Impostazioni">
+      <div className="page">
+        <button className="link" style={{ alignSelf: 'flex-start' }} onClick={onClose}>Torna alla scheda</button>
+        <h1 style={{ fontSize: '2rem' }}>Impostazioni</h1>
+        <section className="imp-gruppo">
+          <h2 className="section-title">Account</h2>
+          <div className="imp-account">
+            <strong>{user.nome || 'Giocatore'}</strong>
+            {user.email && user.email !== 'demo' && <span>{user.email}</span>}
+          </div>
+        </section>
+        <section className="imp-gruppo">
+          <h2 className="section-title">Notifiche</h2>
+          <InterruttoreNotifiche onToast={onToast} />
+        </section>
+        {!api.demo && (
+          <section className="imp-gruppo">
+            <h2 className="section-title">Password</h2>
+            <PasswordForm onDone={() => onToast('Password salvata')} />
+          </section>
+        )}
+        <button className="btn ghost block" onClick={onLogout}>{api.demo ? 'Cambia utente' : 'Esci'}</button>
+      </div>
+    </div>
   );
 }
 

@@ -1064,3 +1064,17 @@ div.libro { cursor: default; }
 .interruttore.on span { transform: translateX(22px); background: #fff6e0; }
 .interruttore:disabled { opacity: 0.6; }
 .push-wrap:empty { display: none; }
+
+/* ---------- Impostazioni del giocatore ---------- */
+.subnav-wrap.con-ingranaggio { display: flex; gap: 8px; align-items: stretch; }
+.subnav-wrap.con-ingranaggio .subnav { flex: 1; min-width: 0; }
+.ingranaggio { flex: none; width: 46px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: var(--r-sm);
+  background: rgb(0 0 0 / 0.25); color: var(--muted); cursor: pointer; }
+.ingranaggio:active { transform: scale(0.96); }
+.impostazioni { position: fixed; inset: 0; z-index: 38; overflow-y: auto; background-color: var(--bg);
+  background-image: var(--noise), radial-gradient(110% 380px at 50% 300px, #45403a 0%, transparent 70%); padding-top: env(safe-area-inset-top, 0px); }
+.impostazioni .page { max-width: 560px; margin: 0 auto; padding-bottom: 40px; }
+.imp-gruppo { display: flex; flex-direction: column; gap: 10px; }
+.imp-account { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid #5d5145; border-radius: var(--r-sm); background: var(--surface); }
+.imp-account strong { font-family: var(--display); font-size: 1.2rem; }
+.imp-account span { color: var(--muted); font-size: 0.92rem; overflow-wrap: anywhere; }
