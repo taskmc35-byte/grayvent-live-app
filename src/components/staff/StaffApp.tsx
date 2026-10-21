@@ -10,6 +10,7 @@ import { StaffEventi } from './StaffEventi';
 import { ImpostazioniMissive, StaffMissive } from './StaffMissive';
 import { Seal } from '../Seal';
 import { useIndietro, useIndietroBase } from '../../indietro';
+import { InterruttoreNotifiche, InvitoNotifiche } from '../NotifichePush';
 
 type Tab = 'personaggi' | 'eventi' | 'missive' | 'altro';
 type Altro = 'abilita' | 'account' | 'impostazioni' | 'manuali';
@@ -80,6 +81,7 @@ export function StaffApp({ user, spells, onLogout, onToast }: { user: User; spel
 
       {tab === 'personaggi' && !editing && (
         <div className="page">
+          <InvitoNotifiche onToast={onToast} />
           <div className="list-head">
             <h1>Personaggi</h1>
             <button className="btn primary" onClick={() => setEditing(emptyCharacter())}>Nuova scheda</button>
@@ -122,6 +124,7 @@ export function StaffApp({ user, spells, onLogout, onToast }: { user: User; spel
               onDelete={async (id) => { await api.deleteAbility(id); await reload(); onToast('Fatto'); }}
             />
           )}
+          {altro === 'account' && <div className="page" style={{ paddingBottom: 0 }}><InterruttoreNotifiche onToast={onToast} /></div>}
           {altro === 'account' && <Accounts me={user} profiles={profiles} pgs={pgs} onChange={reload} onToast={onToast} onLogout={onLogout} />}
           {altro === 'impostazioni' && <div className="page"><h1>Tipi di missiva</h1><ImpostazioniMissive onToast={onToast} /></div>}
           {altro === 'manuali' && <ChatbotPanel onToast={onToast} />}

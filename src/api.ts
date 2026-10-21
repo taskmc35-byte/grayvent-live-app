@@ -34,6 +34,10 @@ export interface Api {
   saveEquipment(id: string, eq: Character['equipaggiamento']): Promise<void>;
   /** il giocatore conferma (una volta sola) gli incantesimi o miracoli scelti */
   chooseSpells(id: string, ids: string[]): Promise<void>;
+  // notifiche push
+  pushChiave(): Promise<string | null>;
+  pushIscrivi(endpoint: string, p256dh: string, auth: string): Promise<void>;
+  pushDisiscrivi(endpoint: string): Promise<void>;
   /** il giocatore invia (o reinvia) la scheda creata con la creazione guidata */
   submitCharacter(c: Character, bgFile?: File | null): Promise<void>;
   catalog(): Promise<Ability[]>;
@@ -187,6 +191,9 @@ function demoApi(): Api {
     async setPassword() { /* niente in demo */ },
     async myCharacters() { return db.pg.filter((c) => c.proprietario === user?.id && (c.attivo || c.stato !== 'approvato')); },
     async saveEquipment(id, eq) { db.pg = db.pg.map((c) => (c.id === id ? { ...c, equipaggiamento: eq } : c)); persist(); },
+    async pushChiave() { return null; },
+    async pushIscrivi() { /* in prova non c'è un server che manda le notifiche */ },
+    async pushDisiscrivi() { /* idem */ },
     async chooseSpells(id, ids) {
       db.pg = db.pg.map((c) => (c.id === id && c.proprietario === user?.id ? { ...c, incantesimi: [...c.incantesimi, ...ids.filter((x) => !c.incantesimi.includes(x))] } : c)); persist();
     },
@@ -413,6 +420,18 @@ function supabaseApi(sb: SupabaseClient): Api {
       return (data ?? []).map(toStaff);
     },
     async saveEquipment(id, eq) { fail((await sb.rpc('salva_equipaggiamento', { p_id: id, p_eq: eq })).error); },
+    async pushChiave() {
+      const { data, error } = await sb.rpc('push_chiave');
+      if (error) throw new Error(/push_chiave/.test(error.message) ? 'Notifiche non ancora installate: lo staff deve eseguire push.sql in Supabase.' : error.message);
+      if (data) return data as string;
+      // primo uso: la Edge Function crea le chiavi
+      const r = await fetch(`${URL}/functions/v1/push`, { method: 'POST', headers: { apikey: KEY!, Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ azione: 'inizializza' }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.pubblica) throw new Error('Notifiche non ancora attive: lo staff deve pubblicare la funzione "push" in Supabase.');
+      return j.pubblica as string;
+    },
+    async pushIscrivi(endpoint, p256dh, auth) { fail((await sb.rpc('push_iscrivi', { p_endpoint: endpoint, p_p256dh: p256dh, p_auth: auth })).error); },
+    async pushDisiscrivi(endpoint) { await sb.rpc('push_disiscrivi', { p_endpoint: endpoint }); },
     async chooseSpells(id, ids) {
       const { error } = await sb.rpc('scegli_incantesimi', { p_id: id, p_ids: ids });
       if (error) throw new Error(error.message.includes('scegli_incantesimi') ? 'Scelta degli incantesimi non ancora attiva: lo staff deve eseguire scelta_incantesimi.sql in Supabase.' : error.message);

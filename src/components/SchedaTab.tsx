@@ -143,9 +143,10 @@ function useFitHeight() {
     };
     upd();
     window.addEventListener('resize', upd);
+    window.addEventListener('gv-layout', upd);
     const mo = new MutationObserver(upd); // la riga di benedizioni/maledizioni arriva dopo il caricamento
     mo.observe(el, { childList: true });
-    return () => { window.removeEventListener('resize', upd); mo.disconnect(); };
+    return () => { window.removeEventListener('resize', upd); window.removeEventListener('gv-layout', upd); mo.disconnect(); };
   }, []);
   return ref;
 }

@@ -1042,3 +1042,25 @@ div.libro { cursor: default; }
 
 /* testi scuri delle pergamene disegnati come sfondo ritagliato (vedi inchiostro.ts): restano scuri anche con le pagine scure forzate */
 .gv-ink { color: transparent !important; -webkit-text-fill-color: transparent; background-image: linear-gradient(var(--gv-ink), var(--gv-ink)); -webkit-background-clip: text; background-clip: text; }
+
+/* ---------- Notifiche push ---------- */
+.push-invito { display: flex; gap: 12px; align-items: flex-start; padding: 14px; margin-bottom: 12px; border-radius: var(--r-lg);
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, #5d5145); background-color: var(--surface);
+  background-image: var(--noise), radial-gradient(90% 140% at 0% 0%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 70%);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.3); }
+.push-campana { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: #1f1a16;
+  background: radial-gradient(circle at 35% 30%, #e2c58c, var(--gold) 55%, #9c7a40); box-shadow: 0 3px 8px rgb(0 0 0 / 0.4); }
+.push-campana.piccola { width: 34px; height: 34px; }
+.push-campana.piccola svg { width: 18px; height: 18px; }
+.push-testo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.push-testo strong { font-family: var(--display); font-size: 1.15rem; font-weight: 700; }
+.push-testo > span { color: var(--muted); font-size: 0.92rem; line-height: 1.35; }
+.push-azioni { display: flex; gap: 8px; margin-top: 8px; }
+.push-azioni .btn { min-height: 40px; padding: 6px 16px; }
+.push-riga { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid #5d5145; border-radius: var(--r-sm); background: var(--surface); }
+.interruttore { flex: none; position: relative; width: 52px; height: 30px; border-radius: 999px; border: 1px solid #5d5145; background: #3a332d; cursor: pointer; padding: 0; transition: background 0.2s; }
+.interruttore span { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #a99c88; transition: transform 0.2s, background 0.2s; }
+.interruttore.on { background: color-mix(in srgb, var(--gold) 70%, #3a332d); border-color: var(--gold); }
+.interruttore.on span { transform: translateX(22px); background: #fff6e0; }
+.interruttore:disabled { opacity: 0.6; }
+.push-wrap:empty { display: none; }

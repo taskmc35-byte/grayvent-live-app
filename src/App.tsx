@@ -19,6 +19,8 @@ import { EventiTab } from './components/EventiTab';
 import { MissiveTab } from './components/MissiveTab';
 import { TaccuinoTab } from './components/TaccuinoTab';
 import { useIndietro, useIndietroBase } from './indietro';
+import { InterruttoreNotifiche, InvitoNotifiche } from './components/NotifichePush';
+import { riallineaPush } from './push';
 
 const SPELLS = spellsJson as Spell[];
 type Tab = 'scheda' | 'eventi' | 'missive' | 'taccuino' | 'manuali';
@@ -48,6 +50,7 @@ export default function App() {
   const load = useCallback(async () => {
     const u = await api.currentUser();
     setUser(u);
+    if (u) riallineaPush();
     if (!u) return;
     try {
       const [c, cat] = await Promise.all([api.myCharacters(), api.catalog()]);
@@ -113,6 +116,7 @@ export default function App() {
         </div>
         {inAttesa && <div className="page" style={{ paddingBottom: 0 }}><StatoCard c={inAttesa} onEdit={() => setCrea(inAttesa)} compatto /></div>}
         {activeSub === 'scheda' && daScegliere && dovute && <div className="page" style={{ paddingBottom: 0 }}><AvvisoScelta dovute={dovute} onApri={() => setSceltaAperta(true)} /></div>}
+        {activeSub === 'scheda' && !daScegliere && <div className="page push-wrap" style={{ paddingBottom: 0 }}><InvitoNotifiche onToast={setToast} /></div>}
         {activeSub === 'scheda' && <SchedaTab pg={pg} calc={calc} races={RACES} catalog={catalog} onSaveEq={saveEq} onPoteri={hasPoteri ? () => setSub('poteri') : undefined} />}
         {activeSub === 'personaggio' && <PersonaggioTab pg={pg} races={RACES} />}
         {activeSub === 'abilita' && <AbilitaTab pg={pg} catalog={catalog} />}
@@ -151,6 +155,9 @@ export default function App() {
         {tab === 'taccuino' && <TaccuinoTab onToast={setToast} />}
         {tab === 'manuali' && <ManualiTab />}
       </div>
+      {tab === 'scheda' && !crea && (activeSub === 'personaggio' || !pg) && (
+        <div className="page" style={{ paddingTop: 0, paddingBottom: 0 }}><InterruttoreNotifiche onToast={setToast} /></div>
+      )}
       {!api.demo && tab === 'scheda' && !crea && (
         <div className="page" style={{ paddingTop: 0 }}>
           <PasswordForm onDone={() => setToast('Password salvata')} />

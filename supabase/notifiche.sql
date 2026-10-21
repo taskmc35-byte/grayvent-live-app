@@ -48,6 +48,8 @@ create or replace function privato.invia_email(dest text, oggetto text, titolo t
 language plpgsql security definer set search_path = privato, public as $$
 declare c privato.email_config;
 begin
+  -- notifica push in parallelo all'email (se push.sql è installato)
+  begin perform privato.accoda_push(dest, oggetto, corpo); exception when undefined_function then null; end;
   select * into c from privato.email_config where id = 1;
   if c.brevo_api_key is null or c.mittente_email is null or coalesce(dest, '') = '' then return; end if;
   perform net.http_post(
