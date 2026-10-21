@@ -25,6 +25,10 @@ if (hot?.ready) hot.ready(start); else start();
 avviaInchiostro();
 
 // Offline: registra il service worker solo sul sito vero (non nelle anteprime)
+// toccando una notifica con l'app già aperta, il service worker chiede di ricaricarla per mostrare le novità
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (e) => { if (e.data?.tipo === 'gv-ricarica') location.reload(); });
+}
 if ('serviceWorker' in navigator && import.meta.env.PROD && import.meta.env.MODE !== 'artifact') {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }

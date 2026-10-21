@@ -1,5 +1,5 @@
 // Service worker: rende l'app e i manuali consultabili anche senza rete.
-const CACHE = 'grayvent-v2';
+const CACHE = 'grayvent-v3';
 const MANUALI = ['manuale-giocatore', 'creazione-personaggio', 'manuale-misteri', 'incantesimi-miracoli', 'manuale-ambientazione']
   .map((m) => `manuali/${m}.pdf`);
 
@@ -40,7 +40,8 @@ self.addEventListener('notificationclick', (e) => {
   e.notification.close();
   const url = new URL((e.notification.data && e.notification.data.url) || './', self.registration.scope).href;
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-    for (const c of list) if (c.url.startsWith(self.registration.scope) && 'focus' in c) return c.focus();
+    // app già aperta (anche in background): la faccio ricaricare da zero, così mostra subito le novità
+    for (const c of list) if (c.url.startsWith(self.registration.scope) && 'focus' in c) { c.postMessage({ tipo: 'gv-ricarica' }); return c.focus(); }
     return self.clients.openWindow(url);
   }));
 });

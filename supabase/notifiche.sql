@@ -39,7 +39,7 @@ create or replace function privato.email_html(titolo text, corpo text, sito text
       || '<p style="margin:0 0 4px;font-size:12px;letter-spacing:2px;color:#8f3324">GRAYVENT LIVE</p>'
       || '<h1 style="margin:0 0 16px;font-size:22px;font-weight:normal">' || titolo || '</h1>'
       || '<div style="font-size:15px;line-height:1.5">' || corpo || '</div>'
-      || '<p style="margin:24px 0 0"><a href="' || sito || '" style="background:#8f3324;color:#fff;padding:10px 18px;text-decoration:none;display:inline-block">Apri Grayvent Live App</a></p>'
+      || '<p style="margin:24px 0 0;padding-top:14px;border-top:1px solid #c2ae8a;color:#6f604e">Accedi all’app Grayvent Live per vedere tutte le novità.</p>'
       || '</div></div>';
 $$;
 
