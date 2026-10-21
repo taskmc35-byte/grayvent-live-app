@@ -6,7 +6,7 @@ import LOGO from '../../public/brand/logo-ink.png';
 
 type Modo = 'accedi' | 'registrati';
 
-export function Login({ onLogin }: { onLogin: () => void }) {
+export function Login({ onLogin, senzaLogo = false }: { onLogin: () => void; senzaLogo?: boolean }) {
   const [modo, setModo] = useState<Modo>('accedi');
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -83,11 +83,13 @@ export function Login({ onLogin }: { onLogin: () => void }) {
   );
 
   return (
-    <main className="login">
-      <div className="brand login-card">
-        <img src={LOGO} alt="Grayvent Live" width={872} height={530} />
-        <p>La scheda del tuo personaggio, anche tra un live e l’altro.</p>
-      </div>
+    <main className={`login${senzaLogo ? ' in-apertura' : ''}`}>
+      {!senzaLogo && (
+        <div className="brand login-card">
+          <img src={LOGO} alt="Grayvent Live" width={872} height={530} />
+          <p>La scheda del tuo personaggio, anche tra un live e l’altro.</p>
+        </div>
+      )}
       {tabs}
       {modo === 'registrati' ? formRegistrati : api.demo ? (
         <div className="demo-list">

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import SIGILLO from '../../public/brand/sigillo.webp';
 import LOGO from '../../public/brand/logo-light.webp';
 
@@ -8,6 +8,8 @@ import LOGO from '../../public/brand/logo-light.webp';
  *  2. linee di luce tracciano il cerchio rituale mentre otto rune ruotano attorno
  *  3. il sigillo vero emerge dalla luce, le rune convergono, lampo e onda d'urto
  *  4. compare la scritta Grayvent Live, attraversata da un riflesso dorato
+ * Se nessuno ha fatto l'accesso, alla fine non sparisce: il logo sale, le braci continuano in loop
+ * e sotto compare il riquadro di accesso / iscrizione (passato come children).
  * Tutto è disegnato nelle coordinate del logo (872 x 530), centro del sigillo in (567.5, 265).
  */
 const LW = 872, LH = 530, CX = 567.5, CY = 265;
@@ -27,14 +29,43 @@ const RUNE: string[] = [
 
 type Brace = { x: number; y: number; vx: number; vy: number; r: number; vita: number; max: number; c: string };
 
-export function Splash({ onFine }: { onFine: () => void }) {
+export function Splash({ onFine, resta = false, gia = false, children }: {
+  onFine: () => void; resta?: boolean; gia?: boolean; children?: ReactNode;
+}) {
   const tela = useRef<HTMLCanvasElement>(null);
-  const [uscita, setUscita] = useState(false);
+  const logo = useRef<HTMLDivElement>(null);
   const fermo = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // animazione finita (o saltata): da qui il logo è completo
+  const [finita, setFinita] = useState(gia);
+  const [saltata, setSaltata] = useState(gia);
+  const uscita = finita && !resta;
+  const conLogin = finita && resta;
 
-  useEffect(() => { const t = setTimeout(() => setUscita(true), fermo ? 1000 : USCITA); return () => clearTimeout(t); }, [fermo]);
+  useEffect(() => { if (finita) return; const t = setTimeout(() => setFinita(true), fermo ? 1000 : USCITA); return () => clearTimeout(t); }, [fermo, finita]);
   useEffect(() => { if (!uscita) return; const t = setTimeout(onFine, DISSOLVENZA); return () => clearTimeout(t); }, [uscita, onFine]);
 
+  // il logo sale al suo posto sopra il riquadro di accesso con un movimento fluido (FLIP)
+  const prima = useRef<DOMRect | null>(null);
+  const eraLogin = useRef(conLogin);
+  if (logo.current) prima.current = logo.current.getBoundingClientRect(); // posizione prima di questo aggiornamento
+  useLayoutEffect(() => {
+    const el = logo.current, da = prima.current;
+    const appena = conLogin && !eraLogin.current;
+    eraLogin.current = conLogin;
+    if (!el || !da || !appena || saltata) return;
+    const a = el.getBoundingClientRect();
+    if (!a.width) return;
+    el.style.transition = 'none';
+    el.style.transformOrigin = 'top left';
+    el.style.transform = `translate(${da.left - a.left}px, ${da.top - a.top}px) scale(${da.width / a.width})`;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      el.style.transition = 'transform 0.9s cubic-bezier(.3,.1,.2,1)';
+      el.style.transform = '';
+    }));
+  });
+
+  const restaRif = useRef(resta);
+  restaRif.current = resta;
   // braci che salgono su tutto lo schermo
   useEffect(() => {
     const cv = tela.current;
@@ -72,7 +103,7 @@ export function Splash({ onFine }: { onFine: () => void }) {
         g.addColorStop(0, `rgba(${b.c},${0.9 * a})`); g.addColorStop(1, `rgba(${b.c},0)`);
         ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 4, 0, Math.PI * 2); ctx.fill();
       }
-      if (t < USCITA + DISSOLVENZA) raf = requestAnimationFrame(frame);
+      if (t < USCITA + DISSOLVENZA || restaRif.current) raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
     addEventListener('resize', misura);
@@ -86,10 +117,12 @@ export function Splash({ onFine }: { onFine: () => void }) {
   const rombo = `${CX},${CY - 232} ${CX + 232},${CY} ${CX},${CY + 232} ${CX - 232},${CY}`;
 
   return (
-    <div className={`splash${uscita ? ' esce' : ''}${fermo ? ' fermo' : ''}`} onClick={() => setUscita(true)} aria-hidden="true">
+    <div className={`splash${uscita ? ' esce' : ''}${fermo ? ' fermo' : ''}${saltata ? ' finito' : ''}${conLogin ? ' con-login' : ''}`}
+      onClick={() => { if (!finita) { setSaltata(true); setFinita(true); } }} aria-hidden={conLogin ? undefined : true}>
       <div className="splash-fumo" />
       <canvas ref={tela} className="splash-braci" />
-      <div className="splash-logo" style={{ aspectRatio: `${LW} / ${LH}` }}>
+      <div className="splash-scena">
+      <div className="splash-logo" ref={logo} style={{ aspectRatio: `${LW} / ${LH}` }}>
         <div className="splash-alone" />
         <img className="splash-sigillo" src={SIGILLO} alt="" />
         <svg className="splash-traccia" viewBox={`0 0 ${LW} ${LH}`}>
@@ -121,6 +154,9 @@ export function Splash({ onFine }: { onFine: () => void }) {
         <img className="splash-scritta" src={LOGO} alt="" width={LW} height={LH} />
         <div className="splash-riflesso" style={{ WebkitMaskImage: `url(${LOGO})`, maskImage: `url(${LOGO})` }} />
       </div>
+      {conLogin && <p className="splash-motto">La scheda del tuo personaggio, anche tra un live e l’altro.</p>}
+      </div>
+      {conLogin && <div className="splash-login" onClick={(e) => e.stopPropagation()}>{children}</div>}
     </div>
   );
 }

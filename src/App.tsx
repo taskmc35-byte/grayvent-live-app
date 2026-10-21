@@ -21,6 +21,7 @@ import { TaccuinoTab } from './components/TaccuinoTab';
 import { useIndietro, useIndietroBase } from './indietro';
 import { InterruttoreNotifiche, InvitoNotifiche } from './components/NotifichePush';
 import { riallineaPush } from './push';
+import { Splash } from './components/Splash';
 
 const SPELLS = spellsJson as Spell[];
 type Tab = 'scheda' | 'eventi' | 'missive' | 'taccuino' | 'manuali';
@@ -68,6 +69,10 @@ export default function App() {
   const daScegliere = !!dovute && dovute.gruppi.length > 0;
   const [sceltaAperta, setSceltaAperta] = useState(false);
   const [impostazioni, setImpostazioni] = useState(false);
+  // animazione d'apertura: una volta per sessione; se non c'è nessuno collegato resta come sfondo dell'accesso
+  const [aperturaVista, setAperturaVista] = useState(() => { try { return sessionStorage.getItem('gv-splash') === '1'; } catch { return false; } });
+  const [aperturaFinita, setAperturaFinita] = useState(aperturaVista);
+  const fineApertura = useCallback(() => { try { sessionStorage.setItem('gv-splash', '1'); } catch { /* niente */ } setAperturaFinita(true); }, []);
   const [missiveNuove, setMissiveNuove] = useState(0);
   // puntino rosso su Missive: risposte e lettere dello staff non ancora lette
   const contaMissive = useCallback(() => {
@@ -90,11 +95,17 @@ export default function App() {
   // la schermata si apre da sola la prima volta che ci sono poteri da scegliere; poi resta l'avviso
   useEffect(() => { if (daScegliere && !sceltaVista && user?.ruolo !== 'staff') { setSceltaAperta(true); setSceltaVista(true); } }, [daScegliere, sceltaVista, user]);
 
-  if (user === undefined) return <div className="center">Caricamento…</div>;
-  if (!user) return <Login onLogin={load} />;
+  const apertura = (user === null || !aperturaFinita) && (
+    <Splash key="apertura" resta={user === null} gia={aperturaVista || aperturaFinita} onFine={fineApertura}>
+      {user === null && <Login senzaLogo onLogin={async () => { setAperturaVista(true); await load(); }} />}
+    </Splash>
+  );
+  if (user === undefined) return <>{apertura || <div className="center">Caricamento…</div>}</>;
+  if (!user) return <>{apertura}</>;
   if (user.ruolo === 'staff') return (
     <>
       <StaffApp user={user} spells={SPELLS} onToast={setToast} onLogout={async () => { await api.signOut(); setUser(null); }} />
+      {apertura}
       {toast && <div className="toast" role="status">{toast}</div>}
     </>
   );
@@ -162,6 +173,7 @@ export default function App() {
 
   return (
     <div className="app">
+      {apertura}
       {api.demo && <p className="demo-banner">Versione di prova con personaggi di esempio. <button className="link" onClick={logout}>Cambia utente</button></p>}
       {loadError && <div className="page"><div className="notice">Non riesco a caricare la scheda: {loadError}</div></div>}
       <div key={`${tab}-${sub}-${crea ? 'c' : ''}`} className="view">
