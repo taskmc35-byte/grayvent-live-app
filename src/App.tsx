@@ -69,6 +69,10 @@ export default function App() {
   const daScegliere = !!dovute && dovute.gruppi.length > 0;
   const [sceltaAperta, setSceltaAperta] = useState(false);
   const [impostazioni, setImpostazioni] = useState(false);
+  // uno staffer con un proprio personaggio può vedere la sua scheda come la vede un giocatore
+  const [vistaGiocatore, setVistaGiocatore] = useState(() => { try { return sessionStorage.getItem('gv-vista-giocatore') === '1'; } catch { return false; } });
+  const cambiaVista = (v: boolean) => { try { sessionStorage.setItem('gv-vista-giocatore', v ? '1' : '0'); } catch { /* niente */ } setVistaGiocatore(v); setTab('scheda'); setSub('scheda'); window.scrollTo(0, 0); };
+  const pannelloStaff = user?.ruolo === 'staff' && !vistaGiocatore;
   // animazione d'apertura: una volta per sessione; se non c'è nessuno collegato resta come sfondo dell'accesso
   const [aperturaVista, setAperturaVista] = useState(() => { try { return sessionStorage.getItem('gv-splash') === '1'; } catch { return false; } });
   const [aperturaFinita, setAperturaFinita] = useState(aperturaVista);
@@ -76,9 +80,9 @@ export default function App() {
   const [missiveNuove, setMissiveNuove] = useState(0);
   // puntino rosso su Missive: risposte e lettere dello staff non ancora lette
   const contaMissive = useCallback(() => {
-    if (!user || user.ruolo === 'staff') return;
+    if (!user || pannelloStaff) return;
     Promise.all([api.myLetters(), api.myStaffLetters()]).then(([a, b]) => setMissiveNuove(daLeggere(a, b))).catch(() => {});
-  }, [user]);
+  }, [user, pannelloStaff]);
   useEffect(() => {
     contaMissive();
     const vis = () => { if (document.visibilityState === 'visible') contaMissive(); };
@@ -88,12 +92,12 @@ export default function App() {
   }, [contaMissive]);
   const [sceltaVista, setSceltaVista] = useState(false);
   useIndietroBase(setToast);
-  useIndietro(!!user && user.ruolo !== 'staff' && tab !== 'scheda', () => { setTab('scheda'); window.scrollTo(0, 0); });
-  useIndietro(!!user && user.ruolo !== 'staff' && tab === 'scheda' && sub !== 'scheda' && !crea, () => setSub('scheda'));
+  useIndietro(!!user && !pannelloStaff && tab !== 'scheda', () => { setTab('scheda'); window.scrollTo(0, 0); });
+  useIndietro(!!user && !pannelloStaff && tab === 'scheda' && sub !== 'scheda' && !crea, () => setSub('scheda'));
   useIndietro(sceltaAperta && daScegliere, () => setSceltaAperta(false));
   useIndietro(impostazioni, () => setImpostazioni(false));
   // la schermata si apre da sola la prima volta che ci sono poteri da scegliere; poi resta l'avviso
-  useEffect(() => { if (daScegliere && !sceltaVista && user?.ruolo !== 'staff') { setSceltaAperta(true); setSceltaVista(true); } }, [daScegliere, sceltaVista, user]);
+  useEffect(() => { if (daScegliere && !sceltaVista && !pannelloStaff) { setSceltaAperta(true); setSceltaVista(true); } }, [daScegliere, sceltaVista, pannelloStaff]);
 
   const apertura = (user === null || !aperturaFinita) && (
     <Splash key="apertura" resta={user === null} gia={aperturaVista || aperturaFinita} onFine={fineApertura}>
@@ -102,9 +106,10 @@ export default function App() {
   );
   if (user === undefined) return <>{apertura || <div className="center">Caricamento…</div>}</>;
   if (!user) return <>{apertura}</>;
-  if (user.ruolo === 'staff') return (
+  if (pannelloStaff) return (
     <>
-      <StaffApp user={user} spells={SPELLS} onToast={setToast} onLogout={async () => { await api.signOut(); setUser(null); }} />
+      <StaffApp user={user} spells={SPELLS} onToast={setToast} onLogout={async () => { await api.signOut(); setUser(null); }}
+        onMiaScheda={pgs.some((p) => !p.stato || p.stato === 'approvato') ? () => cambiaVista(true) : undefined} />
       {apertura}
       {toast && <div className="toast" role="status">{toast}</div>}
     </>
@@ -118,7 +123,7 @@ export default function App() {
       setToast('Equipaggiamento salvato');
     } catch (e) { setToast(`Non salvato: ${(e as Error).message}`); }
   };
-  const logout = async () => { await api.signOut(); setPgs([]); setTab('scheda'); setSub('scheda'); setCrea(null); setUser(null); };
+  const logout = async () => { await api.signOut(); try { sessionStorage.removeItem('gv-vista-giocatore'); } catch { /* niente */ } setVistaGiocatore(false); setPgs([]); setTab('scheda'); setSub('scheda'); setCrea(null); setUser(null); };
   const go = (t: Tab) => { setTab(t); setCrea(null); window.scrollTo(0, 0); };
 
   const hasPoteri = !!pg && (pg.incantesimi.length > 0 || (calc?.potere.length ?? 0) > 0);
@@ -174,6 +179,9 @@ export default function App() {
   return (
     <div className="app">
       {apertura}
+      {user.ruolo === 'staff' && (
+        <p className="vista-staff">La tua scheda da giocatore. <button className="link" onClick={() => cambiaVista(false)}>Torna al pannello staff</button></p>
+      )}
       {api.demo && <p className="demo-banner">Versione di prova con personaggi di esempio. <button className="link" onClick={logout}>Cambia utente</button></p>}
       {loadError && <div className="page"><div className="notice">Non riesco a caricare la scheda: {loadError}</div></div>}
       <div key={`${tab}-${sub}-${crea ? 'c' : ''}`} className="view">

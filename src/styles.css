@@ -1099,3 +1099,4 @@ div.libro { cursor: default; }
 @keyframes spRespiro { 0%, 100% { opacity: 0.22; transform: scale(0.96); } 50% { opacity: 0.45; transform: scale(1.04); } }
 .splash.con-login .splash-fumo { animation: spFumoLoop 14s ease-in-out infinite alternate; opacity: 0.55; }
 @keyframes spFumoLoop { from { transform: scale(1.1) rotate(-3deg) translateY(0); } to { transform: scale(1.22) rotate(4deg) translateY(-3%); } }
+.vista-staff { margin: 0; padding: 8px 16px; text-align: center; font-size: 0.9rem; color: var(--fg); background: color-mix(in srgb, var(--gold) 18%, var(--surface)); border-bottom: 1px solid color-mix(in srgb, var(--gold) 40%, transparent); }

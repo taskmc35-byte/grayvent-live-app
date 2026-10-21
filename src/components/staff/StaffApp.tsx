@@ -22,7 +22,7 @@ const ICONS: Record<Tab, JSX.Element> = {
   altro: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" /></svg>,
 };
 
-export function StaffApp({ user, spells, onLogout, onToast }: { user: User; spells: Spell[]; onLogout: () => void; onToast: (t: string) => void }) {
+export function StaffApp({ user, spells, onLogout, onToast, onMiaScheda }: { user: User; spells: Spell[]; onLogout: () => void; onToast: (t: string) => void; onMiaScheda?: () => void }) {
   const [tab, setTab] = useState<Tab>('personaggi');
   const [altro, setAltro] = useState<Altro>('abilita');
   const [pgs, setPgs] = useState<StaffCharacter[]>([]);
@@ -144,6 +144,12 @@ export function StaffApp({ user, spells, onLogout, onToast }: { user: User; spel
               </button>
             );
           })}
+          {onMiaScheda && (
+            <button className="tab" onClick={onMiaScheda}>
+              <span className="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="5" r="2.5" /><path d="M9 21v-6H7.5V10a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v5H15v6" /></svg></span>
+              <span>La mia scheda</span>
+            </button>
+          )}
         </div>
       </nav>
     </div>
