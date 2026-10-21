@@ -62,7 +62,10 @@ export default function App() {
   useEffect(() => { if (toast) { const t = setTimeout(() => setToast(''), 2400); return () => clearTimeout(t); } }, [toast]);
 
   const approvati = pgs.filter((p) => !p.stato || p.stato === 'approvato');
-  const pg = approvati[0];
+  // con più personaggi (es. uno staffer che ne ha diversi a suo nome) si sceglie quale vedere; la scelta resta salvata
+  const [pgScelto, setPgScelto] = useState<string>(() => { try { return localStorage.getItem('gv-pg-scelto') ?? ''; } catch { return ''; } });
+  const scegliPg = (id: string) => { try { localStorage.setItem('gv-pg-scelto', id); } catch { /* niente */ } setPgScelto(id); setSceltaVista(false); };
+  const pg = approvati.find((p) => p.id === pgScelto) ?? approvati[0];
   const inAttesa = pgs.find((p) => p.stato === 'in_approvazione' || p.stato === 'da_rivedere');
   const calc = useMemo(() => (pg && catalog.length ? compute(pg, catalog, RACES) : null), [pg, catalog]);
   const dovute = useMemo(() => (pg ? scelteDovute(pg, SPELLS, (id) => catalog.find((a) => a.id === id)?.nome ?? id) : null), [pg, catalog]);
@@ -137,6 +140,14 @@ export default function App() {
   } else if (pg && calc) {
     schedaView = (
       <>
+        {approvati.length > 1 && (
+          <div className="scegli-pg">
+            <label htmlFor="scegli-pg">Personaggio</label>
+            <select id="scegli-pg" value={pg.id} onChange={(e) => { scegliPg(e.target.value); setSub('scheda'); }}>
+              {approvati.map((p) => <option key={p.id} value={p.id}>{`${p.nome} ${p.cognome}`.trim()}</option>)}
+            </select>
+          </div>
+        )}
         <div className="subnav-wrap con-ingranaggio">
           <div className="seg subnav" role="tablist" aria-label="Scheda">
             <button role="tab" aria-selected={activeSub === 'scheda'} onClick={() => setSub('scheda')}>Scheda</button>
