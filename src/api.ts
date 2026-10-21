@@ -70,6 +70,8 @@ export interface Api {
   setPaid(id: string, pagata: boolean): Promise<void>;
   allLetters(): Promise<Missiva[]>;
   markLetterRead(id: string): Promise<void>;
+  /** il giocatore ha letto la risposta alla sua missiva */
+  markReplyRead(id: string): Promise<void>;
   replyLetter(id: string, testo: string): Promise<void>;
   saveSettings(s: Impostazioni): Promise<void>;
   // chatbot "Chiedi ai manuali"
@@ -262,6 +264,7 @@ function demoApi(): Api {
     async setPaid(id, pagata) { db.iscrizioni = db.iscrizioni.map((i) => (i.id === id ? { ...i, pagata } : i)); persist(); },
     async allLetters() { return [...db.missive].sort((a, b) => b.inviata.localeCompare(a.inviata)); },
     async markLetterRead(id) { db.missive = db.missive.map((m) => (m.id === id && m.stato === 'inviata' ? { ...m, stato: 'letta' } : m)); persist(); },
+    async markReplyRead(id) { db.missive = db.missive.map((m) => (m.id === id && m.risposta && !m.rispostaLetta ? { ...m, rispostaLetta: now() } : m)); persist(); },
     async replyLetter(id, testo) {
       const m = db.missive.find((x) => x.id === id);
       if (!m || !db.impostazioni.missive[m.tipo]?.rispostaApp) throw new Error('A questo tipo di lettera non si risponde dall’app.');
@@ -377,6 +380,7 @@ function supabaseApi(sb: SupabaseClient): Api {
     id: r.id as string, utente: r.utente as string, personaggioId: r.personaggio_id as string | null, mittente: r.mittente as string,
     tipo: r.tipo as Missiva['tipo'], destinatario: r.destinatario as string, testo: r.testo as string, inviata: r.inviata_il as string,
     stato: r.stato as Missiva['stato'], risposta: (r.risposta as string) ?? undefined, rispostaIl: (r.risposta_il as string) ?? undefined,
+    rispostaLetta: (r.risposta_letta_il as string) ?? undefined,
   });
   const toDomanda = (r: Record<string, unknown>): DomandaStaff => ({
     id: r.id as string, utente: r.utente as string, domanda: r.domanda as string, rispostaBot: (r.risposta_bot as string) ?? undefined,
@@ -535,6 +539,7 @@ function supabaseApi(sb: SupabaseClient): Api {
       fail(error); return (data ?? []).map(toMiss);
     },
     async markLetterRead(id) { fail((await sb.from('missive').update({ stato: 'letta' }).eq('id', id).eq('stato', 'inviata')).error); },
+    async markReplyRead(id) { await sb.rpc('segna_risposta_letta', { p_id: id }); },
     async replyLetter(id, testo) { fail((await sb.from('missive').update({ stato: 'risposta', risposta: testo, risposta_il: now() }).eq('id', id)).error); },
     async saveSettings(s) { fail((await sb.from('impostazioni').upsert({ chiave: 'generale', valore: s })).error); },
     async chiedi(domanda, storia, onTesto) {

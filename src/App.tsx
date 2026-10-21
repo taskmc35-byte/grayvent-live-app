@@ -16,7 +16,7 @@ import { ManualiTab } from './components/ManualiTab';
 import { StaffApp } from './components/staff/StaffApp';
 import { CreaPersonaggio, nuovaScheda } from './components/CreaPersonaggio';
 import { EventiTab } from './components/EventiTab';
-import { MissiveTab } from './components/MissiveTab';
+import { MissiveTab, daLeggere } from './components/MissiveTab';
 import { TaccuinoTab } from './components/TaccuinoTab';
 import { useIndietro, useIndietroBase } from './indietro';
 import { InterruttoreNotifiche, InvitoNotifiche } from './components/NotifichePush';
@@ -68,6 +68,19 @@ export default function App() {
   const daScegliere = !!dovute && dovute.gruppi.length > 0;
   const [sceltaAperta, setSceltaAperta] = useState(false);
   const [impostazioni, setImpostazioni] = useState(false);
+  const [missiveNuove, setMissiveNuove] = useState(0);
+  // puntino rosso su Missive: risposte e lettere dello staff non ancora lette
+  const contaMissive = useCallback(() => {
+    if (!user || user.ruolo === 'staff') return;
+    Promise.all([api.myLetters(), api.myStaffLetters()]).then(([a, b]) => setMissiveNuove(daLeggere(a, b))).catch(() => {});
+  }, [user]);
+  useEffect(() => {
+    contaMissive();
+    const vis = () => { if (document.visibilityState === 'visible') contaMissive(); };
+    document.addEventListener('visibilitychange', vis);
+    const t = setInterval(contaMissive, 120000); // anche con l'app aperta, ogni due minuti
+    return () => { document.removeEventListener('visibilitychange', vis); clearInterval(t); };
+  }, [contaMissive]);
   const [sceltaVista, setSceltaVista] = useState(false);
   useIndietroBase(setToast);
   useIndietro(!!user && user.ruolo !== 'staff' && tab !== 'scheda', () => { setTab('scheda'); window.scrollTo(0, 0); });
@@ -154,7 +167,7 @@ export default function App() {
       <div key={`${tab}-${sub}-${crea ? 'c' : ''}`} className="view">
         {tab === 'scheda' && schedaView}
         {tab === 'eventi' && <EventiTab user={user} pg={pg ?? inAttesa} onToast={setToast} />}
-        {tab === 'missive' && <MissiveTab pgs={approvati} onToast={setToast} />}
+        {tab === 'missive' && <MissiveTab pgs={approvati} onToast={setToast} onCount={contaMissive} />}
         {tab === 'taccuino' && <TaccuinoTab onToast={setToast} />}
         {tab === 'manuali' && <ManualiTab />}
       </div>
@@ -169,7 +182,7 @@ export default function App() {
         <div className="tabbar-inner">
           {TABS.map((t) => (
             <button key={t.id} className="tab" aria-current={tab === t.id ? 'page' : undefined} onClick={() => go(t.id)}>
-              {ICONS[t.id]}<span>{t.nome}</span>
+              <span className="tab-ico">{ICONS[t.id]}{t.id === 'missive' && missiveNuove > 0 && <span className="badge-dot" aria-label={`${missiveNuove} da leggere`}>{missiveNuove}</span>}</span><span>{t.nome}</span>
             </button>
           ))}
         </div>

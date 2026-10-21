@@ -1078,3 +1078,4 @@ div.libro { cursor: default; }
 .imp-account { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid #5d5145; border-radius: var(--r-sm); background: var(--surface); }
 .imp-account strong { font-family: var(--display); font-size: 1.2rem; }
 .imp-account span { color: var(--muted); font-size: 0.92rem; overflow-wrap: anywhere; }
+.row-btn.da-leggere > span:first-child::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--blood); margin-right: 8px; vertical-align: middle; }

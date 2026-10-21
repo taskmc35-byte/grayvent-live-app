@@ -11,7 +11,11 @@ export const TIPI: { id: TipoMissiva; nome: string }[] = [
 export const dataOra = (iso: string) => new Date(iso).toLocaleString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 const STATO: Record<Missiva['stato'], string> = { inviata: 'Inviata', letta: 'Ricevuta dallo staff', risposta: 'Risposta arrivata' };
 
-export function MissiveTab({ pgs, onToast }: { pgs: Character[]; onToast: (t: string) => void }) {
+/** missive da leggere: lettere dello staff non aperte e risposte arrivate e non ancora lette */
+export const daLeggere = (inviate: Missiva[], ricevute: MissivaStaff[]) =>
+  ricevute.filter((m) => !m.letta).length + inviate.filter((m) => m.risposta && !m.rispostaLetta).length;
+
+export function MissiveTab({ pgs, onToast, onCount }: { pgs: Character[]; onToast: (t: string) => void; onCount?: () => void }) {
   const [list, setList] = useState<Missiva[] | null>(null);
   const [imp, setImp] = useState<Impostazioni>(IMPOSTAZIONI_DEFAULT);
   const [scrivi, setScrivi] = useState(false);
@@ -29,6 +33,14 @@ export function MissiveTab({ pgs, onToast }: { pgs: Character[]; onToast: (t: st
   const reloadR = () => api.myStaffLetters().then((r) => { setRicevute(r); if (r.some((m) => !m.letta)) setVista('ricevute'); }).catch(() => setRicevute([]));
   useEffect(() => { reloadR(); }, []);
   const nuove = ricevute.filter((m) => !m.letta).length;
+  const risposteNuove = (list ?? []).filter((m) => m.risposta && !m.rispostaLetta).length;
+  const apri = (m: Missiva) => {
+    if (m.risposta && !m.rispostaLetta) {
+      setList((l) => l?.map((x) => (x.id === m.id ? { ...x, rispostaLetta: new Date().toISOString() } : x)) ?? l);
+      api.markReplyRead(m.id).then(() => onCount?.()).catch(() => {});
+    }
+    setAperta(m);
+  };
 
   if (apertaR) return (
     <div className="page">
@@ -75,13 +87,16 @@ export function MissiveTab({ pgs, onToast }: { pgs: Character[]; onToast: (t: st
       {ricevute.length > 0 && (
         <div className="seg" role="tablist">
           <button role="tab" aria-selected={vista === 'ricevute'} onClick={() => setVista('ricevute')}>Ricevute{nuove ? ` (${nuove} ${nuove === 1 ? 'nuova' : 'nuove'})` : ''}</button>
-          <button role="tab" aria-selected={vista === 'inviate'} onClick={() => setVista('inviate')}>Inviate</button>
+          <button role="tab" aria-selected={vista === 'inviate'} onClick={() => setVista('inviate')}>Inviate{risposteNuove ? ` (${risposteNuove} ${risposteNuove === 1 ? 'risposta' : 'risposte'})` : ''}</button>
         </div>
       )}
       {vista === 'ricevute' && ricevute.length > 0 ? (
         <div>
           {ricevute.map((m) => (
-            <button key={m.id} className="row-btn" onClick={() => { if (!m.letta) api.markStaffLetterRead(m.id).catch(() => {}); setApertaR(m); }}>
+            <button key={m.id} className="row-btn" onClick={() => {
+              if (!m.letta) { setRicevute((r) => r.map((x) => (x.id === m.id ? { ...x, letta: new Date().toISOString() } : x))); api.markStaffLetterRead(m.id).then(() => onCount?.()).catch(() => {}); }
+              setApertaR(m);
+            }}>
               <span>Da {m.mittente}</span>
               <small>A {m.destinatario}, {dataOra(m.inviata)}{!m.letta && <>, <b className="gold">nuova</b></>}</small>
             </button>
@@ -93,9 +108,9 @@ export function MissiveTab({ pgs, onToast }: { pgs: Character[]; onToast: (t: st
       {list?.length === 0 && approvati.length > 0 && <p className="hint">Non hai ancora spedito missive.</p>}
       <div>
         {list?.map((m) => (
-          <button key={m.id} className="row-btn" onClick={() => setAperta(m)}>
+          <button key={m.id} className={`row-btn${m.risposta && !m.rispostaLetta ? ' da-leggere' : ''}`} onClick={() => apri(m)}>
             <span>A {m.destinatario}</span>
-            <small>{TIPI.find((t) => t.id === m.tipo)?.nome}, {dataOra(m.inviata)}, <b className={m.stato === 'risposta' ? 'gold' : ''}>{STATO[m.stato]}</b></small>
+            <small>{TIPI.find((t) => t.id === m.tipo)?.nome}, {dataOra(m.inviata)}, <b className={m.stato === 'risposta' ? 'gold' : ''}>{m.risposta && !m.rispostaLetta ? 'Risposta da leggere' : STATO[m.stato]}</b></small>
           </button>
         ))}
       </div>

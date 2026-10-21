@@ -157,7 +157,7 @@ export type TipoMissiva = 'normale' | 'assicurata' | 'rapida' | 'runica';
 export interface Missiva {
   id: string; utente: string; personaggioId: string | null; mittente: string;
   tipo: TipoMissiva; destinatario: string; testo: string; inviata: string;
-  stato: 'inviata' | 'letta' | 'risposta'; risposta?: string; rispostaIl?: string;
+  stato: 'inviata' | 'letta' | 'risposta'; risposta?: string; rispostaIl?: string; rispostaLetta?: string;
 }
 export interface Impostazioni {
   /** costo in Astri d'Argento (AA); rispostaApp: lo staff può rispondere dall'app */
