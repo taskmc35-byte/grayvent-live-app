@@ -3,6 +3,7 @@ import type { Ability, ArmorType, Categoria, ViaPotere } from '../../data/types'
 import { ALL_ABILITIES } from '../../data/abilities';
 import { ARMOR, POWER_TABLE } from '../../rules';
 import { BottomSheet } from '../Sheet';
+import { useIndietro } from '../../indietro';
 
 const CAT: { id: Categoria; nome: string }[] = [
   { id: 'fisico', nome: 'Fisiche e di combattimento' }, { id: 'mentale', nome: 'Mentali e di conoscenza' }, { id: 'sovrannaturale', nome: 'Sovrannaturali' },
@@ -14,6 +15,7 @@ export function CatalogEditor({ catalog, onSave, onDelete }: {
   catalog: Ability[]; onSave: (a: Ability) => Promise<void>; onDelete: (id: string) => Promise<void>;
 }) {
   const [edit, setEdit] = useState<Ability | null>(null);
+  useIndietro(!!edit, () => setEdit(null));
   const [q, setQ] = useState('');
   const f = q.trim().toLowerCase();
   const original = new Map(ALL_ABILITIES.map((a) => [a.id, a]));

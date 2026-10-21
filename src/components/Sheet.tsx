@@ -1,7 +1,9 @@
 import { useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useIndietro } from '../indietro';
 
 export function BottomSheet({ onClose, children, label }: { onClose: () => void; children: ReactNode; label: string }) {
+  useIndietro(true, onClose);
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', k);

@@ -3,6 +3,7 @@ import * as pdfjs from 'pdfjs-dist';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { api } from '../api';
 import type { Manuale } from '../data/types';
+import { useIndietro } from '../indietro';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdf.worker.min.mjs', document.baseURI).href;
 
@@ -75,6 +76,7 @@ export function Libro({ m, i, onApri, children }: { m: Manuale; i: number; onApr
 }
 
 export function PdfViewer({ url, title, pagina, onClose }: { url: string; title: string; pagina?: number; onClose: () => void }) {
+  useIndietro(true, onClose);
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null);
   const [error, setError] = useState('');
   const [zoom, setZoom] = useState(1);

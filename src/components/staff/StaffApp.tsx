@@ -9,6 +9,7 @@ import { ChatPopup } from '../ChatPopup';
 import { StaffEventi } from './StaffEventi';
 import { ImpostazioniMissive, StaffMissive } from './StaffMissive';
 import { Seal } from '../Seal';
+import { useIndietro, useIndietroBase } from '../../indietro';
 
 type Tab = 'personaggi' | 'eventi' | 'missive' | 'altro';
 type Altro = 'abilita' | 'account' | 'impostazioni' | 'manuali';
@@ -32,6 +33,9 @@ export function StaffApp({ user, spells, onLogout, onToast }: { user: User; spel
   const [nuoveMissive, setNuoveMissive] = useState(0);
   const [err, setErr] = useState('');
   const [sigillo, setSigillo] = useState('');
+  useIndietroBase(onToast);
+  useIndietro(tab !== 'personaggi', () => { setTab('personaggi'); window.scrollTo(0, 0); });
+  useIndietro(!!editing, () => setEditing(null));
 
   const reload = useCallback(async () => {
     try {

@@ -4,6 +4,7 @@ import { api, type Profile } from '../../api';
 import type { Evento, Iscrizione } from '../../data/types';
 import { EventoBanner, IconaLuogo, euro, periodo, totale } from '../EventiTab';
 import { ridimensiona } from '../../immagine';
+import { useIndietro } from '../../indietro';
 
 const vuoto = (): Evento => ({
   id: '', titolo: '', dataInizio: '', dataFine: '', luogo: '', descrizione: '', iscrizioniAperte: false,
@@ -15,6 +16,8 @@ export function StaffEventi({ profiles, onToast }: { profiles: Profile[]; onToas
   const [eventi, setEventi] = useState<Evento[]>([]);
   const [edit, setEdit] = useState<Evento | null>(null);
   const [iscritti, setIscritti] = useState<Evento | null>(null);
+  useIndietro(!!edit, () => setEdit(null));
+  useIndietro(!!iscritti, () => setIscritti(null));
   const [conti, setConti] = useState<Record<string, { n: number; pagati: number }>>({});
   const reload = async () => {
     const ev = await api.events(); setEventi(ev);

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { ChiediTab } from './ChiediTab';
 import { ApriManuale, useManuali } from './ManualiTab';
 import type { FonteManuale } from '../data/types';
+import { useIndietro } from '../indietro';
 
 export const APRI_CHAT = 'grayvent:apri-chat';
 export const apriChat = () => window.dispatchEvent(new Event(APRI_CHAT));
@@ -12,6 +13,7 @@ export function ChatPopup() {
   const [aperto, setAperto] = useState(false);
   const [fonte, setFonte] = useState<FonteManuale | null>(null);
   const { list: manuali } = useManuali();
+  useIndietro(aperto, () => setAperto(false));
   const manualeFonte = fonte && (manuali.find((m) => m.id === fonte.manuale) ?? { id: fonte.manuale, nome: fonte.titolo, descrizione: '', sigla: '', ordine: 0, nascosto: false, base: true });
 
   // si può aprire anche da un pulsante in pagina (es. Manuali)

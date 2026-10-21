@@ -3,6 +3,7 @@ import { api, IMPOSTAZIONI_DEFAULT } from '../../api';
 import type { DomandaStaff, Evento, Impostazioni, Missiva, MissivaStaff } from '../../data/types';
 import type { StaffCharacter } from '../../api';
 import { TIPI, dataOra } from '../MissiveTab';
+import { useIndietro } from '../../indietro';
 
 type Filtro = 'da_leggere' | 'tutte' | 'domande' | 'addebiti' | 'spedite';
 
@@ -17,6 +18,10 @@ export function StaffMissive({ onToast, onCount }: { onToast: (t: string) => voi
   const [scrivi, setScrivi] = useState(false);
   const [spedite, setSpedite] = useState<MissivaStaff[]>([]);
   const [spedita, setSpedita] = useState<MissivaStaff | null>(null);
+  useIndietro(!!aperta, () => setAperta(null));
+  useIndietro(!!domanda, () => setDomanda(null));
+  useIndietro(scrivi, () => setScrivi(false));
+  useIndietro(!!spedita, () => setSpedita(null));
   const reloadSpedite = () => api.allStaffLetters().then(setSpedite).catch(() => setSpedite([]));
   useEffect(() => { reloadSpedite(); }, []);
   const reload = async () => {

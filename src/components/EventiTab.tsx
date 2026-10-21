@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { api, type User } from '../api';
 import type { Biglietto, Character, DatiIscrizione, Evento, Iscrizione } from '../data/types';
+import { useIndietro } from '../indietro';
 
 export const dataLunga = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 /** "sabato 13 marzo 2027" / "da sabato 13 a domenica 14 marzo 2027" / "da sabato 30 maggio a lunedì 1 giugno 2027" */
@@ -67,6 +68,7 @@ export function EventiTab({ user, pg, onToast }: { user: User; pg?: Character; o
   const [eventi, setEventi] = useState<Evento[] | null>(null);
   const [mie, setMie] = useState<Iscrizione[]>([]);
   const [form, setForm] = useState<Evento | null>(null);
+  useIndietro(!!form, () => setForm(null));
   const [err, setErr] = useState('');
   const reload = async () => {
     try { const [e, m] = await Promise.all([api.events(), api.myRegistrations()]); setEventi(e); setMie(m); }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api, IMPOSTAZIONI_DEFAULT } from '../api';
 import type { Character, Impostazioni, Missiva, MissivaStaff, TipoMissiva } from '../data/types';
 import { Seal } from './Seal';
+import { useIndietro } from '../indietro';
 
 export const TIPI: { id: TipoMissiva; nome: string }[] = [
   { id: 'normale', nome: 'Posta semplice' }, { id: 'assicurata', nome: 'Posta assicurata' },
@@ -19,6 +20,9 @@ export function MissiveTab({ pgs, onToast }: { pgs: Character[]; onToast: (t: st
   const [ricevute, setRicevute] = useState<MissivaStaff[]>([]);
   const [vista, setVista] = useState<'ricevute' | 'inviate'>('inviate');
   const [apertaR, setApertaR] = useState<MissivaStaff | null>(null);
+  useIndietro(scrivi, () => setScrivi(false));
+  useIndietro(!!aperta, () => setAperta(null));
+  useIndietro(!!apertaR, () => setApertaR(null));
   const approvati = pgs.filter((p) => p.stato === 'approvato' || !p.stato);
   const reload = async () => { const [l, s] = await Promise.all([api.myLetters(), api.settings()]); setList(l); setImp(s); };
   useEffect(() => { reload().catch(() => setList([])); }, []);

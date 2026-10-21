@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { api } from '../api';
 import type { Nota } from '../data/types';
 import { dataOra } from './MissiveTab';
+import { useIndietro } from '../indietro';
 
 const CATEGORIE = ['Oggetti', 'Lettere', 'Personaggi', 'Luoghi', 'Indizi', 'Altro'];
 
 export function TaccuinoTab({ onToast }: { onToast: (t: string) => void }) {
   const [note, setNote] = useState<Nota[] | null>(null);
   const [edit, setEdit] = useState<Nota | null>(null);
+  useIndietro(!!edit, () => setEdit(null));
   const [cat, setCat] = useState('');
   const [q, setQ] = useState('');
   const reload = async () => setNote(await api.notes());

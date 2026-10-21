@@ -18,6 +18,7 @@ import { CreaPersonaggio, nuovaScheda } from './components/CreaPersonaggio';
 import { EventiTab } from './components/EventiTab';
 import { MissiveTab } from './components/MissiveTab';
 import { TaccuinoTab } from './components/TaccuinoTab';
+import { useIndietro, useIndietroBase } from './indietro';
 
 const SPELLS = spellsJson as Spell[];
 type Tab = 'scheda' | 'eventi' | 'missive' | 'taccuino' | 'manuali';
@@ -64,6 +65,10 @@ export default function App() {
   const daScegliere = !!dovute && dovute.gruppi.length > 0;
   const [sceltaAperta, setSceltaAperta] = useState(false);
   const [sceltaVista, setSceltaVista] = useState(false);
+  useIndietroBase(setToast);
+  useIndietro(!!user && user.ruolo !== 'staff' && tab !== 'scheda', () => { setTab('scheda'); window.scrollTo(0, 0); });
+  useIndietro(!!user && user.ruolo !== 'staff' && tab === 'scheda' && sub !== 'scheda' && !crea, () => setSub('scheda'));
+  useIndietro(sceltaAperta && daScegliere, () => setSceltaAperta(false));
   // la schermata si apre da sola la prima volta che ci sono poteri da scegliere; poi resta l'avviso
   useEffect(() => { if (daScegliere && !sceltaVista && user?.ruolo !== 'staff') { setSceltaAperta(true); setSceltaVista(true); } }, [daScegliere, sceltaVista, user]);
 
