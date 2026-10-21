@@ -615,7 +615,8 @@ function supabaseApi(sb: SupabaseClient): Api {
     },
     async sendStaffLetter(mittente, testo, destinatari) {
       const { error } = await sb.from('missive_staff').insert(destinatari.map((d) => ({ personaggio_id: d.id, destinatario: d.nome, mittente, testo })));
-      if (error) throw new Error(error.message.includes('missive_staff') ? 'Missive dello staff non installate: esegui missive_staff.sql in Supabase.' : error.message);
+      if (error) throw new Error(error.code === '42P01' || error.code === 'PGRST205' || /could not find the table|does not exist/i.test(error.message)
+        ? 'Missive dello staff non installate: esegui missive_staff.sql in Supabase.' : `Missiva non spedita: ${error.message}`);
     },
     async manuals() {
       const { data, error } = await sb.from('manuali').select('*');
