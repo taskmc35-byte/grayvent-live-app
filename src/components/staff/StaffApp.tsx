@@ -4,7 +4,6 @@ import type { Ability, Spell } from '../../data/types';
 import { raceById, raceLabel } from '../../data/races';
 import { CharacterEditor, emptyCharacter } from './CharacterEditor';
 import { CatalogEditor } from './CatalogEditor';
-import { ManualiTab } from '../ManualiTab';
 import { ChatbotPanel } from './ChatbotPanel';
 import { ChatPopup } from '../ChatPopup';
 import { StaffEventi } from './StaffEventi';
@@ -121,7 +120,7 @@ export function StaffApp({ user, spells, onLogout, onToast }: { user: User; spel
           )}
           {altro === 'account' && <Accounts me={user} profiles={profiles} pgs={pgs} onChange={reload} onToast={onToast} onLogout={onLogout} />}
           {altro === 'impostazioni' && <div className="page"><h1>Tipi di missiva</h1><ImpostazioniMissive onToast={onToast} /></div>}
-          {altro === 'manuali' && <><div className="page" style={{ paddingBottom: 0 }}><ChatbotPanel onToast={onToast} /></div><ManualiTab /></>}
+          {altro === 'manuali' && <ChatbotPanel onToast={onToast} />}
         </>
       )}
 

@@ -27,20 +27,51 @@ export function ApriManuale({ m, pagina, onClose }: { m: Manuale; pagina?: numbe
 export function ManualiTab() {
   const { list } = useManuali();
   const [open, setOpen] = useState<Manuale | null>(null);
+  const visibili = list.filter((m) => !m.nascosto);
   return (
     <div className="page">
-      <h1 style={{ fontSize: '2rem' }}>Manuali</h1>
-      <div className="manual-list">
-        {list.filter((m) => !m.nascosto).map((m) => (
-          <button key={m.id} className="manual" onClick={() => setOpen(m)}>
-            <span className="cover" aria-hidden="true">{m.sigla || m.nome.charAt(0)}</span>
-            <span><strong>{m.nome}</strong>{m.descrizione && <span>{m.descrizione}</span>}</span>
-          </button>
-        ))}
+      <div>
+        <h1 style={{ fontSize: '2rem' }}>Manuali</h1>
+        <p className="hint" style={{ margin: '4px 0 0' }}>La biblioteca di Grayvent: regolamento, poteri e mondo di gioco.</p>
       </div>
+      <button className="chiedi-card" onClick={() => window.dispatchEvent(new Event('grayvent:apri-chat'))}>
+        <span className="chat-sigillo grande" aria-hidden="true">?</span>
+        <span className="chiedi-testo">
+          <strong>Hai un dubbio sulle regole?</strong>
+          <span>Chiedilo ai manuali: la risposta arriva con manuale e pagina.</span>
+        </span>
+        <svg className="chiedi-freccia" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+      </button>
+      <section>
+        <h2 className="section-title">Biblioteca</h2>
+        <div className="libri">
+          {visibili.map((m, i) => <Libro key={m.id} m={m} i={i} onApri={() => setOpen(m)} />)}
+        </div>
+      </section>
       {open && <ApriManuale m={open} onClose={() => setOpen(null)} />}
     </div>
   );
+}
+
+const TINTE = ['#5a2a20', '#2f3b2a', '#2a3346', '#4a3a1c', '#3e2440', '#23393a'];
+
+/** Un manuale come volume in libreria: dorso colorato con sigla, titolo e descrizione */
+export function Libro({ m, i, onApri, children }: { m: Manuale; i: number; onApri?: () => void; children?: React.ReactNode }) {
+  const corpo = (
+    <>
+      <span className="libro-dorso" style={{ ['--tinta' as string]: TINTE[i % TINTE.length] }} aria-hidden="true">
+        <span>{m.sigla || m.nome.charAt(0)}</span>
+      </span>
+      <span className="libro-testo">
+        <strong>{m.nome}</strong>
+        {m.descrizione && <span>{m.descrizione}</span>}
+        {children}
+      </span>
+    </>
+  );
+  return onApri
+    ? <button className="libro" onClick={onApri}>{corpo}<svg className="libro-freccia" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg></button>
+    : <div className="libro">{corpo}</div>;
 }
 
 export function PdfViewer({ url, title, pagina, onClose }: { url: string; title: string; pagina?: number; onClose: () => void }) {

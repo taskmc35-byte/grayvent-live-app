@@ -78,9 +78,18 @@ export function ChiediTab({ onApri }: { onApri: (f: FonteManuale) => void }) {
       <div className="chat" aria-live="polite">
         {msgs.length === 0 && (
           <div className="chat-empty">
-            <p>Fai una domanda sulle regole o sul mondo di Grayvent: la risposta arriva dai manuali, con manuale e pagina.</p>
+            <div className="chat-benvenuto">
+              <h3>Cosa vuoi sapere?</h3>
+              <p>Chiedi regole, abilità, razze o storia del mondo: rispondo leggendo i manuali di Grayvent e ti indico dove trovare il punto preciso.</p>
+            </div>
+            <span className="chat-prova">Prova con</span>
             <div className="chips">
-              {ESEMPI.map((e) => <button key={e} className="chip" onClick={() => invia(e)}>{e}</button>)}
+              {ESEMPI.map((e) => (
+                <button key={e} className="chip" onClick={() => invia(e)}>
+                  <span>{e}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                </button>
+              ))}
             </div>
           </div>
         )}

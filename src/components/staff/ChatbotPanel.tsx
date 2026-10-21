@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api';
 import type { Manuale } from '../../data/types';
-import { useManuali } from '../ManualiTab';
+import { ApriManuale, Libro, useManuali } from '../ManualiTab';
+import { BottomSheet } from '../Sheet';
 
 /** Fa imparare al chatbot il testo di un manuale (o lo toglie, se il manuale è nascosto) */
 async function indicizza(m: Manuale, onStato: (t: string) => void) {
@@ -51,58 +52,92 @@ export function ChatbotPanel({ onToast }: { onToast: (t: string) => void }) {
   });
 
   const nuovo = (): Manuale => ({ id: '', nome: '', descrizione: '', sigla: '', ordine: 100 + list.length, nascosto: false, base: false });
+  const [apri, setApri] = useState<Manuale | null>(null);
+  const caricati = stats ? list.filter((m) => !m.nascosto && stats[m.id]).length : 0;
+  const daCaricare = stats ? list.filter((m) => !m.nascosto && !stats[m.id]).length : 0;
+  const passaggi = stats ? Object.values(stats).reduce((a, b) => a + b, 0) : 0;
+  const chiudi = () => { if (!busy) { setMod(null); setFile(null); setErr(''); } };
 
   return (
-    <section className="panel chatbot-panel">
-      <h2 className="section-title">Manuali e chatbot</h2>
-      <p className="hint">Aggiungi nuovi manuali (es. FAQ) o sostituisci il PDF di uno esistente: compare subito ai giocatori e il chatbot ne impara il testo.</p>
+    <div className="page man-staff">
+      <div className="list-head">
+        <h1>Manuali</h1>
+        <button className="btn primary" disabled={busy} onClick={() => { setErr(''); setFile(null); setMod(nuovo()); }}>Aggiungi</button>
+      </div>
 
-      <ul className="man-admin">
-        {list.map((m) => (
-          <li key={m.id} className={m.nascosto ? 'ended' : ''}>
-            <div>
-              <strong>{m.nome}</strong>
-              <small>{[m.nascosto ? 'nascosto' : null, m.filePath ? 'PDF caricato dallo staff' : 'PDF di base', stats ? (stats[m.id] ? `chatbot: ${stats[m.id]} passaggi` : 'chatbot: non caricato') : null].filter(Boolean).join(' · ')}</small>
-            </div>
-            <button className="link" disabled={busy} onClick={() => { setErr(''); setFile(null); setMod(m); }}>Modifica</button>
-          </li>
-        ))}
-      </ul>
-
-      {mod ? (
-        <div className="affl-form">
-          <h3 style={{ margin: 0 }}>{mod.id ? `Modifica: ${mod.nome}` : 'Nuovo manuale'}</h3>
-          <div className="field">
-            <label htmlFor="man-file">{mod.id ? 'Sostituisci il PDF (facoltativo)' : 'File PDF'}</label>
-            <input id="man-file" type="file" accept="application/pdf,.pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-          </div>
-          <div className="field"><label htmlFor="man-nome">Nome</label><input id="man-nome" value={mod.nome} onChange={(e) => setMod({ ...mod, nome: e.target.value })} placeholder="Es. FAQ del regolamento" /></div>
-          <div className="field"><label htmlFor="man-desc">Descrizione</label><input id="man-desc" value={mod.descrizione} onChange={(e) => setMod({ ...mod, descrizione: e.target.value })} placeholder="Es. Domande frequenti e chiarimenti" /></div>
-          <div className="grid2">
-            <div className="field"><label htmlFor="man-sigla">Sigla in copertina</label><input id="man-sigla" maxLength={2} value={mod.sigla} onChange={(e) => setMod({ ...mod, sigla: e.target.value })} placeholder="Es. F" /></div>
-            <div className="field"><label htmlFor="man-ord">Posizione nell’elenco</label><input id="man-ord" type="number" value={mod.ordine} onChange={(e) => setMod({ ...mod, ordine: Number(e.target.value) || 0 })} /></div>
-          </div>
-          <label className="check"><input type="checkbox" checked={mod.nascosto} onChange={(e) => setMod({ ...mod, nascosto: e.target.checked })} /><span>Nascosto ai giocatori (anche il chatbot smette di usarlo)</span></label>
-          {stato && <p className="hint" role="status">{stato}</p>}
-          {err && <p className="error">{err}</p>}
-          <div className="esito-btns">
-            {mod.id && !mod.base && (
-              <button className="btn ghost" disabled={busy} onClick={() => esegui(async () => {
-                await api.deleteManual(mod); setMod(null); onToast('Manuale eliminato'); await ricarica();
-              })}>Elimina</button>
-            )}
-            <button className="btn ghost" disabled={busy} onClick={() => { setMod(null); setFile(null); }}>Annulla</button>
-            <button className="btn primary" disabled={busy} onClick={salva}>{busy ? 'Attendi…' : 'Salva'}</button>
+      <section className={`bot-stato${daCaricare ? ' attenzione' : ''}`}>
+        <div className="bot-stato-head">
+          <span className="chat-sigillo" aria-hidden="true">?</span>
+          <div>
+            <h2>Chatbot dei manuali</h2>
+            <p>{stats === null ? 'Controllo…' : daCaricare
+              ? `${daCaricare} ${daCaricare === 1 ? 'manuale non ancora letto' : 'manuali non ancora letti'} dal chatbot`
+              : `Conosce ${caricati} ${caricati === 1 ? 'manuale' : 'manuali'} (${passaggi} passaggi)`}</p>
           </div>
         </div>
-      ) : (
-        <>
-          {stato && <p className="hint" role="status">{stato}</p>}
-          {err && <p className="error">{err}</p>}
-          <button className="btn primary block" disabled={busy} onClick={() => { setErr(''); setFile(null); setMod(nuovo()); }}>Aggiungi un manuale</button>
-          <button className="btn ghost block" disabled={busy} onClick={aggiornaTutti}>{busy ? 'Aggiorno…' : 'Aggiorna il chatbot con tutti i manuali'}</button>
-        </>
+        {stato && !mod && <p className="bot-progresso" role="status"><span className="spinner" aria-hidden="true" />{stato}</p>}
+        {err && !mod && <p className="error">{err}</p>}
+        <button className="btn ghost block" disabled={busy} onClick={aggiornaTutti}>{busy && !mod ? 'Aggiorno…' : 'Aggiorna il chatbot con tutti i manuali'}</button>
+        <p className="hint">Serve solo se hai cambiato i PDF fuori dall’app: quando aggiungi o sostituisci un manuale da qui, il chatbot si aggiorna da solo.</p>
+      </section>
+
+      <section>
+        <h2 className="section-title">Biblioteca</h2>
+        <div className="libri">
+          {list.map((m, i) => (
+            <div key={m.id} className={`libro-staff${m.nascosto ? ' nascosto' : ''}`}>
+              <Libro m={m} i={i}>
+                <span className="libro-tag">
+                  {m.nascosto && <em className="tag-x nasc">Nascosto</em>}
+                  <em className="tag-x">{m.filePath ? 'Caricato dallo staff' : 'Di base'}</em>
+                  {stats && !m.nascosto && (stats[m.id]
+                    ? <em className="tag-x ok">Chatbot ✓</em>
+                    : <em className="tag-x warn">Chatbot: da leggere</em>)}
+                </span>
+              </Libro>
+              <div className="libro-azioni">
+                <button className="btn ghost" onClick={() => setApri(m)}>Apri</button>
+                <button className="btn ghost" disabled={busy} onClick={() => { setErr(''); setFile(null); setMod(m); }}>Modifica</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {mod && (
+        <BottomSheet onClose={chiudi} label={mod.id ? `Modifica ${mod.nome}` : 'Nuovo manuale'}>
+          <h2>{mod.id ? 'Modifica manuale' : 'Nuovo manuale'}</h2>
+          <div className="form man-form">
+            <label className={`file-drop${file ? ' scelto' : ''}`}>
+              <input type="file" accept="application/pdf,.pdf" hidden onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3" /></svg>
+              <span>
+                <strong>{file ? file.name : mod.id ? 'Sostituisci il PDF' : 'Scegli il file PDF'}</strong>
+                <small>{file ? `${(file.size / 1048576).toFixed(1)} MB, pronto da caricare` : mod.id ? 'Facoltativo: lascia vuoto per tenere quello attuale' : 'Tocca per scegliere dal telefono o dal computer'}</small>
+              </span>
+            </label>
+            <div className="field"><label htmlFor="man-nome">Nome</label><input id="man-nome" value={mod.nome} onChange={(e) => setMod({ ...mod, nome: e.target.value })} placeholder="Es. FAQ del regolamento" /></div>
+            <div className="field"><label htmlFor="man-desc">Descrizione</label><input id="man-desc" value={mod.descrizione} onChange={(e) => setMod({ ...mod, descrizione: e.target.value })} placeholder="Es. Domande frequenti e chiarimenti" /></div>
+            <div className="grid2">
+              <div className="field"><label htmlFor="man-sigla">Sigla sul dorso</label><input id="man-sigla" maxLength={2} value={mod.sigla} onChange={(e) => setMod({ ...mod, sigla: e.target.value })} placeholder="Es. F" /></div>
+              <div className="field"><label htmlFor="man-ord">Posizione</label><input id="man-ord" type="number" value={mod.ordine} onChange={(e) => setMod({ ...mod, ordine: Number(e.target.value) || 0 })} /></div>
+            </div>
+            <label className="check"><input type="checkbox" checked={mod.nascosto} onChange={(e) => setMod({ ...mod, nascosto: e.target.checked })} /><span>Nascosto ai giocatori (anche il chatbot smette di usarlo)</span></label>
+            {stato && <p className="bot-progresso" role="status"><span className="spinner" aria-hidden="true" />{stato}</p>}
+            {err && <p className="error">{err}</p>}
+            <div className="sheet-actions">
+              <button type="button" className="btn ghost" disabled={busy} onClick={chiudi}>Annulla</button>
+              <button type="button" className="btn primary" disabled={busy} onClick={salva}>{busy ? 'Attendi…' : 'Salva'}</button>
+            </div>
+            {mod.id && !mod.base && (
+              <button type="button" className="btn ghost block danger-text" disabled={busy} onClick={() => esegui(async () => {
+                await api.deleteManual(mod); setMod(null); onToast('Manuale eliminato'); await ricarica();
+              })}>Elimina manuale</button>
+            )}
+          </div>
+        </BottomSheet>
       )}
-    </section>
+      {apri && <ApriManuale m={apri} onClose={() => setApri(null)} />}
+    </div>
   );
 }

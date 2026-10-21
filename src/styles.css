@@ -898,3 +898,143 @@ body:has(.savebar) .chat-fab { bottom: calc(132px + env(safe-area-inset-bottom, 
 .banner-pick img { width: 100%; height: 100%; object-fit: cover; }
 .banner-azioni { display: flex; gap: 10px; margin-top: 8px; }
 .banner-azioni .btn { flex: 1; cursor: pointer; }
+
+/* ---------- Manuali: biblioteca, invito al chatbot, pannello staff ---------- */
+.chat-sigillo { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  font-family: var(--display); font-weight: 700; font-size: 1.5rem; color: #1f1a16;
+  background: radial-gradient(circle at 35% 30%, #e2c58c, var(--gold) 55%, #9c7a40);
+  border: 1px solid #f0dcae; box-shadow: 0 3px 8px rgb(0 0 0 / 0.4), inset 0 -2px 3px rgb(0 0 0 / 0.25); }
+.chat-sigillo.grande { width: 52px; height: 52px; font-size: 1.9rem; }
+
+.chiedi-card { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; cursor: pointer; font: inherit; color: var(--fg);
+  padding: 16px; border-radius: var(--r-lg); border: 1px solid color-mix(in srgb, var(--gold) 55%, #5d5145);
+  background-color: var(--surface);
+  background-image: var(--noise), radial-gradient(90% 140% at 0% 50%, color-mix(in srgb, var(--gold) 16%, transparent), transparent 70%);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.3), inset 0 1px 0 color-mix(in srgb, var(--gold) 25%, transparent); }
+.chiedi-testo { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.chiedi-testo strong { font-family: var(--display); font-size: 1.25rem; font-weight: 700; }
+.chiedi-testo span { color: var(--muted); font-size: 0.95rem; line-height: 1.35; }
+.chiedi-freccia { color: var(--gold); flex: none; }
+
+.libri { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.libro { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; font: inherit; color: var(--ink); cursor: pointer;
+  padding: 12px 14px 12px 12px; border-radius: var(--r-sm); border: 1px solid #b49c75;
+  background-color: var(--parch); background-image: var(--noise), linear-gradient(180deg, rgb(255 255 255 / 0.25), transparent 60%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.3); color-scheme: light; }
+div.libro { cursor: default; }
+.libro-dorso { flex: none; position: relative; width: 44px; height: 60px; display: grid; place-items: center;
+  border-radius: 2px 4px 4px 2px; color: #ecd6a2; font-family: var(--display); font-weight: 700; font-size: 1.35rem;
+  background: linear-gradient(90deg, rgb(0 0 0 / 0.35) 0 5px, transparent 5px), linear-gradient(160deg, color-mix(in srgb, var(--tinta) 80%, #fff 8%), var(--tinta));
+  box-shadow: 0 2px 5px rgb(0 0 0 / 0.35); }
+.libro-dorso::before, .libro-dorso::after { content: ''; position: absolute; left: 9px; right: 5px; height: 2px; background: color-mix(in srgb, var(--gold) 70%, transparent); }
+.libro-dorso::before { top: 9px; } .libro-dorso::after { bottom: 9px; }
+.libro-testo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.libro-testo strong { font-family: var(--display); font-size: 1.18rem; font-weight: 700; line-height: 1.15; }
+.libro-testo > span { color: #6f604e; font-size: 0.92rem; line-height: 1.3; }
+.libro-freccia { flex: none; color: var(--ribbon); }
+
+/* pannello staff */
+.man-staff .libro-staff { display: flex; flex-direction: column; gap: 0; border-radius: var(--r-sm); box-shadow: 0 4px 12px rgb(0 0 0 / 0.3); }
+.man-staff .libro-staff .libro { box-shadow: none; border-radius: var(--r-sm) var(--r-sm) 0 0; border-bottom: 0; }
+.man-staff .libro-staff.nascosto .libro { opacity: 0.7; }
+.libro-azioni { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #5d5145; border-top: 0; border-radius: 0 0 var(--r-sm) var(--r-sm); background: var(--surface); overflow: hidden; }
+.libro-azioni .btn { border: 0; border-radius: 0; min-height: 44px; }
+.libro-azioni .btn + .btn { border-left: 1px solid #5d5145; }
+.libro-tag { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.tag-x { font-style: normal; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em; padding: 2px 8px; border-radius: 2px; background: rgb(42 33 27 / 0.08); color: #6f604e; border: 1px solid rgb(42 33 27 / 0.15); }
+.tag-x.ok { background: rgb(60 110 60 / 0.14); color: #2f5d2f; border-color: rgb(60 110 60 / 0.3); }
+.tag-x.warn { background: rgb(160 64 47 / 0.14); color: #8f3324; border-color: rgb(160 64 47 / 0.35); }
+.tag-x.nasc { background: #2a211b; color: #ecd6a2; border-color: #2a211b; }
+
+.bot-stato { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: var(--r-lg); border: 1px solid #5d5145;
+  background-color: var(--surface); background-image: var(--noise), linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 40%);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.3), inset 0 1px 0 color-mix(in srgb, var(--gold) 18%, transparent); }
+.bot-stato.attenzione { border-color: color-mix(in srgb, var(--ribbon) 70%, #5d5145); }
+.bot-stato-head { display: flex; align-items: center; gap: 12px; }
+.bot-stato h2 { font-size: 1.3rem; }
+.bot-stato p { margin: 0; }
+.bot-stato-head p { color: var(--muted); font-size: 0.95rem; }
+.bot-stato.attenzione .bot-stato-head p { color: #e08a74; }
+.bot-stato > .hint { font-size: 0.85rem; }
+.bot-progresso { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; color: var(--fg); margin: 0; }
+.spinner { width: 16px; height: 16px; flex: none; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--gold) 30%, transparent); border-top-color: var(--gold); animation: gira 0.8s linear infinite; }
+@keyframes gira { to { transform: rotate(360deg); } }
+
+/* modulo del manuale (nel foglio di pergamena) */
+.man-form { gap: 14px; }
+.file-drop { display: flex; align-items: center; gap: 14px; cursor: pointer; padding: 16px; border: 2px dashed #b49c75; border-radius: var(--r-sm); background: rgb(255 255 255 / 0.35); color: var(--ink); }
+.file-drop svg { flex: none; color: var(--ribbon); }
+.file-drop span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.file-drop strong { overflow-wrap: anywhere; }
+.file-drop small { color: #6f604e; }
+.file-drop.scelto { border-style: solid; border-color: var(--ribbon); background: rgb(160 64 47 / 0.06); }
+.danger-text { color: #8f3324 !important; border-color: rgb(160 64 47 / 0.4) !important; }
+
+/* chat: intestazione e benvenuto */
+.chat-head-tit { display: flex; align-items: center; gap: 12px; }
+.chat-benvenuto { padding: 16px; border-radius: var(--r-sm); background: var(--parch); color: var(--ink); border: 1px solid #c2ae8a; box-shadow: 0 2px 8px rgb(0 0 0 / 0.25); }
+.chat-benvenuto h3 { font-size: 1.35rem; margin-bottom: 6px; }
+.chat-benvenuto p { color: #4a3d31; }
+.chat-prova { font-family: var(--display); font-weight: 700; font-variant: small-caps; letter-spacing: 0.08em; color: var(--gold); text-transform: lowercase; margin-top: 4px; }
+.chat-empty .chips { align-items: stretch; }
+.chat-empty .chip { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-radius: var(--r-sm); padding: 12px 14px; }
+.chat-empty .chip svg { flex: none; color: var(--gold); }
+
+/* ---------- Animazione d'apertura: rituale runico ---------- */
+.splash { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; cursor: pointer; overflow: hidden;
+  background-color: #161311; background-image: var(--noise), radial-gradient(70% 50% at 50% 47%, #2c2420 0%, #161311 75%);
+  transition: opacity 0.6s ease, visibility 0.6s; }
+.splash.esce { opacity: 0; visibility: hidden; }
+.splash-braci { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.splash-fumo { position: absolute; inset: -20%; pointer-events: none; opacity: 0; animation: spFumo 3.6s ease-out forwards;
+  background: radial-gradient(35% 22% at 40% 52%, rgb(120 30 20 / 0.35), transparent 70%), radial-gradient(30% 25% at 62% 44%, rgb(90 25 20 / 0.3), transparent 70%),
+    radial-gradient(40% 30% at 50% 60%, rgb(60 50 45 / 0.35), transparent 70%); filter: blur(20px); }
+@keyframes spFumo { 0% { opacity: 0; transform: scale(0.9) rotate(-4deg); } 40% { opacity: 1; } 100% { opacity: 0.55; transform: scale(1.15) rotate(5deg); } }
+
+.splash-logo { position: relative; width: min(88vw, 540px); }
+.splash-logo > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* alone rosso dietro al sigillo: nasce come un punto di luce */
+.splash-alone { left: 33.3%; width: 66.7%; border-radius: 50%; opacity: 0;
+  background: radial-gradient(circle at 50% 50%, rgb(255 90 50 / 0.55), rgb(180 30 20 / 0.25) 35%, transparent 65%);
+  animation: spAlone 3.6s ease-out forwards; }
+@keyframes spAlone { 0% { opacity: 0; transform: scale(0.05); } 12% { opacity: 1; transform: scale(0.12); } 45% { opacity: 0.8; transform: scale(0.9); }
+  52% { opacity: 1; transform: scale(1.15); } 70% { opacity: 0.35; transform: scale(1); } 100% { opacity: 0.25; transform: scale(1); } }
+
+/* linee di luce che tracciano il cerchio rituale */
+.splash-traccia { overflow: visible; }
+.tr { stroke: #ff6a45; stroke-width: 7; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0.95; }
+.tr1 { animation: spTraccia 0.85s 0.35s cubic-bezier(.5,.1,.3,1) forwards, spSpegni 0.6s 1.75s ease-in forwards; }
+.tr2 { stroke-width: 4; animation: spTraccia 0.8s 0.6s cubic-bezier(.5,.1,.3,1) forwards, spSpegni 0.6s 1.8s ease-in forwards; }
+.tr3 { stroke-width: 4; animation: spTraccia 0.75s 0.85s cubic-bezier(.5,.1,.3,1) forwards, spSpegni 0.6s 1.85s ease-in forwards; }
+.tr4 { stroke: #ffc27a; stroke-width: 3; animation: spTraccia 0.7s 1.0s cubic-bezier(.5,.1,.3,1) forwards, spSpegni 0.6s 1.9s ease-in forwards; }
+@keyframes spTraccia { to { stroke-dashoffset: 0; } }
+@keyframes spSpegni { to { opacity: 0; } }
+
+/* il sigillo vero emerge dal centro */
+.splash-sigillo { left: 33.26%; width: 66.74%; opacity: 0; -webkit-mask-image: radial-gradient(circle, #000 0, #000 var(--sp-r, 0%), transparent calc(var(--sp-r, 0%) + 12%));
+  mask-image: radial-gradient(circle, #000 0, #000 var(--sp-r, 0%), transparent calc(var(--sp-r, 0%) + 12%)); animation: spSigillo 0.9s 1.25s ease-out forwards; }
+@property --sp-r { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+@keyframes spSigillo { 0% { opacity: 0; --sp-r: 0%; filter: brightness(2.5) saturate(1.3); } 30% { opacity: 1; } 100% { opacity: 1; --sp-r: 80%; filter: none; } }
+
+/* rune che ruotano attorno e poi convergono */
+.sp-rune { transform-origin: 567.5px 265px; transform-box: view-box; animation: spGiro 2.2s 0.2s cubic-bezier(.3,.1,.3,1) forwards; }
+@keyframes spGiro { 0% { transform: rotate(-40deg) scale(1.05); } 75% { transform: rotate(18deg) scale(1); opacity: 1; } 100% { transform: rotate(30deg) scale(0.72); opacity: 0; } }
+.runa { fill: none; stroke: #ffb36b; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0; filter: drop-shadow(0 0 6px #ff5a2a);
+  animation: spRuna 0.5s ease-out forwards; }
+@keyframes spRuna { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: none; } }
+
+/* lampo e onda d'urto quando il sigillo è completo */
+.sp-onda { fill: none; stroke: #ffd29a; stroke-width: 6; opacity: 0; transform-origin: 567.5px 265px; transform-box: view-box; animation: spOnda 0.9s 1.95s ease-out forwards; }
+@keyframes spOnda { 0% { opacity: 0.9; transform: scale(0.95); stroke-width: 10; } 100% { opacity: 0; transform: scale(1.6); stroke-width: 1; } }
+
+/* la scritta e il riflesso dorato */
+.splash-scritta { opacity: 0; animation: spScritta 0.9s 2.05s ease-out forwards; }
+@keyframes spScritta { 0% { opacity: 0; filter: blur(10px) brightness(1.8); transform: scale(1.04); } 60% { opacity: 1; filter: blur(0) brightness(1.2); } 100% { opacity: 1; filter: none; transform: none; } }
+.splash-riflesso { -webkit-mask-size: 100% 100%; mask-size: 100% 100%; opacity: 0;
+  background: linear-gradient(105deg, transparent 35%, rgb(255 236 190 / 0.95) 50%, transparent 65%) no-repeat; background-size: 250% 100%; background-position: 150% 0;
+  animation: spRiflesso 0.9s 2.7s ease-in-out forwards; }
+@keyframes spRiflesso { 0% { opacity: 1; background-position: 150% 0; } 100% { opacity: 1; background-position: -50% 0; } }
+
+.splash.fermo .splash-logo > * { animation: none; }
+.splash.fermo .splash-scritta { opacity: 1; }
+.splash.fermo .splash-traccia, .splash.fermo .splash-alone, .splash.fermo .splash-riflesso { display: none; }
