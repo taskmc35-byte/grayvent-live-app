@@ -436,6 +436,7 @@ h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: 0.01
   --surface: #f2e8d3; --surface-2: #e6d8bb; --gold: #8a6526; --gold-ink: #f6eedc; --steel: #4d6870; --blood: #9b3423; --warn: #96561a;
   color: var(--ink);
   background-color: var(--parch);
+  /* il fondo è un'immagine (sfumatura piena): i browser che forzano le pagine scure non la toccano, così la pergamena resta chiara */
   background-image: var(--noise), radial-gradient(130% 90% at 30% 10%, #efe5cf 0%, var(--parch) 45%, var(--parch-2) 100%);
   border: 1px solid #b8a27c;
   border-radius: 2px;
@@ -704,7 +705,7 @@ details.ab:last-child, .spell-group .spell-btn:last-child { border-bottom: 0; }
 .chip:active { transform: translateY(1px); }
 .bubble { max-width: 88%; padding: 10px 14px; border-radius: 14px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
 .bubble.me { align-self: flex-end; background: color-mix(in srgb, var(--gold) 22%, var(--surface)); border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); border-bottom-right-radius: 4px; }
-.bubble.bot { align-self: flex-start; background: var(--parch); color: var(--ink); border: 1px solid #c2ae8a; border-bottom-left-radius: 4px; box-shadow: 0 2px 8px rgb(0 0 0 / 0.25); }
+.bubble.bot { align-self: flex-start; background: linear-gradient(var(--parch), var(--parch)); color: var(--ink); border: 1px solid #c2ae8a; border-bottom-left-radius: 4px; box-shadow: 0 2px 8px rgb(0 0 0 / 0.25); }
 .bubble.err { align-self: flex-start; background: var(--surface); border-left: 3px solid var(--warn); border-radius: 4px; }
 .bot-text { white-space: pre-wrap; }
 .fonti { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
@@ -855,7 +856,7 @@ body:has(.savebar) .chat-fab { bottom: calc(132px + env(safe-area-inset-bottom, 
   fill: none; stroke: color-mix(in srgb, var(--gold) 55%, transparent); stroke-width: 2.2; stroke-linecap: round; }
 .ev-bollo { position: absolute; left: 12px; bottom: 12px; z-index: 1; min-width: 62px; padding: 6px 10px 5px; text-align: center;
   display: flex; flex-direction: column; align-items: center; line-height: 1;
-  background: #f3e8d2; color: #2a211b; border: 1px solid #b49c75; box-shadow: 0 4px 10px rgb(0 0 0 / 0.45); border-radius: 3px; }
+  background: linear-gradient(#f3e8d2, #f3e8d2); color: #2a211b; border: 1px solid #b49c75; box-shadow: 0 4px 10px rgb(0 0 0 / 0.45); border-radius: 3px; }
 .ev-bollo strong { font-family: var(--display); font-size: 1.7rem; font-weight: 700; }
 .ev-bollo span { font-family: var(--display); font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ribbon); margin-top: 2px; }
 .ev-bollo small { font-size: 0.72rem; color: #6f604e; margin-top: 3px; }
@@ -919,7 +920,7 @@ body:has(.savebar) .chat-fab { bottom: calc(132px + env(safe-area-inset-bottom, 
 .libri { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
 .libro { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; font: inherit; color: var(--ink); cursor: pointer;
   padding: 12px 14px 12px 12px; border-radius: var(--r-sm); border: 1px solid #b49c75;
-  background-color: var(--parch); background-image: var(--noise), linear-gradient(180deg, rgb(255 255 255 / 0.25), transparent 60%);
+  background-color: var(--parch); background-image: var(--noise), linear-gradient(180deg, #f0e7d3, var(--parch) 60%);
   box-shadow: 0 4px 12px rgb(0 0 0 / 0.3); color-scheme: light; }
 div.libro { cursor: default; }
 .libro-dorso { flex: none; position: relative; width: 44px; height: 60px; display: grid; place-items: center;
@@ -972,7 +973,7 @@ div.libro { cursor: default; }
 
 /* chat: intestazione e benvenuto */
 .chat-head-tit { display: flex; align-items: center; gap: 12px; }
-.chat-benvenuto { padding: 16px; border-radius: var(--r-sm); background: var(--parch); color: var(--ink); border: 1px solid #c2ae8a; box-shadow: 0 2px 8px rgb(0 0 0 / 0.25); }
+.chat-benvenuto { padding: 16px; border-radius: var(--r-sm); background: linear-gradient(var(--parch), var(--parch)); color: var(--ink); border: 1px solid #c2ae8a; box-shadow: 0 2px 8px rgb(0 0 0 / 0.25); }
 .chat-benvenuto h3 { font-size: 1.35rem; margin-bottom: 6px; }
 .chat-benvenuto p { color: #4a3d31; }
 .chat-prova { font-family: var(--display); font-weight: 700; font-variant: small-caps; letter-spacing: 0.08em; color: var(--gold); text-transform: lowercase; margin-top: 4px; }
@@ -1038,3 +1039,6 @@ div.libro { cursor: default; }
 .splash.fermo .splash-logo > * { animation: none; }
 .splash.fermo .splash-scritta { opacity: 1; }
 .splash.fermo .splash-traccia, .splash.fermo .splash-alone, .splash.fermo .splash-riflesso { display: none; }
+
+/* testi scuri delle pergamene disegnati come sfondo ritagliato (vedi inchiostro.ts): restano scuri anche con le pagine scure forzate */
+.gv-ink { color: transparent !important; -webkit-text-fill-color: transparent; background-image: linear-gradient(var(--gv-ink), var(--gv-ink)); -webkit-background-clip: text; background-clip: text; }

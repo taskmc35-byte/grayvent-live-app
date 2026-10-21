@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { Splash } from './components/Splash';
+import { avviaInchiostro } from './inchiostro';
 import './styles.css';
 
 // L'animazione d'apertura si vede una volta per sessione (riaprendo l'app), non a ogni ricarica della pagina
@@ -21,6 +22,7 @@ const start = () => {
 };
 // Nell'anteprima pubblicata la pagina può essere aggiornata mentre è aperta: avvia l'app quando il visualizzatore è pronto
 if (hot?.ready) hot.ready(start); else start();
+avviaInchiostro();
 
 // Offline: registra il service worker solo sul sito vero (non nelle anteprime)
 if ('serviceWorker' in navigator && import.meta.env.PROD && import.meta.env.MODE !== 'artifact') {
