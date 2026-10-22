@@ -146,7 +146,7 @@ export function CreaPersonaggio({ initial, catalog, notaStaff, onSubmit, onCance
                 </optgroup>
               ))}
             </select>
-            <span className="hint">Obbligatoria solo per chi prende Legame Divino Minore: dopo l’approvazione scegli tu 2 miracoli generici e 2 della tua divinità. Odino, Surtur e Morte non si possono scegliere in creazione.{race?.dei ? ` Dei tipici della tua razza: ${race.dei}.` : ''}</span>
+            <span className="hint">Chiunque può venerare una divinità. È obbligatoria solo per chi prende Legame Divino Minore: solo in quel caso, dopo l’approvazione, scegli 2 miracoli generici e 2 della tua divinità. Odino, Surtur e Morte non si possono scegliere in creazione.{race?.dei ? ` Dei tipici della tua razza: ${race.dei}.` : ''}</span>
           </div>
           <div className="field"><label htmlFor="w-el">Elemento</label>
             <select id="w-el" value={c.elemento ?? ''} onChange={(e) => set('elemento', e.target.value || undefined)}>
