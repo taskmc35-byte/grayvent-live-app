@@ -19,17 +19,26 @@ function preparaWorker() {
 }
 
 /** Ridimensiona e porta in scala di grigi ad alto contrasto: l'OCR legge meglio */
-async function prepara(file: Blob, gradi: 0 | 90 | 180 | 270): Promise<HTMLCanvasElement> {
-  const img = await createImageBitmap(file);
-  const lato = 1800;
-  const k = Math.min(1, lato / Math.max(img.width, img.height)) || 1;
-  const w = Math.round(img.width * k), h = Math.round(img.height * k);
+export type Regione = { x: number; y: number; w: number; h: number }; // frazioni della foto (0-1)
+const bitmap = new WeakMap<Blob, Promise<ImageBitmap>>();
+
+async function prepara(file: Blob, gradi: 0 | 90 | 180 | 270, bn: boolean, reg?: Regione): Promise<HTMLCanvasElement> {
+  if (!bitmap.has(file)) bitmap.set(file, createImageBitmap(file));
+  const img = await bitmap.get(file)!;
+  // pezzo della foto (tutta, una porzione automatica o il punto toccato)
+  const r = reg ?? { x: 0, y: 0, w: 1, h: 1 };
+  const sx = Math.max(0, r.x * img.width), sy = Math.max(0, r.y * img.height);
+  const sw = Math.min(img.width - sx, r.w * img.width), sh = Math.min(img.height - sy, r.h * img.height);
+  // le foto grandi si riducono, i pezzi piccoli si ingrandiscono: l'OCR vuole lettere di 20-40 px
+  const lato = Math.max(sw, sh);
+  const k = reg ? Math.min(4, Math.max(1.5, 1800 / lato)) : lato > 3200 ? 3200 / lato : lato < 1200 ? Math.min(3, 1200 / lato) : 1;
+  const w = Math.round(sw * k), h = Math.round(sh * k);
   const cv = document.createElement('canvas');
   const girata = gradi === 90 || gradi === 270;
   cv.width = girata ? h : w; cv.height = girata ? w : h;
   const ctx = cv.getContext('2d', { willReadFrequently: true })!;
   ctx.translate(cv.width / 2, cv.height / 2); ctx.rotate((gradi * Math.PI) / 180);
-  ctx.drawImage(img, -w / 2, -h / 2, w, h);
+  ctx.drawImage(img, sx, sy, sw, sh, -w / 2, -h / 2, w, h);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   const d = ctx.getImageData(0, 0, cv.width, cv.height);
   let min = 255, max = 0;
@@ -39,18 +48,56 @@ async function prepara(file: Blob, gradi: 0 | 90 | 180 | 270): Promise<HTMLCanva
     g[i] = v; if (v < min) min = v; if (v > max) max = v;
   }
   const span = Math.max(1, max - min);
+  // bianco e nero netto (soglia di Otsu): aiuta con le foto di uno schermo o con poca luce
+  let soglia = -1;
+  if (bn) {
+    const hist = new Array(256).fill(0);
+    for (let i = 0; i < g.length; i++) hist[Math.round(((g[i] - min) / span) * 255)]++;
+    let sum = 0; for (let t = 0; t < 256; t++) sum += t * hist[t];
+    let sB = 0, wB = 0, best = 0;
+    for (let t = 0; t < 256; t++) {
+      wB += hist[t]; if (!wB) continue;
+      const wF = g.length - wB; if (!wF) break;
+      sB += t * hist[t];
+      const m = sB / wB - (sum - sB) / wF;
+      const v = wB * wF * m * m;
+      if (v > best) { best = v; soglia = t; }
+    }
+  }
   for (let i = 0; i < g.length; i++) {
-    const v = ((g[i] - min) / span) * 255;
+    let v = ((g[i] - min) / span) * 255;
+    if (soglia >= 0) v = v > soglia ? 255 : 0;
     d.data[i * 4] = d.data[i * 4 + 1] = d.data[i * 4 + 2] = v; d.data[i * 4 + 3] = 255;
   }
   ctx.putImageData(d, 0, 0);
   return cv;
 }
 
+export type Passata = { gradi: 0 | 90 | 180 | 270; modo: 'normale' | 'codici' | 'bn'; regione?: Regione };
+
+/** Tentativi in ordine: lettura normale, solo codici, bianco e nero; poi la foto girata.
+ * Se il codice è piccolo nella foto (es. lo schermo del PC) si legge toccandolo: passateZona */
+export const PASSATE: Passata[] = [
+  { gradi: 0, modo: 'normale' }, { gradi: 0, modo: 'codici' }, { gradi: 0, modo: 'bn' },
+  { gradi: 90, modo: 'normale' }, { gradi: 270, modo: 'normale' }, { gradi: 180, modo: 'normale' },
+];
+/** Tentativi sul punto toccato dal giocatore */
+export const passateZona = (cx: number, cy: number): Passata[] => {
+  const out: Passata[] = [];
+  for (const [w, h] of [[0.22, 0.08], [0.35, 0.12], [0.5, 0.18]]) {
+    const regione = { x: cx - w / 2, y: cy - h / 2, w, h };
+    out.push({ gradi: 0, modo: 'normale', regione }, { gradi: 0, modo: 'codici', regione });
+  }
+  return out;
+};
+
 /** Testo letto dalla foto (la lettura avviene tutta sul telefono) */
-export async function leggiFoto(file: Blob, onProgresso?: (p: number) => void, gradi: 0 | 90 | 180 | 270 = 0): Promise<string> {
+export async function leggiFoto(file: Blob, onProgresso?: (p: number) => void, passata: Passata = PASSATE[0]): Promise<string> {
   avanzamento = onProgresso;
-  const [w, cv] = await Promise.all([preparaWorker(), prepara(file, gradi)]);
+  const [w, cv] = await Promise.all([preparaWorker(), prepara(file, passata.gradi, passata.modo === 'bn', passata.regione)]);
+  await w.setParameters(passata.modo === 'codici'
+    ? { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.', tessedit_pageseg_mode: '11' as never }
+    : { tessedit_char_whitelist: '', tessedit_pageseg_mode: (passata.modo === 'bn' || passata.regione ? '11' : '3') as never });
   const r = await w.recognize(cv);
   return r.data.text;
 }

@@ -13,7 +13,7 @@ import { AvvisoScelta, SceltaIncantesimi } from './components/SceltaIncantesimi'
 import { scelteDovute } from './scelte';
 import { ChatPopup } from './components/ChatPopup';
 import { LettoreCartellino, apriCartellino, IconaFoto } from './components/Cartellino';
-import { FotoPg } from './components/FotoPg';
+import { SceltaPng } from './components/SceltaPng';
 import { ManualiTab } from './components/ManualiTab';
 import { StaffApp } from './components/staff/StaffApp';
 import { CreaPersonaggio, nuovaScheda } from './components/CreaPersonaggio';
@@ -144,16 +144,7 @@ export default function App() {
     schedaView = (
       <>
         {user.ruolo === 'staff' && approvati.length > 1 && (
-          <div className="scegli-pg">
-            <span className="scegli-pg-tit" id="scegli-pg">PNG</span>
-            <div className="pg-chips" role="radiogroup" aria-labelledby="scegli-pg">
-              {approvati.map((p) => (
-                <button key={p.id} role="radio" aria-checked={p.id === pg.id} className={`pg-chip${p.id === pg.id ? ' on' : ''}`} onClick={() => { scegliPg(p.id); setSub('scheda'); }}>
-                  <FotoPg c={p} size={34} /><span>{`${p.nome} ${p.cognome}`.trim()}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+          <SceltaPng pgs={approvati} attivo={pg} onScegli={(id) => { scegliPg(id); setSub('scheda'); }} />
         )}
         <div className="subnav-wrap con-ingranaggio">
           <div className="seg subnav" role="tablist" aria-label="Scheda">

@@ -1177,3 +1177,18 @@ button.foto-pg { cursor: pointer; }
 .pg-chip { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 999px;
   border: 1px solid var(--line); background: var(--surface); color: var(--fg); font-family: var(--display); font-weight: 700; font-size: 1rem; cursor: pointer; }
 .pg-chip.on { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 16%, var(--surface)); }
+.cart-letto summary { cursor: pointer; margin-top: 8px; font-size: 0.9rem; } .cart-letto pre { white-space: pre-wrap; font-size: 0.8rem; max-height: 200px; overflow: auto; margin: 6px 0 0; }
+.cart-tocca p { margin: 10px 0 6px; font-size: 0.92rem; }
+.cart-tocca img { display: block; width: 100%; height: auto; border-radius: var(--r-sm); border: 1px solid var(--line); cursor: crosshair; background: #000; }
+.pg-attivo { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); background: var(--surface); color: var(--fg); cursor: pointer; text-align: left; }
+.pg-attivo-testo { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+.pg-attivo-testo small { color: var(--muted); font-size: 0.75rem; }
+.pg-attivo-testo strong { font-family: var(--display); font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pg-attivo-cambia { color: var(--gold); font-size: 0.9rem; flex: none; }
+.pg-griglia { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 12px; }
+.pg-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border-radius: var(--r-sm);
+  border: 1px solid var(--line); background: rgb(0 0 0 / 0.06); color: inherit; cursor: pointer; text-align: center; }
+.pg-card.on { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 14%, transparent); }
+.pg-card strong { font-family: var(--display); font-size: 0.95rem; line-height: 1.15; }
+.pg-card small { font-size: 0.75rem; opacity: 0.75; }

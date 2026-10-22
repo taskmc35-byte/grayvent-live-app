@@ -32,32 +32,53 @@ function Pannello({ catalog, spells, pg, staff, onClose }: { catalog: Ability[];
   const [scelta, setScelta] = useState<Voce | null>(null);
   const [lettura, setLettura] = useState<number | null>(null);
   const [errore, setErrore] = useState('');
+  const [letto, setLetto] = useState(''); // testo letto, mostrato se non trova codici
+  const [tentativo, setTentativo] = useState(0);
+  const [ultima, setUltima] = useState<{ file: File; url: string } | null>(null); // per toccare il codice nella foto
+  useEffect(() => () => { if (ultima) URL.revokeObjectURL(ultima.url); }, [ultima]);
   const foto = useRef<HTMLInputElement>(null);
   const galleria = useRef<HTMLInputElement>(null);
   useIndietro(true, () => (scelta ? setScelta(null) : onClose()));
 
   const scritte = q.trim() ? cercaScritto(idx, q) : [];
 
-  const leggi = async (file?: File) => {
-    if (!file) return;
-    setErrore(''); setTrovate(null); setScelta(null); setLettura(0);
+  const prova = async (file: File, zona?: { x: number; y: number }) => {
+    setErrore(''); setTrovate(null); setScelta(null); setLettura(0); setLetto('');
     try {
-      const { leggiFoto } = await import('../ocr');
+      const { leggiFoto, PASSATE, passateZona } = await import('../ocr');
+      const passate = zona ? passateZona(zona.x, zona.y) : PASSATE;
       let voci: Voce[] = [];
-      // se la foto è di traverso riprova girandola
-      for (const gradi of [0, 90, 270, 180] as const) {
-        voci = trovaNelTesto(idx, await leggiFoto(file, (p) => setLettura(p), gradi));
+      const testi: string[] = [];
+      // più tentativi: normale, solo codici, a pezzi, bianco e nero, foto girata
+      for (const [i, pass] of passate.entries()) {
+        setTentativo(i + 1); setLettura(0);
+        const t = await leggiFoto(file, (p) => setLettura(p), pass);
+        testi.push(t);
+        voci = trovaNelTesto(idx, t);
         if (voci.length) break;
       }
+      setLetto(voci.length ? '' : testi.map((t) => t.trim()).filter(Boolean).slice(0, 4).join('\n—\n'));
       setTrovate(voci);
       if (voci.length === 1) setScelta(voci[0]);
     } catch {
       setErrore('Non riesco a leggere la foto: controlla la connessione (la prima lettura scarica il motore di riconoscimento) e riprova, oppure scrivi il codice.');
     } finally {
       setLettura(null);
-      if (foto.current) foto.current.value = '';
-      if (galleria.current) galleria.current.value = '';
     }
+  };
+
+  const leggi = async (file?: File) => {
+    if (foto.current) foto.current.value = '';
+    if (galleria.current) galleria.current.value = '';
+    if (!file) return;
+    setUltima({ file, url: URL.createObjectURL(file) });
+    await prova(file);
+  };
+
+  const tocca = (e: React.MouseEvent<HTMLImageElement>) => {
+    if (!ultima || lettura !== null) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    prova(ultima.file, { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height });
   };
 
   return (
@@ -86,13 +107,22 @@ function Pannello({ catalog, spells, pg, staff, onClose }: { catalog: Ability[];
 
             {lettura !== null && (
               <div className="cart-lettura" role="status">
-                <span>Sto leggendo il cartellino…</span>
+                <span>Sto leggendo il cartellino…{tentativo > 1 ? ` (tentativo ${tentativo})` : ''}</span>
                 <div className="cart-barra"><span style={{ width: `${Math.round(lettura * 100)}%` }} /></div>
               </div>
             )}
             {errore && <p className="error" role="alert">{errore}</p>}
             {trovate && trovate.length === 0 && (
-              <p className="notice">Non ho trovato nessun codice nella foto. Riprova più da vicino oppure scrivilo qui sotto.</p>
+              <div className="notice">
+                <p style={{ margin: 0 }}>Non ho trovato nessun codice nella foto. Riprova più da vicino, dritto e senza riflessi, oppure scrivilo qui sotto.</p>
+                {ultima && (
+                  <div className="cart-tocca">
+                    <p>Tocca nella foto il punto dove si trova il codice: lo leggo da vicino.</p>
+                    <img src={ultima.url} alt="Foto del cartellino" onClick={tocca} />
+                  </div>
+                )}
+                {letto && <details className="cart-letto"><summary>Cosa sono riuscito a leggere</summary><pre>{letto}</pre></details>}
+              </div>
             )}
             {trovate && trovate.length > 1 && <ElencoVoci titolo="Codici trovati nella foto" voci={trovate} onScegli={setScelta} />}
 
