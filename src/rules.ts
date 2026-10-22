@@ -19,6 +19,7 @@ export const POWER_TABLE: Record<ViaPotere, { nome: string; risorsa: string; val
     { qta: 4, tdr: '5 min', tdrMax: '20 min', extra: 'Contraccolpo: FATO! A Terra!' },
     { qta: 5, tdr: '4 min', tdrMax: '20 min', extra: 'Contraccolpo: FATO! Paralisi!' },
     { qta: 6, tdr: '3 min', tdrMax: '18 min', extra: 'Contraccolpo: FATO! Energia! A Terra!' },
+    { qta: 7, tdr: '2 min', tdrMax: '14 min', extra: 'Contraccolpo: FATO! Energia! Crash! Lanciare un Incantesimo Puro costa 5 PP' },
   ] },
   stregone: { nome: 'Stregone', risorsa: 'Punti Potere', valori: [
     { qta: 2, tdr: '5 min', tdrMax: '10 min' },
@@ -33,7 +34,7 @@ export const POWER_TABLE: Record<ViaPotere, { nome: string; risorsa: string; val
     { qta: 7, tdr: '2 min', tdrMax: '14 min', extra: 'Lanciare un Miracolo Puro costa 5 PP' },
   ] },
   alchimista: { nome: 'Alchimista', risorsa: 'Attivazioni al giorno', valori: [
-    { qta: 7, extra: '1 attivazione per livello del Cerchio' }, { qta: 10 }, { qta: 13 }, { qta: 15 },
+    { qta: 7, extra: '1 attivazione per livello del Cerchio' }, { qta: 10 }, { qta: 13 }, { qta: 15 }, { qta: 17 },
   ] },
   runista: { nome: 'Runista', risorsa: 'Pietre runiche a evento', valori: [
     { qta: 5, extra: 'Tempo di scrittura 3 min' }, { qta: 6, extra: 'Tempo di scrittura 6 min' },

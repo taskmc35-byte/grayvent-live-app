@@ -91,3 +91,10 @@ it('Legame Divino Puro: 7 PP, recupero 2 minuti', () => {
   const p = POWER_TABLE.sacerdote.valori[4];
   expect([p.qta, p.tdr, p.tdrMax]).toEqual([7, '2 min', '14 min']);
 });
+
+it('Studio Arcano Puro e Conoscenza Alchemica Pura', () => {
+  const m = POWER_TABLE.mago.valori[4];
+  expect([m.qta, m.tdr, m.tdrMax]).toEqual([7, '2 min', '14 min']);
+  expect(m.extra).toMatch(/Energia! Crash!/);
+  expect(POWER_TABLE.alchimista.valori[4].qta).toBe(17);
+});
