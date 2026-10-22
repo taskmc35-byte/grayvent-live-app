@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compute } from './rules';
+import { compute, POWER_TABLE } from './rules';
 import { ALL_ABILITIES } from './data/abilities';
 import { RACES } from './data/races';
 import type { Character, LocId } from './data/types';
@@ -85,4 +85,9 @@ it("Mezz'Elfo: bonus e malus da razze diverse", async () => {
   expect(sangueTesto(c, RACES, raceLabel)).toMatch(/^bonus da .*, malus da /);
   const stesso = effectiveRace({ razza: 'mezzelfo', razzaEreditata: 'alf' } as never, RACES);
   expect(stesso.malusDa?.id).toBe('alf');
+});
+
+it('Legame Divino Puro: 7 PP, recupero 2 minuti', () => {
+  const p = POWER_TABLE.sacerdote.valori[4];
+  expect([p.qta, p.tdr, p.tdrMax]).toEqual([7, '2 min', '14 min']);
 });

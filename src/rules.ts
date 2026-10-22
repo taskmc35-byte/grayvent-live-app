@@ -30,6 +30,7 @@ export const POWER_TABLE: Record<ViaPotere, { nome: string; risorsa: string; val
     { qta: 4, tdr: '5 min', tdrMax: '20 min' },
     { qta: 5, tdr: '4 min', tdrMax: '20 min' },
     { qta: 6, tdr: '3 min', tdrMax: '18 min' },
+    { qta: 7, tdr: '2 min', tdrMax: '14 min', extra: 'Lanciare un Miracolo Puro costa 5 PP' },
   ] },
   alchimista: { nome: 'Alchimista', risorsa: 'Attivazioni al giorno', valori: [
     { qta: 7, extra: '1 attivazione per livello del Cerchio' }, { qta: 10 }, { qta: 13 }, { qta: 15 },
