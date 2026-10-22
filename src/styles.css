@@ -749,7 +749,7 @@ details.ab:last-child, .spell-group .spell-btn:last-child { border-bottom: 0; }
 
 /* ---------- Chat come pannello sempre disponibile ---------- */
 .chat-fab {
-  position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); z-index: 35;
+  position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(96px + env(safe-area-inset-bottom, 0px)); z-index: 35;
   width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
   color: #1f1a16; background: radial-gradient(circle at 35% 30%, #e2c58c, var(--gold) 55%, #9c7a40);
   border: 1px solid #f0d9a6; box-shadow: 0 6px 18px rgb(0 0 0 / 0.45), inset 0 0 0 3px rgb(0 0 0 / 0.12);
@@ -781,7 +781,7 @@ details.ab:last-child, .spell-group .spell-btn:last-child { border-bottom: 0; }
 .chat-body .chat-limit { padding: 0 16px 8px; background: var(--surface); }
 /* spazio in fondo alle pagine per il pulsante della chat; il pulsante sale sopra le barre di salvataggio */
 .app { padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px)); }
-body:has(.savebar) .chat-fab { bottom: calc(132px + env(safe-area-inset-bottom, 0px)); }
+body:has(.savebar) .chat-fab { bottom: calc(146px + env(safe-area-inset-bottom, 0px)); }
 .chat-fab .fab-q { font-family: var(--display); font-weight: 700; font-size: 2.1rem; line-height: 1; margin-top: -2px; }
 
 /* ---------- Benedizioni e maledizioni ---------- */
@@ -1103,3 +1103,7 @@ div.libro { cursor: default; }
 .scegli-pg { display: flex; align-items: center; gap: 10px; padding: 10px max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); }
 .scegli-pg label { color: var(--muted); font-size: 0.9rem; flex: none; }
 .scegli-pg select { flex: 1; min-width: 0; min-height: 40px; padding: 6px 10px; border-radius: var(--r-sm); border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); background: var(--surface); color: var(--fg); font-family: var(--display); font-weight: 700; font-size: 1.05rem; }
+/* pulsante "?" un po' più in alto per non coprire i pulsanti in fondo; nella Scheda (già impaginata attorno a lui) resta dov'era */
+.app { padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px)); }
+.app:has(.scheda-fit) { padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px)); }
+body:has(.scheda-fit) .chat-fab { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }

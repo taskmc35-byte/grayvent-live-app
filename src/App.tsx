@@ -65,7 +65,8 @@ export default function App() {
   // con più personaggi (es. uno staffer che ne ha diversi a suo nome) si sceglie quale vedere; la scelta resta salvata
   const [pgScelto, setPgScelto] = useState<string>(() => { try { return localStorage.getItem('gv-pg-scelto') ?? ''; } catch { return ''; } });
   const scegliPg = (id: string) => { try { localStorage.setItem('gv-pg-scelto', id); } catch { /* niente */ } setPgScelto(id); setSceltaVista(false); };
-  const pg = approvati.find((p) => p.id === pgScelto) ?? approvati[0];
+  // la scelta tra più schede vale solo per lo staff (i loro PNG); un giocatore vede sempre la sua scheda
+  const pg = (user?.ruolo === 'staff' && approvati.find((p) => p.id === pgScelto)) || approvati[0];
   const inAttesa = pgs.find((p) => p.stato === 'in_approvazione' || p.stato === 'da_rivedere');
   const calc = useMemo(() => (pg && catalog.length ? compute(pg, catalog, RACES) : null), [pg, catalog]);
   const dovute = useMemo(() => (pg ? scelteDovute(pg, SPELLS, (id) => catalog.find((a) => a.id === id)?.nome ?? id) : null), [pg, catalog]);
@@ -140,9 +141,9 @@ export default function App() {
   } else if (pg && calc) {
     schedaView = (
       <>
-        {approvati.length > 1 && (
+        {user.ruolo === 'staff' && approvati.length > 1 && (
           <div className="scegli-pg">
-            <label htmlFor="scegli-pg">Personaggio</label>
+            <label htmlFor="scegli-pg">PNG</label>
             <select id="scegli-pg" value={pg.id} onChange={(e) => { scegliPg(e.target.value); setSub('scheda'); }}>
               {approvati.map((p) => <option key={p.id} value={p.id}>{`${p.nome} ${p.cognome}`.trim()}</option>)}
             </select>
@@ -191,7 +192,7 @@ export default function App() {
     <div className="app">
       {apertura}
       {user.ruolo === 'staff' && (
-        <p className="vista-staff">La tua scheda da giocatore. <button className="link" onClick={() => cambiaVista(false)}>Torna al pannello staff</button></p>
+        <p className="vista-staff">Schede dei tuoi PNG. <button className="link" onClick={() => cambiaVista(false)}>Torna al pannello staff</button></p>
       )}
       {api.demo && <p className="demo-banner">Versione di prova con personaggi di esempio. <button className="link" onClick={logout}>Cambia utente</button></p>}
       {loadError && <div className="page"><div className="notice">Non riesco a caricare la scheda: {loadError}</div></div>}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import { api, type Profile, type StaffCharacter, type User } from '../../api';
 import type { Ability, Spell } from '../../data/types';
 import { raceById, raceLabel } from '../../data/races';
@@ -138,18 +138,20 @@ export function StaffApp({ user, spells, onLogout, onToast, onMiaScheda }: { use
           {(['personaggi', 'eventi', 'missive', 'altro'] as Tab[]).map((t) => {
             const badge = t === 'personaggi' ? daApprovare.length : t === 'missive' ? nuoveMissive : 0;
             return (
-              <button key={t} className="tab" aria-current={tab === t ? 'page' : undefined} onClick={() => go(t)}>
+              <Fragment key={t}>
+              {t === 'altro' && onMiaScheda && (
+                <button className="tab" onClick={onMiaScheda}>
+                  <span className="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="5" r="2.5" /><path d="M9 21v-6H7.5V10a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v5H15v6" /></svg></span>
+                  <span>PNG</span>
+                </button>
+              )}
+              <button className="tab" aria-current={tab === t ? 'page' : undefined} onClick={() => go(t)}>
                 <span className="tab-ico">{ICONS[t]}{badge > 0 && <span className="badge-dot" aria-label={`${badge} nuove`}>{badge}</span>}</span>
                 <span>{{ personaggi: 'Personaggi', eventi: 'Eventi', missive: 'Missive', altro: 'Altro' }[t]}</span>
               </button>
+              </Fragment>
             );
           })}
-          {onMiaScheda && (
-            <button className="tab" onClick={onMiaScheda}>
-              <span className="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="5" r="2.5" /><path d="M9 21v-6H7.5V10a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v5H15v6" /></svg></span>
-              <span>La mia scheda</span>
-            </button>
-          )}
         </div>
       </nav>
     </div>
