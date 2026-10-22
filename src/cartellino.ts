@@ -131,3 +131,30 @@ export function cercaScritto(idx: Indice, q: string, max = 20): Voce[] {
 }
 
 export const nomeVoce = (v: Voce) => (v.tipo === 'abilita' ? v.abilita.nome : v.tipo === 'potere' ? v.potere.nome : `${v.tabella.nome}${v.sezione ? `, ${v.sezione}` : ''}`);
+
+/** Distanza di modifica (lettere da aggiungere, togliere o cambiare) */
+function distanza(a: string, b: string): number {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+
+/**
+ * Codici "quasi" letti: una lettera mancante, in più o sbagliata (es. la scrittura a mano: 8WEA letto WEA).
+ * Non sono sicuri, quindi l'app li propone come suggerimenti da toccare, senza aprirli da sola.
+ */
+export function suggerimenti(idx: Indice, testo: string, max = 6): Voce[] {
+  const parole = testo.split(/[^A-Za-z0-9]+/).filter((p) => p.length >= 3 && p.length <= 7 && (/\d/.test(p) || p === p.toUpperCase()));
+  const out = new Map<string, Voce>();
+  for (const p of parole) {
+    const k = canonico(pulisci(p));
+    for (const [codice, voci] of idx.esatto) {
+      if (Math.abs(codice.length - k.length) > 1) continue;
+      if (distanza(k, canonico(codice)) <= 1) for (const v of voci) out.set(`${v.tipo}|${v.codice}`, v);
+      if (out.size >= max * 3) break;
+    }
+  }
+  return out.size > max * 2 ? [] : [...out.values()].slice(0, max); // troppi candidati: meglio nessun suggerimento
+}

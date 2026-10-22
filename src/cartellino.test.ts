@@ -54,3 +54,7 @@ it('scritto a mano: 8 letto come S (SWEA = 8WEA)', () => {
   expect(cercaCodice(idx, 'SWEA').map((v) => v.codice)).toEqual(['8WEA']);
   expect(trovaNelTesto(idx, 'aD\n>\npa.\nSWEA').map((v) => v.codice)).toEqual(['8WEA']);
 });
+it('suggerimenti: WEA (8 non letto) propone 8WEA', async () => {
+  const { suggerimenti } = await import('./cartellino');
+  expect(suggerimenti(idx, '\\/ FA\nWEA').map((v) => v.codice)).toContain('8WEA');
+});

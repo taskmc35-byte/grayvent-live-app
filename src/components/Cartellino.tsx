@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Ability, Categoria, Character, Spell } from '../data/types';
 import { TABELLE } from '../data/abilities';
-import { creaIndice, cercaScritto, nomeVoce, trovaNelTesto, type Voce } from '../cartellino';
+import { creaIndice, cercaScritto, nomeVoce, suggerimenti, trovaNelTesto, type Voce } from '../cartellino';
 import { DettaglioAbilita } from './AbilitaTab';
 import { DettaglioPotere } from './PoteriTab';
 import { etichettaScuola } from '../poteri';
@@ -33,6 +33,7 @@ function Pannello({ catalog, spells, pg, staff, onClose }: { catalog: Ability[];
   const [lettura, setLettura] = useState<number | null>(null);
   const [errore, setErrore] = useState('');
   const [letto, setLetto] = useState(''); // testo letto, mostrato se non trova codici
+  const [forse, setForse] = useState<Voce[]>([]); // codici quasi letti (es. scrittura a mano)
   const [tentativo, setTentativo] = useState(0);
   const [ultima, setUltima] = useState<{ file: File; url: string } | null>(null); // per toccare il codice nella foto
   useEffect(() => () => { if (ultima) URL.revokeObjectURL(ultima.url); }, [ultima]);
@@ -43,7 +44,7 @@ function Pannello({ catalog, spells, pg, staff, onClose }: { catalog: Ability[];
   const scritte = q.trim() ? cercaScritto(idx, q) : [];
 
   const prova = async (file: File, zona?: { x: number; y: number }) => {
-    setErrore(''); setTrovate(null); setScelta(null); setLettura(0); setLetto('');
+    setErrore(''); setTrovate(null); setScelta(null); setLettura(0); setLetto(''); setForse([]);
     try {
       const { leggiFoto, PASSATE, passateZona } = await import('../ocr');
       const passate = zona ? passateZona(zona.x, zona.y) : PASSATE;
@@ -58,6 +59,7 @@ function Pannello({ catalog, spells, pg, staff, onClose }: { catalog: Ability[];
         if (voci.length) break;
       }
       setLetto(voci.length ? '' : testi.map((t) => t.trim()).filter(Boolean).slice(0, 4).join('\n—\n'));
+      setForse(voci.length ? [] : suggerimenti(idx, testi.join('\n')));
       setTrovate(voci);
       if (voci.length === 1) setScelta(voci[0]);
     } catch {
@@ -114,7 +116,8 @@ function Pannello({ catalog, spells, pg, staff, onClose }: { catalog: Ability[];
             {errore && <p className="error" role="alert">{errore}</p>}
             {trovate && trovate.length === 0 && (
               <div className="notice">
-                <p style={{ margin: 0 }}>Non ho trovato nessun codice nella foto. Riprova più da vicino, dritto e senza riflessi, oppure scrivilo qui sotto.</p>
+                <p style={{ margin: 0 }}>{forse.length ? 'Non sono sicuro di aver letto bene il codice.' : 'Non ho trovato nessun codice nella foto. Riprova più da vicino, dritto e senza riflessi, oppure scrivilo qui sotto.'}</p>
+                {forse.length > 0 && <ElencoVoci titolo="Forse è uno di questi" voci={forse} onScegli={setScelta} />}
                 {ultima && (
                   <div className="cart-tocca">
                     <p>Tocca nella foto il punto dove si trova il codice: lo leggo da vicino.</p>
