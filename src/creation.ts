@@ -1,5 +1,6 @@
 // Regole della creazione del personaggio (Manuale di Creazione del Personaggio)
 import type { Ability, Race } from './data/types';
+import { prerequisitiMancanti } from './requisiti';
 
 export const BUDGET_PC = 25;
 /** Talento 1 non si sceglie: lo generano i PC avanzati (a gruppi di 5) */
@@ -17,20 +18,12 @@ export const SPUNTI_BG = [
 ];
 
 export function creationAbilities(catalog: Ability[]) {
-  return catalog.filter((a) => a.tipo === 'base' && !NON_SELEZIONABILI.has(a.id));
+  return catalog.filter((a) => a.tipo === 'base' && !a.segreta && !NON_SELEZIONABILI.has(a.id));
 }
 
 /** Prerequisiti mancanti (nomi), letti dal testo dei prerequisiti */
 export function missingPrereq(a: Ability, owned: Set<string>, catalog: Ability[]): string[] {
-  if (!a.prerequisiti) return [];
-  if (/armatura di cuoio (in su|o superiore)/i.test(a.prerequisiti)) {
-    return ['armatura-cuoio', 'armatura-cuoio-lavorato', 'armatura-anelli', 'armatura-piastre'].some((id) => owned.has(id)) ? [] : ['un’Armatura'];
-  }
-  const byName = new Map(catalog.map((x) => [x.nome.toLowerCase().replace(/\s+/g, ' '), x.id]));
-  return a.prerequisiti.split(',').map((p) => p.trim()).filter((p) => {
-    const id = byName.get(p.toLowerCase().replace(/\s+/g, ' ').replace('leggere & scrivere', 'leggere & scrivere'));
-    return id ? !owned.has(id) : false;
-  });
+  return prerequisitiMancanti(a, owned, catalog);
 }
 
 export interface CreationCheck {

@@ -8,7 +8,7 @@ import { useIndietro } from '../../indietro';
 const CAT: { id: Categoria; nome: string }[] = [
   { id: 'fisico', nome: 'Fisiche e di combattimento' }, { id: 'mentale', nome: 'Mentali e di conoscenza' }, { id: 'sovrannaturale', nome: 'Sovrannaturali' },
 ];
-const LIVELLI = ['Minore', 'Maggiore', 'Estremo', 'Assoluto'];
+const LIVELLI = ['Minore', 'Maggiore', 'Estremo', 'Assoluto', 'Puro'];
 const slug = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 export function CatalogEditor({ catalog, onSave, onDelete }: {
@@ -26,10 +26,10 @@ export function CatalogEditor({ catalog, onSave, onDelete }: {
         <h1>Catalogo abilità</h1>
         <button className="btn primary" onClick={() => setEdit({ id: '', nome: '', categoria: 'fisico', tipo: 'avanzata', descrizione: '', pc: null, tda: null })}>Nuova abilità</button>
       </div>
-      <p className="hint">Qui si aggiungono le abilità avanzate delle professioni. Gli effetti che indichi (PF, armature, Punti Potere) entrano nei calcoli di tutte le schede.</p>
+      <p className="hint">Il catalogo viene dal database dello staff (foglio Abilità con i codici). Qui puoi correggere o aggiungere abilità: gli effetti che indichi (PF, armature, Punti Potere) entrano nei calcoli di tutte le schede.</p>
       <input className="search" type="search" placeholder="Cerca" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Cerca abilità" />
       {CAT.map((c) => {
-        const list = catalog.filter((a) => a.categoria === c.id && (!f || a.nome.toLowerCase().includes(f)));
+        const list = catalog.filter((a) => a.categoria === c.id && (!f || a.nome.toLowerCase().includes(f) || (a.codice ?? '').toLowerCase() === f || (a.titolo ?? '').toLowerCase().includes(f)));
         if (!list.length) return null;
         return (
           <div key={c.id}>
@@ -37,7 +37,7 @@ export function CatalogEditor({ catalog, onSave, onDelete }: {
             {list.map((a) => (
               <button key={a.id} className="row-btn" onClick={() => setEdit(a)}>
                 <span>{a.nome}{a.tipo === 'avanzata' && <em> avanzata</em>}</span>
-                <small>{[a.pc != null ? `${a.pc} PC` : null, a.tda != null ? `TdA ${a.tda}` : 'TdA da inserire'].filter(Boolean).join(', ')}</small>
+                <small>{[a.codice, a.titolo && a.titolo !== 'Fyrd' ? a.titolo : null, a.pc != null ? `${a.pc} PC` : null, a.tda != null ? `TdA ${a.tda}` : a.nonInsegnabile ? 'Non insegnabile' : 'TdA da inserire'].filter(Boolean).join(', ')}</small>
               </button>
             ))}
           </div>
@@ -99,6 +99,11 @@ function AbilityForm({ a: init, isBase, modified, taken, onClose, onSave, onDele
         <div className="field"><label htmlFor="ab-pc">PC</label><input id="ab-pc" type="number" min={0} value={a.pc ?? ''} onChange={(e) => setA({ ...a, pc: e.target.value === '' ? null : Number(e.target.value) })} /></div>
         <div className="field"><label htmlFor="ab-tda">TdA (eventi)</label><input id="ab-tda" type="number" min={0} value={a.tda ?? ''} onChange={(e) => setA({ ...a, tda: e.target.value === '' ? null : Number(e.target.value) })} /></div>
       </div>
+      <div className="grid2">
+        <div className="field"><label htmlFor="ab-cod">Codice</label><input id="ab-cod" value={a.codice ?? ''} onChange={(e) => setA({ ...a, codice: e.target.value.trim() || undefined })} /></div>
+        <div className="field"><label htmlFor="ab-seph">Sephira minima</label><input id="ab-seph" type="number" min={0} value={a.sephira ?? ''} onChange={(e) => setA({ ...a, sephira: e.target.value === '' ? undefined : Number(e.target.value) })} /></div>
+      </div>
+      <div className="field"><label htmlFor="ab-tit">Titolo o carica richiesti</label><input id="ab-tit" value={a.titolo ?? ''} onChange={(e) => setA({ ...a, titolo: e.target.value || undefined })} placeholder="Es. Mistagogo; con la virgola servono tutti, con / ne basta uno" /></div>
       <div className="field"><label htmlFor="ab-pre">Prerequisiti</label><input id="ab-pre" value={a.prerequisiti ?? ''} onChange={(e) => setA({ ...a, prerequisiti: e.target.value || undefined })} placeholder="Nomi delle abilità separati da virgola" /></div>
       <div className="field"><label htmlFor="ab-desc">Descrizione</label><textarea id="ab-desc" rows={5} value={a.descrizione} onChange={(e) => setA({ ...a, descrizione: e.target.value })} /></div>
 
@@ -120,8 +125,8 @@ function AbilityForm({ a: init, isBase, modified, taken, onClose, onSave, onDele
           </div>
           {eff.potere && (
             <div className="field"><label htmlFor="ab-liv">Livello</label>
-              <select id="ab-liv" value={eff.potere.livello} onChange={(e) => setEff({ potere: { ...eff.potere!, livello: Number(e.target.value) as 1 | 2 | 3 | 4 } })}>
-                {LIVELLI.slice(0, POWER_TABLE[eff.potere.via].valori.length).map((l, i) => <option key={l} value={i + 1}>{l}</option>)}
+              <select id="ab-liv" value={eff.potere.livello} onChange={(e) => setEff({ potere: { ...eff.potere!, livello: Number(e.target.value) as 1 | 2 | 3 | 4 | 5 } })}>
+                {LIVELLI.map((l, i) => <option key={l} value={i + 1}>{l}</option>)}
               </select>
             </div>
           )}

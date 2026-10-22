@@ -51,20 +51,20 @@ export function costruisciPagine(pg: Character, catalog: Ability[], spells: Spel
   const catAb = (id: string): Categoria => catalog.find((a) => a.id === id)?.categoria ?? 'mentale';
   const titoli: Record<Categoria, string> = { fisico: 'ABILITÀ FISICHE', mentale: 'ABILITÀ MENTALI', sovrannaturale: 'ABILITÀ SOVRANNATURALI' };
   for (const cat of ['fisico', 'mentale', 'sovrannaturale'] as Categoria[]) {
-    const voci = pg.abilita.filter((id) => catAb(id) === cat).map(nomeAb);
+    const voci = pg.abilita.filter((id) => catAb(id) === cat).map((id) => ({ nome: nomeAb(id), cod: catalog.find((a) => a.id === id)?.codice }));
     out.push(...paginaTabella(titoli[cat], 'Abilità', voci));
   }
 
-  // incantesimi e miracoli, raggruppati come nel libretto: "Miracoli Minori Padre", "Incantesimi Minori Aria"...
-  const gruppi = new Map<string, string[]>();
+  // poteri raggruppati come nel libretto: "Miracoli Minori Padre", "Incantesimi Minori Aria", "Rune Surtur 3^ Aett"...
+  const gruppi = new Map<string, Voce[]>();
   for (const id of pg.incantesimi) {
     const s = spells.find((x) => x.id === id);
     if (!s) continue;
-    const tipo = s.tipo === 'miracolo' ? 'Miracoli' : 'Incantesimi';
-    const liv = s.livello === 'Minore' ? 'Minori' : s.livello === 'Maggiore' ? 'Maggiori' : s.livello;
+    const tipo = { miracolo: 'Miracoli', incantesimo: 'Incantesimi', runa: 'Rune', cerchio: 'Cerchi' }[s.tipo];
+    const liv = ({ Minore: 'Minori', Maggiore: 'Maggiori', Estremo: 'Estremi', Assoluto: 'Assoluti', Puro: 'Puri' } as Record<string, string>)[s.livello] ?? s.livello;
     const scuola = s.scuola === 'Generico' ? 'Generici' : s.scuola === 'Sintesi' ? 'di Sintesi' : s.scuola;
-    const k = `${tipo} ${liv} ${scuola}`;
-    gruppi.set(k, [...(gruppi.get(k) ?? []), s.nome]);
+    const k = s.tipo === 'runa' ? `${tipo} ${scuola} ${liv}` : `${tipo} ${liv} ${scuola}`;
+    gruppi.set(k, [...(gruppi.get(k) ?? []), { nome: s.lettera ? `${s.nome} (${s.lettera})` : s.nome, cod: s.codice }]);
   }
   for (const [k, voci] of gruppi) out.push(...paginaTabella('ABILITÀ SOVRANNATURALI', k, voci));
 
@@ -131,7 +131,8 @@ function paginaRighe(titolo: string, voci: string[], piede?: string): Draw {
 const RH = 4.6;                   // altezza riga delle tabelle
 const RIGHE_TAB = Math.floor((PH - 2 * M - 11) / RH);
 
-function paginaTabella(titolo: string, colonna: string, voci: string[]): Draw[] {
+type Voce = { nome: string; cod?: string };
+function paginaTabella(titolo: string, colonna: string, voci: Voce[]): Draw[] {
   const pagine: Draw[] = [];
   const blocchi = voci.length ? Array.from({ length: Math.ceil(voci.length / RIGHE_TAB) }, (_, i) => voci.slice(i * RIGHE_TAB, (i + 1) * RIGHE_TAB)) : [[]];
   blocchi.forEach((b, i) => pagine.push((d, x, y) => {
@@ -146,7 +147,8 @@ function paginaTabella(titolo: string, colonna: string, voci: string[]): Draw[] 
     d.line(x + C, y + 5.5, x + C, y + h);
     for (let r = 0; cy + RH <= y + h + 0.01; r++, cy += RH) {
       if (cy + RH < y + h - 0.1) d.line(x, cy + RH, x + W, cy + RH);
-      if (b[r]) riquadro(d, b[r], x + C + 1.2, cy + 0.25, W - C - 2.4, RH - 0.5, 8);
+      if (b[r]) riquadro(d, b[r].nome, x + C + 1.2, cy + 0.25, W - C - 2.4, RH - 0.5, 8);
+      if (b[r]?.cod) riquadro(d, b[r].cod!, x + 0.6, cy + 0.25, C - 1.2, RH - 0.5, 6.5, { align: 'center', min: 4.5 });
     }
   }));
   return pagine;

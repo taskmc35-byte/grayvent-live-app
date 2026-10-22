@@ -121,7 +121,8 @@ export function mergeSettings(v?: Partial<Impostazioni> | null): Impostazioni {
 
 function mergeCatalog(custom: Ability[]) {
   const byId = new Map(ALL_ABILITIES.map((a) => [a.id, a]));
-  for (const a of custom) byId.set(a.id, a); // lo staff può correggere o aggiungere
+  // lo staff può correggere o aggiungere; i campi nuovi del database (codice, titolo, tabelle…) restano se la correzione non li tocca
+  for (const a of custom) byId.set(a.id, { ...byId.get(a.id), ...a });
   return [...byId.values()];
 }
 

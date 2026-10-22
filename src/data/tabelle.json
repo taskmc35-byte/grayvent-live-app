@@ -1,0 +1,1642 @@
+[
+{
+"nome": "Linfa Eterea",
+"righe": [
+[
+"LIVELLO SPIRITO",
+"EFFETTO DEL BONUS",
+"DURATA",
+"USI",
+"Codice"
+],
+[
+"Carattere Melanconico",
+"",
+"",
+"",
+""
+],
+[
+"Minore",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! Paralisi! Cono 5!”",
+"Istantanea",
+"2/gg",
+"T9PL.YT"
+],
+[
+"Maggiore",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! Dolore! Area 5!”",
+"Istantanea",
+"2/gg",
+"T9PL.TG"
+],
+[
+"Estremo",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! Dolore! Cono 5!”",
+"Istantanea",
+"2/gg",
+"T9PL.ZU"
+],
+[
+"Assoluto",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! Dolore! TOSSICO! Area 10!”",
+"Istantanea",
+"1/gg",
+"T9PL.EL"
+],
+[
+"Puro",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! FATO! Comando! Area 10! - Disperatevi fino alla Morte!”",
+"Istantanea",
+"1/gg",
+"T9PL.RH"
+],
+[
+"Carattere Collerico",
+"",
+"",
+"",
+""
+],
+[
+"Minore",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! Repulsione! Area 5!”",
+"Istantanea",
+"2/gg",
+"T9PL.PA"
+],
+[
+"Maggiore",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! Repulsione! A Terra! Area 5!”",
+"Istantanea",
+"2/gg",
+"T9PL.RT"
+],
+[
+"Estremo",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! Repulsione! Doppio! Cono 5!”",
+"Istantanea",
+"3/gg",
+"T9PL.LH"
+],
+[
+"Assoluto",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! Repulsione! Crash! Cono 5!”",
+"Istantanea",
+"2/gg",
+"T9PL.IQ"
+],
+[
+"Puro",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! Repulsione! Diretto! Crash! Area 10!”",
+"Istantanea",
+"1/gg",
+"T9PL.LM"
+],
+[
+"Carattere Flemmatico",
+"",
+"",
+"",
+""
+],
+[
+"Minore",
+"Il Chierico può dichiarare “RIFLESSO! CHIAMATA!” ad una qualsiasi Chiamata che NON contenga Danni Superiori, Effetti Fisici, Effetti Mentali o Chiamate Speciali.",
+"5 volte ad uso",
+"1/gg",
+"T9PL.LX"
+],
+[
+"Maggiore",
+"Il Chierico può dichiarare “IMMUNE! CHIAMATA!” a qualsiasi Chiamata di cui è bersaglio (esclusa Chiamata Speciale “VOCE DEL LEONE!\")",
+"5 volte ad uso",
+"2/gg",
+"T9PL.MG"
+],
+[
+"Estremo",
+"Il Chierico può dichiarare \"RIFLESSO! CHIAMATA!\" ad una qualsiasi Chiamata che NON contenga Danni Superiori e/o le Chiamate Speciali \"LACERANTE!\", \"SHOCK!\" e \"VOCE DEL LEONE!”.",
+"Un combattimento",
+"1/gg",
+"T9PL.IM"
+],
+[
+"Assoluto",
+"Il Chierico può dichiarare “IMMUNE! CHIAMATA!” a qualsiasi Chiamata di cui è bersaglio (esclusa Chiamata Speciale “VOCE DEL LEONE!”)",
+"Un combattimento",
+"1/gg",
+"T9PL.WW"
+],
+[
+"Puro",
+"Il Chierico può dichiarare “IMMUNE! RIFLESSO! CHIAMATA!” a qualsiasi Chiamata di cui è bersaglio (esclusi i Danni Superiori e/o le Chiamate Speciali \"LACERANTE\", \"SHOCK\", “VOCE DEL LEONE!” e \"FATO!\")",
+"Un combattimento",
+"1/gg",
+"T9PL.DJ"
+],
+[
+"Carattere Sanguigno",
+"",
+"",
+"",
+""
+],
+[
+"Minore",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! Confusione! Cono 5!”",
+"Istantanea",
+"3/gg",
+"T9PL.XK"
+],
+[
+"Maggiore",
+"Il Chierico può riparare completamente la propria armatura in tutte le locazioni.",
+"Istantanea",
+"2/gg",
+"T9PL.GY"
+],
+[
+"Estremo",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! Confusione! 1 minuto! Area 5!”",
+"Istantanea",
+"3/gg",
+"T9PL.GL"
+],
+[
+"Assoluto",
+"Il Chierico può curare completamente tutti i PF di tutte le proprie locazioni ed attivare su di sé l’abilità “Rigenerazione 2” [2MOX] per durata di 1 ora.",
+"1 ora",
+"2/gg",
+"T9PL.FM"
+],
+[
+"Puro",
+"Il Chierico può dichiarare “ESPLOSIONE! Punti Ferita e Punti Armatura completamente guariti e riparati in tutte le locazioni! Area 5!”",
+"Istantanea",
+"1/gg",
+"T9PL.IB"
+],
+[
+"Carattere Oscuro",
+"",
+"",
+"",
+""
+],
+[
+"Minore",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! Terrore! Cono 5!”",
+"Istantanea",
+"3/gg",
+"T9PL.TU"
+],
+[
+"Maggiore",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! Terrore! Crash! Cono 5!”",
+"Istantanea",
+"2/gg",
+"T9PL.KG"
+],
+[
+"Estremo",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! SquartaVivi! Cono 5!”",
+"Istantanea",
+"2/gg",
+"T9PL.XT"
+],
+[
+"Assoluto",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! A Zero! Alle gambe! Terrore! Cono 10!”",
+"Istantanea",
+"1/gg",
+"T9PL.GW"
+],
+[
+"Puro",
+"Il Chierico può dichiarare la Chiamata “ESPLOSIONE! Fato! Terrore! A Zero! Cono 10!”",
+"Istantanea",
+"1/gg",
+"T9PL.GD"
+]
+]
+},
+{
+"nome": "Risonanza",
+"righe": [
+[
+"LIVELLO SPIRITO",
+"EFFETTO DEL BONUS",
+"DURATA",
+"USI",
+"Codice"
+],
+[
+"Carattere Melanconico",
+"",
+"",
+"",
+""
+],
+[
+"Minore",
+"Il Chierico può aggiungere l’Effetto Fisico “Paralisi!” alla chiamata portata con l’arma da mischia impugnata con il Braccio Principale",
+"5 volte ad uso",
+"1/gg",
+"T2AX.LR"
+],
+[
+"Maggiore",
+"Il Chierico può aggiungere la l'Effetto Fisico “Dolore!” alla chiamata portata con l’arma da mischia impugnata con il Braccio Principale",
+"5 volte ad uso",
+"1/gg",
+"T2AX.DL"
+],
+[
+"Estremo",
+"Il Chierico può aggiungere l’Effetto Fisico “Paralisi!” alla chiamata portata con l’arma da mischia impugnata con il Braccio Principale",
+"Un combattimento",
+"2/gg",
+"T2AX.DN"
+],
+[
+"Assoluto",
+"Il Chierico può aggiungere la Chiamata Speciale “SHOCK!” alla chiamata portata con l’arma da mischia impugnata con il Braccio Principale",
+"5 volte ad uso",
+"1/gg",
+"T2AX.OI"
+],
+[
+"Puro",
+"Il Chierico può sostituire completamente la propria Chiamata applicata dell’arma da mischia impugnata con il braccio principale con la Chiamata “FATO! SHOCK!”.",
+"5 volte ad uso",
+"1/gg",
+"T2AX.HU"
+],
+[
+"Carattere Collerico",
+"",
+"",
+"",
+""
+],
+[
+"Minore",
+"Il Chierico può aggiungere l’Effetto Fisico “A Terra!” alla chiamata portata con l’arma da mischia impugnata con il Braccio Principale.",
+"Un combattimento",
+"3/gg",
+"T2AX.IH"
+],
+[
+"Maggiore",
+"Il Chierico può sostituire il Moltiplicatore di Danno dell'arma impugnata con il braccio principale con il Moltiplicatore di Danno \"Doppio!\"",
+"Un combattimento",
+"2/gg",
+"T2AX.NR"
+],
+[
+"Estremo",
+"Il Chierico può sostituire il Moltiplicatore di Danno dell'arma impugnata con il braccio principale con il Moltiplicatore di Danno \"Triplo!\"",
+"Un combattimento",
+"2/gg",
+"T2AX.UQ"
+],
+[
+"Assoluto",
+"Il Chierico può sostituire il Moltiplicatore di Danno dell'arma impugnata con il braccio principale con il Moltiplicatore di Danno \"Crash!\"",
+"Un combattimento",
+"1/gg",
+"T2AX.TO"
+],
+[
+"Puro",
+"Il Chierico può sostituire il Moltiplicatore di Danno dell'arma impugnata con il braccio principale con il Moltiplicatore di Danno \"A Zero!\"",
+"Un combattimento",
+"1/gg",
+"T2AX.IT"
+],
+[
+"Carattere Flemmatico",
+"",
+"",
+"",
+""
+],
+[
+"Minore",
+"Il Chierico può curare 2 PF in una locazione di un bersaglio a tocco della mano, del Simulacro o di una Reliquia.",
+"Istantaneo",
+"5/gg",
+"T2AX.QU"
+],
+[
+"Maggiore",
+"Il Chierico può curare 4 PF in una locazione di un bersaglio a tocco della mano, del Simulacro o di una Reliquia.",
+"Istantaneo",
+"5/gg",
+"T2AX.IP"
+],
+[
+"Estremo",
+"Il Chierico può curare 3 PF in tutte le locazioni di un bersaglio a tocco della mano, del Simulacro o di una Reliquia.",
+"Istantaneo",
+"5/gg",
+"T2AX.YX"
+],
+[
+"Assoluto",
+"Il Chierico può curare 10 PF in una locazione di un bersaglio a tocco della mano, del Simulacro o di una Reliquia.",
+"Istantaneo",
+"5/gg",
+"T2AX.VD"
+],
+[
+"Puro",
+"Il Chierico può curare completamente tutte le locazioni di un bersaglio a tocco della mano, del Simulacro o di una Reliquia.",
+"Istantaneo",
+"5/gg",
+"T2AX.RF"
+],
+[
+"Carattere Sanguigno",
+"",
+"",
+"",
+""
+],
+[
+"Minore",
+"Il Chierico può aggiungere l’Effetto Mentale “Confusione!” alla Chiamata portata con l’arma da mischia impugnata con il Braccio Principale.",
+"5 volte ad uso",
+"2/gg",
+"T2AX.UP"
+],
+[
+"Maggiore",
+"Il Chierico può sostituire la Chiamata “Comando! 30 secondi! - Ridi Sguaiatamente!” alla Chiamata portata con l’arma da mischia impugnata con il Braccio Principale",
+"5 volte ad uso",
+"1/gg",
+"T2AX.MS"
+],
+[
+"Estremo",
+"Il Chierico può sostituire completamente la propria Chiamata applicata dell’arma da mischia impugnata con il braccio principale con la Chiamata “Fato! Confusione!”.",
+"5 volte ad uso",
+"2/gg",
+"T2AX.XO"
+],
+[
+"Assoluto",
+"Il Chierico può sostituire la Chiamata “Comando! - Ridi Sguaiatamente!” alla Chiamata portata con l’arma da mischia impugnata con il Braccio Principale",
+"5 volte ad uso",
+"1/gg",
+"T2AX.AQ"
+],
+[
+"Puro",
+"Il Chierico può sostituire la Chiamata “Comando!” alla Chiamata portata con l’arma da mischia impugnata con il Braccio Principale",
+"5 volte ad uso",
+"1/gg",
+"T2AX.YH"
+],
+[
+"Carattere Oscuro",
+"",
+"",
+"",
+""
+],
+[
+"Minore",
+"Il Chierico può aggiungere l’Effetto Mentale “Terrore!” alla chiamata portata con l’arma da mischia impugnata con il Braccio Principale",
+"5 volte ad uso",
+"2/gg",
+"T2AX.OB"
+],
+[
+"Maggiore",
+"Il Chierico può aggiungere l’Effetto Mentale “Furia!” alla chiamata portata con l’arma da mischia impugnata con il Braccio Principale",
+"5 volte ad uso",
+"1/gg",
+"T2AX.TL"
+],
+[
+"Estremo",
+"Il Chierico può sostituire completamente la propria Chiamata applicata dell’arma da mischia impugnata con il braccio principale con la Chiamata “SquartaVivi!”.",
+"Un combattimento",
+"1/gg",
+"T2AX.SM"
+],
+[
+"Assoluto",
+"Il Chierico può sostituire completamente la propria Chiamata applicata dell’arma da mischia impugnata con il braccio principale con la Chiamata \"Fato! Terrore! SquartaVivi!\"",
+"5 volte ad uso",
+"1/gg",
+"T2AX.LT"
+],
+[
+"Puro",
+"Il Chierico può sostituire completamente il proprio Moltiplicatore di Danno applicato dell’arma da mischia impugnata con il braccio principale con il Montiplicatore di Danno “Coma!”.",
+"5 volte ad uso",
+"1/gg",
+"T2AX.ED"
+]
+]
+},
+{
+"nome": "Emozioni Spiriti",
+"righe": [
+[
+"Carattere",
+"Comportamento"
+],
+[
+"MELANCONICO",
+"Il personaggio prova una profonda tristezza e un forte senso di delusione nei confronti delle persone accanto a lui. Non è in grado di ridere e percepisce gli eventi attorno a lui con un filtro di negatività."
+],
+[
+"COLLERICO",
+"Il personaggio prova una profonda rabbia che lo spinge a reagire in modo istintivo e aggressivo. Percepisce ogni fastidio in modo amplificato, fatica ad accettare le opinioni altrui e cerca lo scontro (fisico o verbale) con chiunque dimostri un pensiero diverso."
+],
+[
+"FLEMMATICO",
+"Il personaggio prova un profondo senso di vuoto. Il suo cuore è freddo, fatica ad empatizzare con le persone attorno a lui, agendo con lentezza e reagendo in modo distaccato a tutte le situazioni che normalmente gli causerebbero forti emozioni."
+],
+[
+"SANGUIGNO",
+"Il personaggio è inebriato dalle passioni, faticando a non assecondare i propri vizi e i piaceri della vita che più desidera. Non riesce a controllare le proprie pulsioni e reagisce in modo aggressivo nei confronti di chiunque tenti di limitarlo."
+],
+[
+"OSCURO",
+"Il personaggio predilige cattiveria e crudeltà, spesso anche gratuita. E' pervaso da una follia che lo spinge a reagire in modo imprevedibile e violento in modo assolutamente casuale a qualunque interazione. Trova piacevoli le azioni sadiche come le torutre e guarda soffrire gli altri senza agire anche se è in grado di aiutarli."
+]
+]
+},
+{
+"nome": "Messale",
+"righe": [
+[
+"Bonus Chierico per ogni confessione nel suo Messale",
+"",
+"",
+"",
+"note"
+],
+[
+"n° Confessato",
+"Descrizione",
+"Durata",
+"Usi",
+""
+],
+[
+"1",
+"Il Chierico può infliggere l’Effetto Mentale “Confusione!” a tocco (fuori combattimento)",
+"Evento",
+"1",
+""
+],
+[
+"2",
+"Il Chierico può infliggere l’Effetto Fisico “Dolore!” a tocco (fuori combattimento)",
+"Evento",
+"1",
+""
+],
+[
+"3",
+"Il Chierico ottiene 1 Livello dell’abilità “Liturgia” [R7JF].",
+"1 ora",
+"",
+"Liturgia: R7JF"
+],
+[
+"4",
+"Il Chierico può aggiungere l’Effetto Mentale “Confusione!” al danno dell’arma da mischia del Braccio Principale",
+"Evento",
+"1",
+""
+],
+[
+"5",
+"Il Chierico ottiene 1 Punto Potere aggiuntivo",
+"1 ora",
+"",
+""
+],
+[
+"6",
+"Il Chierico può aggiungere l’Effetto Fisico “Dolore!” al danno dell’arma da mischia del Braccio Principale",
+"Evento",
+"1",
+""
+],
+[
+"7",
+"Il Chierico ottiene 2 Livelli dell’abilità “Liturgia” [R7JF].",
+"1 ora",
+"",
+"Liturgia: R7JF"
+],
+[
+"8",
+"Il Chierico può infliggere la Chiamata Speciale “TOSSICO!” a tocco (fuori combattimento)",
+"Evento",
+"1",
+""
+],
+[
+"9",
+"Il Chierico ottiene 2 Punti Potere aggiuntivi",
+"1 ora",
+"",
+""
+],
+[
+"10",
+"Il Chierico può aggiungere la Chiamata Speciale “TOSSICO!” al danno dell’arma da mischia del Braccio Principale",
+"Evento",
+"1",
+""
+],
+[
+"Bonus confessato dopo il Rito di Purificazione",
+"",
+"",
+"",
+""
+],
+[
+"Peccato Capitale",
+"Descrizione",
+"Durata",
+"Usi",
+""
+],
+[
+"Cupidigia",
+"Il personaggio può guarire completamente le sue ferite in una locazione a tocco",
+"Evento",
+"1",
+""
+],
+[
+"Violenza",
+"Il personaggio può dichiarare “Immune! CHIAMATA!” ad una chiamata caratterizzata subita a scelta",
+"Evento",
+"1",
+""
+],
+[
+"Debolezza",
+"Il personaggio ottiene l’abilità “Braccio Versatile” [R4TY].",
+"Evento",
+"1 combattimento",
+"Braccio versatile: R4TY"
+],
+[
+"Blasfemia",
+"Il personaggio ottiene 1 minuto aggiuntivo al suo Status di Coma",
+"Evento",
+"",
+""
+],
+[
+"Disonore",
+"Il personaggio può dichiarare “Immune! CHIAMATA!” ad un Effetto Mentale subito a scelta",
+"Evento",
+"1",
+""
+],
+[
+"Bonus Chierico dopo il Rito di Purificazione",
+"",
+"",
+"",
+""
+],
+[
+"n° confessati nello stesso rito",
+"Descrizione",
+"Durata",
+"Usi",
+""
+],
+[
+"da 1 a 3",
+"Il Chierico ottiene 1 minuto aggiuntivo al suo Status di Coma",
+"Evento",
+"",
+""
+],
+[
+"da 4 a 6",
+"Il Chierico ottiene 5 minuti aggiuntivi al suo Status di Coma",
+"Evento",
+"",
+""
+],
+[
+"da 7 a 9",
+"Il Chierico ottiene l’abilità “Guarigione Divina” [5GIR].",
+"Evento",
+"1/gg",
+"Guarigione divina: 5GIR"
+],
+[
+"10 o più",
+"Il Chierico può dichiarare “Immune! Mortal!” al Moltiplicatore di Danno “Mortal!” subito",
+"Evento",
+"3/gg",
+""
+]
+]
+},
+{
+"nome": "Rosario Inquisitorio",
+"righe": [
+[
+"GRADO DI GIUDIZIO",
+"EFFETTO DEL BONUS",
+"DURATA",
+"USI",
+"",
+"CODICE ABILITA'"
+],
+[
+"Atto di Cupidigia",
+"",
+"",
+"",
+"",
+""
+],
+[
+"Primo\n(Minore)",
+"Il Chierico può curare 2 PF in una locazione di un bersaglio a tocco della mano o tramite una reliquia",
+"5 volte ad uso",
+"1/gg",
+"",
+"T4TU.AH"
+],
+[
+"Secondo\n(Maggiore)",
+"Il Chierico può curare 4 PF in una locazione di un bersaglio a tocco della mano o tramite una reliquia",
+"5 volte ad uso",
+"1/gg",
+"",
+"T4TU.TD"
+],
+[
+"Terzo\n(Estremo)",
+"Il Chierico può curare 3 PF in tutte le locazioni di un bersaglio a tocco della mano o tramite una reliquia",
+"5 volte ad uso",
+"1/gg",
+"",
+"T4TU.NX"
+],
+[
+"Quarto\n(Assoluto)",
+"Il Chierico può curare 10 PF in una locazione di un bersaglio a tocco della mano o tramite una reliquia",
+"5 volte ad uso",
+"1/gg",
+"",
+"T4TU.JN"
+],
+[
+"Quinto\n(Puro)",
+"Il Chierico può curare completamente tutte le locazioni di un bersaglio a tocco della mano o tramite una reliquia",
+"5 volte ad uso",
+"1/gg",
+"",
+"T4TU.XV"
+],
+[
+"Atto di Violenza",
+"",
+"",
+"",
+"",
+""
+],
+[
+"Primo\n(Minore)",
+"Il Chierico può dichiarare “RIFLESSO! CHIAMATA!” ad una qualsiasi Chiamata che NON contenga Danni Superiori, Effetti Fisici, Effetti Mentali o Chiamate Speciali.",
+"5 volte ad uso",
+"1/gg",
+"",
+"T4TU.IY"
+],
+[
+"Secondo\n(Maggiore)",
+"Il Chierico può dichiarare “IMMUNE! CHIAMATA!” a qualsiasi Chiamata di cui è bersaglio (esclusa Chiamata Speciale “VOCE DEL LEONE!\")",
+"5 volte ad uso",
+"2/gg",
+"",
+"T4TU.KT"
+],
+[
+"Terzo\n(Estremo)",
+"Il Chierico può dichiarare \"RIFLESSO! CHIAMATA!\" ad una qualsiasi Chiamata che NON contenga Danni Superiori e/o le Chiamate Speciali \"LACERANTE!\", \"SHOCK!\" e \"VOCE DEL LEONE!”.",
+"Un combattimento",
+"1/gg",
+"",
+"T4TU.RX"
+],
+[
+"Quarto\n(Assoluto)",
+"Il Chierico può dichiarare “IMMUNE! CHIAMATA!” a qualsiasi Chiamata di cui è bersaglio (esclusa Chiamata Speciale “VOCE DEL LEONE!”)",
+"Un combattimento",
+"1/gg",
+"",
+"T4TU.OL"
+],
+[
+"Quinto\n(Puro)",
+"Il Chierico può dichiarare “IMMUNE! RIFLESSO! CHIAMATA!” a qualsiasi Chiamata di cui è bersaglio (esclusi i Danni Superiori e/o le Chiamate Speciali \"LACERANTE\", \"SHOCK\", “VOCE DEL LEONE!” e \"FATO!\")",
+"Un combattimento",
+"1/gg",
+"",
+"T4TU.XA"
+],
+[
+"Atto di Debolezza",
+"",
+"",
+"",
+"",
+""
+],
+[
+"Primo\n(Minore)",
+"Il Chierico può aggiungere l’Effetto Fisico “A Terra!” alla chiamata portata con l’arma da mischia impugnata con il Braccio Principale.",
+"Un combattimento",
+"2/gg",
+"",
+"T4TU.DH"
+],
+[
+"Secondo\n(Maggiore)",
+"Il Chierico può sostituire il Moltiplicatore di Danno dell'arma impugnata con il braccio principale con il Moltiplicatore di Danno \"Doppio!\"",
+"Un combattimento",
+"2/gg",
+"",
+"T4TU.CT"
+],
+[
+"Terzo\n(Estremo)",
+"Il Chierico può sostituire il Moltiplicatore di Danno dell'arma impugnata con il braccio principale con il Moltiplicatore di Danno \"Triplo!\"",
+"Un combattimento",
+"2/gg",
+"",
+"T4TU.ND"
+],
+[
+"Quarto\n(Assoluto)",
+"Il Chierico può sostituire il Moltiplicatore di Danno dell'arma impugnata con il braccio principale con il Moltiplicatore di Danno \"Crash!\"",
+"Un combattimento",
+"1/gg",
+"",
+"T4TU.VQ"
+],
+[
+"Quinto\n(Puro)",
+"Il Chierico può sostituire il Moltiplicatore di Danno dell'arma impugnata con il braccio principale con il Moltiplicatore di Danno \"A Zero!\"",
+"Un combattimento",
+"1/gg",
+"",
+"T4TU.ML"
+],
+[
+"Atto di Blasfemia",
+"",
+"",
+"",
+"",
+""
+],
+[
+"Primo\n(Minore)",
+"Il Chierico ottiene 1 Livello dell’abilità “Liturgia” [R7JF]",
+"",
+"",
+"Liturgia: R7JF",
+"T4TU.DT"
+],
+[
+"Secondo\n(Maggiore)",
+"Il Chierico ottiene 1 Punto Potere aggiuntivo",
+"",
+"",
+"",
+"T4TU.JG"
+],
+[
+"Terzo\n(Estremo)",
+"Il Chierico ottiene l’abilità “Catechesi” [1FXC]",
+"",
+"",
+"Catechesi: 1FXC",
+"T4TU.QQ"
+],
+[
+"Quarto\n(Assoluto)",
+"Il Chierico ottiene 2 Punti Potere aggiuntivo",
+"",
+"",
+"",
+"T4TU.RQ"
+],
+[
+"Quinto\n(Puro)",
+"Il Chierico ottiene l’abilità “Intervento Divino” [3HDO]",
+"",
+"1",
+"Intervento divino: 3HDO",
+"T4TU.OD"
+],
+[
+"Atto di Disonore",
+"",
+"",
+"",
+"",
+""
+],
+[
+"Primo\n(Minore)",
+"Il Chierico ottiene l’abilità “Chiarezza Mentale” [3KCM]",
+"",
+"",
+"Chiarezza Mentale:3KCM",
+"T4TU.KG"
+],
+[
+"Secondo\n(Maggiore)",
+"Il Chierico ottiene l’abilità “Chiarezza Mentale” [3KCM] e “Coraggio 2” [7NCR]",
+"",
+"",
+"Chiarezza Mentale:3KCM\nCoraggio 2: 7NCR",
+"T4TU.IK"
+],
+[
+"Terzo\n(Estremo)",
+"Il Chierico ottiene l’abilità “Chiarezza Mentale” [3KCM] e “Tempra” [3VZO]",
+"",
+"",
+"Chiarezza Mentale:3KCM\nTempra: 3VZO",
+"T4TU.DL"
+],
+[
+"Quarto\n(Assoluto)",
+"Il Chierico può dichiarare “Immune! CHIAMATA!” alle chiamate appartenenti alla categoria Effetti Mentali e Effetti Fisici di cui è bersaglio",
+"Un combattimento",
+"1/gg",
+"",
+"T4TU.JW"
+],
+[
+"Quinto\n(Puro)",
+"Il Chierico può dichiarare “Immune! CHIAMATA!” alle chiamate appartenenti alla categoria Effetti Mentali, Effetti Fisici e ai Moltiplicatori di Danno “Singolo!”, “Doppio!” e “Triplo!” di cui è bersaglio",
+"Un combattimento",
+"1/gg",
+"",
+"T4TU.VF"
+]
+]
+},
+{
+"nome": "Ambasciata",
+"righe": [
+[
+"Categoria",
+"Bonus Passivo",
+"Bonus Attivo",
+"nota",
+""
+],
+[
+"Anatomia e Abitudini",
+"Il personaggio permette ad un curatore fisico (anche lui stesso) di risanare un PF oltre quelli previsti dall’abilità utilizzata sul bersaglio della razza studiata",
+"Il personaggio ottiene l’abilità “Cacciatore Versatile” [6XCV] della razza studiata",
+"Cacciatore: 6XCV",
+"7KXF.TY"
+],
+[
+"Territorio e Artigianato",
+"Il personaggio ottiene una o più componenti casuali erboristiche e/o metallurgiche (in segreteria) se inizia l’evento nel territorio della razza studiata",
+"Il personaggio ottiene, al termine dei suoi studi, una o più ricette erboristiche e/o metallurgiche relative all’artigianato della razza studiata",
+"",
+"7KXF.XH"
+],
+[
+"Leggi e Sistema Governativo",
+"Il personaggio grazie alle sue conoscenze etno-culturali ottiene l’autorità di imporsi sulla media nobiltà e sulle alte cariche della razza studiata",
+"Il personaggio ottiene l’autorità di esprimersi in un processo al pari di un Chierico della Giustizia di Medio Grado qualora nel processo sia coinvolto un membro della razza studiata",
+"",
+"7KXF.LG"
+]
+]
+},
+{
+"nome": "Eco",
+"righe": [
+[
+"Generati di Odino",
+"",
+"",
+"",
+"",
+"Generali di Surtur",
+"",
+"",
+""
+],
+[
+"MUNIN - Il Pensiero Razionale",
+"",
+"",
+"",
+"",
+"FENRIR - Il Mostruoso Lupo Affamato",
+"",
+"",
+""
+],
+[
+"Abilità",
+"Effetto",
+"Codice abilità bonus",
+"Codice ECO",
+"",
+"Abilità",
+"Effetto",
+"Codice abilità bonus",
+"Codice ECO"
+],
+[
+"Eco",
+"Il personaggio può usufruire dell’abilità “Resistenza Dermica\" [4LZN].",
+"Resistenza dermica; 4LZN",
+"6RQA.MN",
+"",
+"Eco",
+"Il personaggio può usufruire dell’abilità “Precisione Dilaniante” [6VNO].",
+"Precisione dilaniante: 6VNO",
+"6RQA.FF"
+],
+[
+"Eco Migliorata",
+"Il personaggio può usufruire dell'abilità \"Chiarezza Mentale\" [3KCM].",
+"Chiarezza Mentale:3KCM",
+"3OGN.UI",
+"",
+"Eco Migliorata",
+"Il personaggio può usufruire dell’abilità “Pitture di Guerra” [8SVV].",
+"Pitture di guerra: 8SVV",
+"3OGN.DV"
+],
+[
+"Eco Completa",
+"Il personaggio può usufruire dell'abilità \"Cacciatore\" [6XCV].",
+"Cacciatore: 6XCV",
+"3BFS.NN",
+"",
+"Eco Completa",
+"Il personaggio può sostituire alla sua Chiamata portata con l’Arma da Mischia del\nBraccio Principale la Chiamata Speciale “LACERANTE!”.",
+"",
+"3BFS.KP"
+],
+[
+"HUGIN - La Memoria",
+"",
+"",
+"",
+"",
+"SKOLL - Ingannatore dei Deboli",
+"",
+"",
+""
+],
+[
+"Abilità",
+"Effetto",
+"",
+"",
+"",
+"Abilità",
+"Effetto",
+"",
+""
+],
+[
+"Eco",
+"Il personaggio, per 3 volte a Giorno di Gioco, può toccare un personaggio e dichiarare \"FATO! Comando! Dimmi chi sei!\". Successivamente entra in Status di Fuori Gioco dichiara al bersaglio “Fammi leggere la tua scheda”. Il personaggio dovrà riconsegnare la scheda dopo averla letta. Qualora venga usata su personaggi non giocanti (PNG), questi in sostituzione eventuale della scheda riveleranno o faranno leggere informazioni analoghe ed equivalenti a quelle presenti in una scheda giocatore. Questa capacità non ha effetto sugli Spiriti.",
+"",
+"6RQA.ET",
+"",
+"Eco",
+"Il personaggio può usufruire dell’abilità “Amore Materno” [4UJH].",
+"Amore materno: 4UJH",
+"6RQA.LV"
+],
+[
+"Eco Migliorata",
+"Il personaggio può usufruire dell’abilità “Talento 2\" [5OUE].",
+"Talento 2: 5OUE",
+"3OGN.PA",
+"",
+"Eco Migliorata",
+"Il personaggio può sostituire alla sua Chiamata portata con l’Arma da Mischia del\nBraccio Principale la Chiamata “SquartaSacerdoti!”.",
+"",
+"3OGN.BS"
+],
+[
+"Eco Completa",
+"Il personaggio, se durante l'evento ha utilizzato la sua capacità di \"Eco\", al termine dell'evento può richiedere allo Staff la descrizione di tre delle abilità lette nelle schede. Ad avvenuta risposta, può scegliere di utilizzare una di queste abilità per il successivo evento.",
+"",
+"3BFS.LL",
+"",
+"Eco Completa",
+"Il personaggio può usufruire dell’abilità “Ineluttabile” [2EKC].",
+"Ineluttabile: 2EKC",
+"3BFS.BG"
+],
+[
+"GERI - Uccisore dei Nemici",
+"",
+"",
+"",
+"",
+"HRYM - Il Capitano Decomposto",
+"",
+"",
+""
+],
+[
+"Abilità",
+"Effetto",
+"",
+"",
+"",
+"Abilità",
+"Effetto",
+"",
+""
+],
+[
+"Eco",
+"Il personaggio può usufruire dell’abilità “Braccio Potenziato” [R2PL].",
+"Braccio potenziato: R2PL",
+"6RQA.ZZ",
+"",
+"Eco",
+"Il personaggio può aggiungere l'Effetto Fisico “Dolore!” al danno dell’Arma da Mischia del Braccio Principale o a tocco con la sua mano (in quest'ultimo caso, solo al di fuori del combattimento).",
+"",
+"6RQA.RO"
+],
+[
+"Eco Migliorata",
+"Il personaggio può usufruire dell’abilità “Linguaggio Runico” [C6WH]. Inoltre, ad ogni evento\ngli verranno consegnate in segreteria tre Rune Abili:\nWunjo (1^ Aett) [R2HG.EDK], Thurisaz (1^ Aett) [R2HG.GUD], Gebo (1^ Aett) [R2HG.LFX].",
+"Linguaggio runico: C6WH\nWunjo: R2HG.EDK\nThurisaz: R2HG.GUD\nGebo: R2HG.LFX",
+"3OGN.OP",
+"",
+"Eco Migliorata",
+"Il personaggio può usufruire dell’abilità “Riparare 4\" [9XZJ] senza considerarne i prerequisiti.",
+"Riparare 4: 9XZJ",
+"3OGN.VT"
+],
+[
+"Eco Completa",
+"Il personaggio può usufruire dell’abilità “Parola Sacra” [9JIP], tuttavia tramite l’abilità potrà\nattivare soltanto le Rune seguenti:\nHagalaz (2^ Aett) [R2HG.XNQ], Thurisaz (1^ Aett) [R2HG.GUD], Jera (2^ Efaett) [R2ZE.USG].",
+"Parola sacra: 9JIP\nHagalaz: R2HG.XNQ\nThurisaz: R2HG.GUD\nJera: R2ZE.USG",
+"3BFS.CR",
+"",
+"Eco Completa",
+"Il personaggio diviene immune agli effetti delle maledizioni, delle malattie e dei veleni. Inoltre può dichiarare “Immune!” alla Chiamata Speciale “TOSSICO!”.",
+"",
+"3BFS.UD"
+],
+[
+"FREKI - Ingordo dei Cadaveri Nemici",
+"",
+"",
+"",
+"",
+"HATI - Colui che odia",
+"",
+"",
+""
+],
+[
+"Abilità",
+"Effetto",
+"",
+"",
+"",
+"Abilità",
+"Effetto",
+"",
+""
+],
+[
+"Eco",
+"Il personaggio può usufruire dell’abilità “Ultima Risorsa” [5ETE].",
+"",
+"6RQA.MR",
+"",
+"Eco",
+"Il personaggio può usufruire dell’abilità “Camuffare” [4WTL] solo su se stesso.",
+"Camuffare: 4WTL",
+"6RQA.PU"
+],
+[
+"Eco Migliorata",
+"Il personaggio può usufruire dell’abilità “Via di Fuga” [9UQK].",
+"Via di fuga: 9UQK",
+"3OGN.GP",
+"",
+"Eco Migliorata",
+"Il personaggio può sostituire alla sua Chiamata portata con l’Arma da Mischia del Braccio Principale la Chiamata “SquartaSacerdoti!”.",
+"",
+"3OGN.MI"
+],
+[
+"Eco Completa",
+"Il personaggio può usufruire dell’abilità \"Condottiero 2\" [8QTV].",
+"Condottiero 2: 8QTV",
+"3BFS.SX",
+"",
+"Eco Completa",
+"Il personaggio può usufruire delle abilità “Attacco Furtivo” [5NHT] e \"Nascondersi 3\" [5KJB].",
+"Attacco Furtivo: 5NHT\nNascondersi 3: 5KJB",
+"3BFS.NA"
+],
+[
+"SLEIPNIR - Il Viaggiatore Veloce",
+"",
+"",
+"",
+"",
+"JORMUNGANDR - Il Mostro Gigantesco",
+"",
+"",
+""
+],
+[
+"Abilità",
+"Effetto",
+"",
+"",
+"",
+"Abilità",
+"Effetto",
+"",
+""
+],
+[
+"Eco",
+"Il personaggio può usufruire dell’abilità “Carico Massimo” [8SWA].",
+"Carico Massimo: 8SWA",
+"6RQA.HH",
+"",
+"Eco",
+"Il personaggio può dichiarare “Immune!” a qualunque Incantesimo di qualunque\nlivello, Puro escluso, 3 volte per Giorno di Gioco.",
+"",
+"6RQA.BO"
+],
+[
+"Eco Migliorata",
+"Il personaggio può usufruire dell’abilità “Agilità Sovrannaturale\" [7LHV].",
+"Agilità sovrannaturale: 7LHV",
+"3OGN.PD",
+"",
+"Eco Migliorata",
+"Il personaggio può sostituire alla sua Chiamata portata con l’Arma da Mischia del Braccio Principale la Chiamata “SquartaIncantatori!”.",
+"",
+"3OGN.PA"
+],
+[
+"Eco Completa",
+"Il personaggio può usufruire dell’abilità “Ambidestria Migliorata” [9ILT].",
+"Ambidestria migliorata: 9ILT",
+"3BFS.VI",
+"",
+"Eco Completa",
+"Il personaggio può usufruire dell’abilità “Spezzare Migliorato” [2VCS].",
+"Spezzare migliorato: 2VCS",
+"3BFS.ER"
+],
+[
+"GULLINBURSTI - Il Manto d'Oro",
+"",
+"",
+"",
+"",
+"CHERNOBOG - L'Entità Oscura",
+"",
+"",
+""
+],
+[
+"Abilità",
+"Effetto",
+"",
+"",
+"",
+"Abilità",
+"Effetto",
+"",
+""
+],
+[
+"Eco",
+"Il personaggio può usufruire dell’abilità “Risorse 1” [5BAC] e Risorse 2” [1XTZ].",
+"Risorse 1: 5BAC\nRisorse 2: 1XTZ",
+"6RQA.BZ",
+"",
+"Eco",
+"Il personaggio può sostituire alla sua Chiamata portata con l’Arma da Mischia del\nBraccio Principale la Chiamata “SquartaSacerdoti!”.",
+"",
+"6RQA.AL"
+],
+[
+"Eco Migliorata",
+"Il personaggio può usufruire dell’abilità “Costituzione dell’Orso” [1KLW].",
+"Costituzione dell'orso:1KLW",
+"3OGN.TN",
+"",
+"Eco Migliorata",
+"Il personaggio può usufruire dell’abilità “Velo d’Ombra” [1MCY].",
+"Velo d'ombra: 1MCY",
+"3OGN.BR"
+],
+[
+"Eco Completa",
+"Il personaggio può usufruire dell’abilità “Insensibilità” [7JNB].",
+"Insensibilità: 7JNB",
+"3BFS.AO",
+"",
+"Eco Completa",
+"Il personaggio può sostituire al suo Moltiplicatore di Danno portato con l'Arma\nda Mischia del Braccio Principale il Moltiplicatore di Danno Superiore “MORTAL!” soltanto sorgendo\ndall’oscurità grazie all’abilità “Velo d’Ombra”.",
+"",
+"3BFS.CN"
+]
+]
+},
+{
+"nome": "Comunione con la Bestia",
+"righe": [
+[
+"Comunione con la Bestia - Lupo",
+"",
+"",
+"",
+"",
+""
+],
+[
+"Nome abilità",
+"Opzioni di scelta abilità",
+"",
+"",
+"",
+""
+],
+[
+"",
+"Abilità",
+"Requisito",
+"Descrizione",
+"Codice",
+""
+],
+[
+"Comunione con la Bestia 1",
+"Vedere Nascosti 1 [5KMZ]",
+"",
+"",
+"4WSB.HY",
+""
+],
+[
+"",
+"Agilità [2YKX]",
+"",
+"",
+"4WSB.DF",
+""
+],
+[
+"Comunione con la Bestia 2",
+"Rigenerazione 1 [7EDP]",
+"Sviluppo Fisico 2",
+"",
+"5ENG.VB",
+""
+],
+[
+"",
+"Imm. 1 Chiamata a scelta per 1 combattimento",
+"Agilità",
+"Il personaggio può dichiarare \"IMMUNE! CHIMAMATA!\" a una qualunque chiamata per un Combattimento ogni Giorno di Gioco.",
+"5ENG.AC",
+""
+],
+[
+"",
+"Braccio Versatile [R4TY]",
+"Sviluppo Fisico 2, Agilità",
+"",
+"5ENG.UL",
+""
+],
+[
+"Comunione con la Bestia 3",
+"Vedere Nascosti 2 [9GVL]",
+"Vedere Nascosti 1",
+"",
+"7YXW.RP",
+""
+],
+[
+"",
+"Imm. 3 Chiamate a scelta per 1 giorno di gioco",
+"Imm. 1 Chiamata a scelta per 1 combattimento",
+"",
+"7YXW.XO",
+""
+],
+[
+"",
+"Braccio Secondario Versatile [R9FG]",
+"Braccio Versatile",
+"",
+"7YXW.DS",
+""
+],
+[
+"Comunione con la Bestia - Orso",
+"",
+"",
+"",
+"",
+""
+],
+[
+"Nome abilità",
+"Opzioni di scelta abilità",
+"",
+"",
+"",
+""
+],
+[
+"",
+"Abilità",
+"Requisito",
+"Descrizione",
+"Codice",
+""
+],
+[
+"Comunione con la Bestia 1",
+"Robustezza [2MED]",
+"Sviluppo Fisico 1",
+"",
+"9DVN.UY",
+""
+],
+[
+"",
+"Chiamata: \"A Terra!\" (BP)",
+"Armi Medie",
+"Il personaggio può aggiungere l’Effetto Fisico “A Terra!” alla chiamata portata con l’arma da mischia (armi corte escluse) del Braccio Principale.",
+"9DVN.RF",
+""
+],
+[
+"Comunione con la Bestia 2",
+"Tempra [4DWD]",
+"",
+"",
+"2XGI.FT",
+""
+],
+[
+"",
+"Chiamata: \"Repulsione!\" (BP)",
+"Armi Medie",
+"Il personaggio può aggiungere l’Effetto Fisico “Repulsione!” alla chiamata portata con l’arma da mischia (armi corte escluse) del Braccio Principale.",
+"2XGI.AW",
+""
+],
+[
+"",
+"Chiamata: \"Fato! Terrore! Area 5!\" 1 volta per combattimento",
+"Sviluppo Fisico 2",
+"",
+"2XGI.VN",
+""
+],
+[
+"Comunione con la Bestia 3",
+"Rigenerazione 1 [7EDP]",
+"Sviluppo Fisico 2",
+"",
+"5JOT.KI",
+""
+],
+[
+"",
+"Berserk 2 [5JOT.BK]",
+"Berserk 1",
+"Il personaggio, 1 volta al giorno, può scegliere di entrare in Berserk sommando i suoi Punti Ferita e calcolando tutte le sue locazioni come se fossero una locazione unica. Inoltre guadagna 20 Punti Ferita, l’abilità “Chiarezza Mentale” [3KCM] e può dichiarare “IMMUNE! CHIAMATA!” alle Chiamate “Dolore!” e “A Terra!”. Il soggetto subisce la chiamata “FATO! Furia!” (al termine dell’effetto della chiamata terminano anche i bonus).",
+"5JOT.BK",
+"Chiarezza Mentale: 3KCM"
+],
+[
+"",
+"Chiamata: \"Repulsione! A Terra! Area 5!\" 3 volte per giorno di gioco",
+"Sviluppo Fisico 2",
+"",
+"5JOT.JK",
+""
+]
+]
+},
+{
+"nome": "Forza del Branco",
+"righe": [
+[
+"Ululati",
+"Effetto"
+],
+[
+"1 Ululato + 1 in risposta",
+"Gli Ulfhednar presenti possono aggiungere l’Effetto Fisico “Repulsione!” al primo colpo andato a segno in combattimento."
+],
+[
+"1 Ululato + 2/4 in risposta",
+"Gli Ulfhednar presenti possono sostituire, per il primo colpo, il loro Moltiplicatore di Danno dell’arma utilizzata per infliggere il primo colpo con il Moltiplicatore di Danno “Triplo!” e possono aggiungere alla chiamata della stessa arma la Chiamata Speciale “DIRETTO!”. Inoltre per il resto del combattimento possono aggiungere alla chiamata dell’arma da mischia del Braccio Principale la Chiamata Speciale “DIRETTO!”."
+],
+[
+"1 Ululato + 5/8 in risposta",
+"Gli Ulfhednar presenti possono aggiungere la Chiamata Speciale “FATO!” alla chiamata della propria arma da mischia del Braccio Principale per tutto il combattimento."
+]
+]
+},
+{
+"nome": "Robustezza Arcana",
+"righe": [
+[
+"",
+"Normale",
+"Robustezza Arcana (1)",
+"Robustezza Arcana (2)",
+"Robustezza Arcana (3)"
+],
+[
+"Minore",
+"FATO! Confusione!",
+"",
+"",
+""
+],
+[
+"Maggiore",
+"FATO! A Terra!",
+"FATO! Confusione!",
+"",
+""
+],
+[
+"Estremo",
+"FATO! Paralisi!",
+"FATO! A Terra!",
+"FATO! Confusione!",
+""
+],
+[
+"Assoluto",
+"FATO! Energia! A Terra!",
+"FATO! Paralisi!",
+"FATO! A Terra!",
+"FATO! Confusione!"
+],
+[
+"Puro",
+"FATO! Energia! Crash!",
+"FATO! Energia! A Terra!",
+"FATO! Paralisi!",
+"FATO! A Terra!"
+],
+[
+"Codice",
+"",
+"R4TA.JK",
+"R4TA.OB",
+"R4TA.ZD"
+]
+]
+},
+{
+"nome": "Robustezza Arcana Migliorata",
+"righe": [
+[
+"",
+"Normale",
+"Robustezza Arcana (3)",
+"Robustezza Arcana Migliorata (1)",
+"Robustezza Arcana Migliorata (2)"
+],
+[
+"Minore",
+"FATO! Confusione!",
+"",
+"",
+""
+],
+[
+"Maggiore",
+"FATO! A Terra!",
+"",
+"",
+""
+],
+[
+"Estremo",
+"FATO! Paralisi!",
+"",
+"",
+""
+],
+[
+"Assoluto",
+"FATO! Energia!\nA Terra!",
+"FATO! Confusione!",
+"",
+""
+],
+[
+"Puro",
+"FATO! Energia! Crash!",
+"FATO! A Terra!",
+"FATO! Confusione!",
+""
+],
+[
+"Codice",
+"",
+"R4TA.ZD",
+"R6YS.HU",
+"R6YS.FF"
+]
+]
+},
+{
+"nome": "Canalizzare Elemento",
+"righe": [
+[
+"Preventiva",
+""
+],
+[
+"5PP",
+"Il personaggio può dichiarare “Immune! CHIAMATA!” ad ogni chiamata subita caratterizzata dal proprio Elemento o dall’Elemento opposto per un combattimento o per 5 minuti."
+],
+[
+"5PP",
+"Il personaggio può sostituire il Caratterizzatore di Danno applicato all’arma da mischia impugnata con il Caratterizzatore di Danno del proprio elemento per un combattimento o per 5 minuti."
+],
+[
+"7PP",
+"Il personaggio può sostituire la chiamata applicata all’arma da mischia impugnata con il Caratterizzatore di Danno del proprio elemento e il Moltiplicatore di Danno “Doppio!” per un combattimento o per 5 minuti. Eventuali bonus alla classe di danno (\"Braccio Potenziato\", ...) conferiti da fonti valide, restano attivi e possono essere applicati."
+],
+[
+"10PP",
+"Il personaggio può sostituire la chiamata applicata all’arma da mischia impugnata con il Caratterizzatore di Danno del proprio elemento e il Moltiplicatore di Danno “Triplo!” per un combattimento o per 5 minuti. Eventuali bonus alla classe di danno (\"Braccio Potenziato\", ...) conferiti da fonti valide, restano attivi e possono essere applicati."
+],
+[
+"Estemporanea",
+""
+],
+[
+"1PP",
+"Il personaggio può dichiarare “Immune! CHIAMATA!” alla prima chiamata subita caratterizzata dal proprio Elemento o dall’Elemento opposto."
+],
+[
+"1PP",
+"Il personaggio può sostituire il Caratterizzatore di Danno applicato all’arma da mischia impugnata con il Caratterizzatore di Danno del proprio elemento per un colpo."
+],
+[
+"2PP",
+"Il personaggio può sostituire la chiamata applicata all’arma da mischia impugnata con il Caratterizzatore di Danno del proprio elemento e il Moltiplicatore di Danno “Doppio!” per un colpo. Eventuali bonus alla classe di danno (\"Braccio Potenziato\", ...) conferiti da fonti valide, restano attivi e possono essere applicati."
+],
+[
+"3PP",
+"Il personaggio può sostituire la chiamata applicata all’arma da mischia impugnata con il Caratterizzatore di Danno del proprio elemento (Terra=”A Terra!”) e il Moltiplicatore di Danno “Triplo!” per un colpo. Eventuali bonus alla classe di danno (\"Braccio Potenziato\", ...) conferiti da fonti valide, restano attivi e possono essere applicati."
+]
+]
+}
+]

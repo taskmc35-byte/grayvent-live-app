@@ -10,7 +10,7 @@ export const ARMOR: Record<ArmorType, { nome: string; pa: number }> = {
 };
 export const ARMOR_ORDER: ArmorType[] = ['nessuna', 'cuoio', 'cuoioLavorato', 'anelli', 'piastre'];
 
-const LIVELLI = ['Minore', 'Maggiore', 'Estremo', 'Assoluto'];
+const LIVELLI = ['Minore', 'Maggiore', 'Estremo', 'Assoluto', 'Puro'];
 
 // Manuale dei Misteri: tabelle PP / TdR per livello
 export const POWER_TABLE: Record<ViaPotere, { nome: string; risorsa: string; valori: { qta: number; tdr?: string; tdrMax?: string; extra?: string }[] }> = {

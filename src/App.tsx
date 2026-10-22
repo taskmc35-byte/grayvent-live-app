@@ -69,7 +69,7 @@ export default function App() {
   const pg = (user?.ruolo === 'staff' && approvati.find((p) => p.id === pgScelto)) || approvati[0];
   const inAttesa = pgs.find((p) => p.stato === 'in_approvazione' || p.stato === 'da_rivedere');
   const calc = useMemo(() => (pg && catalog.length ? compute(pg, catalog, RACES) : null), [pg, catalog]);
-  const dovute = useMemo(() => (pg ? scelteDovute(pg, SPELLS, (id) => catalog.find((a) => a.id === id)?.nome ?? id) : null), [pg, catalog]);
+  const dovute = useMemo(() => (pg ? scelteDovute(pg, SPELLS, catalog) : null), [pg, catalog]);
   const daScegliere = !!dovute && dovute.gruppi.length > 0;
   const [sceltaAperta, setSceltaAperta] = useState(false);
   const [impostazioni, setImpostazioni] = useState(false);

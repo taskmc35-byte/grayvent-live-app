@@ -1,5 +1,57 @@
 import { gruppiSlot } from '../slots';
 import type { Ability, Categoria, Character } from '../data/types';
+import { TABELLE } from '../data/abilities';
+
+/** Speciali del foglio dello staff, come etichette */
+export function etichetteSpeciali(a: Ability): string[] {
+  return [a.segreta && 'Segreta', a.riacquistabile && 'Riacquistabile', a.temporanea && 'Temporanea', a.limitata && 'Limitata'].filter(Boolean) as string[];
+}
+
+/** Tabella speciale di un'abilità (es. Linfa Eterea, Robustezza Arcana): la prima riga è l'intestazione */
+export function TabellaAbilita({ nome }: { nome: string }) {
+  const t = TABELLE.find((x) => x.nome === nome);
+  if (!t) return null;
+  // la prima riga fa da intestazione solo se ha più colonne piene (altrimenti è un sottotitolo, es. "Generati di Odino")
+  const conTesta = t.righe[0]?.filter(Boolean).length > 1;
+  const testa = conTesta ? t.righe[0] : null;
+  const righe = conTesta ? t.righe.slice(1) : t.righe;
+  const larghezza = Math.max(...t.righe.map((r) => r.length));
+  return (
+    <div className="ab-tabella">
+      <h4>{t.nome}</h4>
+      <div className="tab-scroll">
+        <table>
+          {testa && <thead><tr>{Array.from({ length: larghezza }, (_, i) => <th key={i}>{testa[i] ?? ''}</th>)}</tr></thead>}
+          <tbody>
+            {righe.map((r, i) => {
+              const piene = r.filter(Boolean).length;
+              // riga con una sola cella piena: sottotitolo (es. "Carattere Melanconico")
+              if (piene === 1) return <tr key={i} className="sotto"><td colSpan={larghezza}>{r.find(Boolean)}</td></tr>;
+              return <tr key={i}>{Array.from({ length: larghezza }, (_, j) => <td key={j}>{r[j] ?? ''}</td>)}</tr>;
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/** Dettaglio di un'abilità per il giocatore (descrizione, codice, speciali, tabelle) */
+export function DettaglioAbilita({ a }: { a: Ability }) {
+  const spec = etichetteSpeciali(a);
+  return (
+    <>
+      <p className="ab-descr">{a.descrizione || 'Descrizione non ancora inserita dallo staff.'}</p>
+      {(a.codice || spec.length > 0) && (
+        <p className="ab-meta">
+          {a.codice && <span className="codice">{a.codice}</span>}
+          {spec.map((x) => <span key={x} className="badge">{x}</span>)}
+        </p>
+      )}
+      {(a.tabelle ?? []).map((t) => <TabellaAbilita key={t} nome={t} />)}
+    </>
+  );
+}
 
 const CAT: { id: Categoria; nome: string; slot: string }[] = [
   { id: 'fisico', nome: 'Fisiche e di combattimento', slot: 'Fisico' },
@@ -63,7 +115,7 @@ export function AbilitaTab({ pg, catalog }: { pg: Character; catalog: Ability[] 
               {list.map((a) => (
                 <details key={a.id} className="ab">
                   <summary><span>{a.nome}</span>{a.tipo === 'avanzata' && <span className="badge">avanzata</span>}</summary>
-                  <p>{a.descrizione || 'Descrizione non ancora inserita dallo staff.'}</p>
+                  <DettaglioAbilita a={a} />
                 </details>
               ))}
             </div>

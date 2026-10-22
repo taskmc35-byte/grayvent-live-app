@@ -17,7 +17,7 @@ begin
   select * into r from public.personaggi where id = p_id for update;
   if not found or r.proprietario is distinct from auth.uid() then raise exception 'Personaggio non trovato'; end if;
   if r.stato <> 'approvato' then raise exception 'La scheda non è ancora approvata'; end if;
-  if coalesce(array_length(p_ids, 1), 0) = 0 or array_length(p_ids, 1) > 8 then raise exception 'Numero di incantesimi non valido'; end if;
+  if coalesce(array_length(p_ids, 1), 0) = 0 or array_length(p_ids, 1) > 30 then raise exception 'Numero di incantesimi non valido'; end if;
   if exists (select 1 from unnest(p_ids) x where x !~ '^[a-z0-9-]{1,80}$') then raise exception 'Incantesimo non valido'; end if;
 
   attuali := coalesce(r.dati->'incantesimi', '[]'::jsonb);
@@ -42,10 +42,11 @@ grant execute on function public.scegli_incantesimi(uuid, text[]) to authenticat
 -- oppure quando approva una scheda che le ha già. Richiede notifiche.sql (se manca, non parte nulla).
 -- ---------------------------------------------------------------------
 create or replace function privato.nome_potere(id text) returns text language sql immutable as $$
+  -- id storici (studio-arcano-2) e varianti di professione o razziali del database (studio-arcano-2-9aen, legame-divino-1-3ewk)
   select case
     when id = 'conoscenze-magiche' then 'Conoscenze Magiche'
-    when id ~ '^studio-arcano-[1-4]$' then 'Studio Arcano ' || (array['Minore','Maggiore','Estremo','Assoluto'])[right(id, 1)::int]
-    when id ~ '^legame-divino-[1-4]$' then 'Legame Divino ' || (array['Minore','Maggiore','Estremo','Assoluto'])[right(id, 1)::int]
+    when id ~ '^studio-arcano-[1-5](-[a-z0-9]+)?$' then 'Studio Arcano ' || (array['Minore','Maggiore','Estremo','Assoluto','Puro'])[substr(id, 15, 1)::int]
+    when id ~ '^legame-divino-[1-5](-[a-z0-9]+)?$' then 'Legame Divino ' || (array['Minore','Maggiore','Estremo','Assoluto','Puro'])[substr(id, 15, 1)::int]
   end;
 $$;
 

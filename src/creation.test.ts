@@ -15,7 +15,7 @@ describe('Creazione', () => {
   it('prerequisiti', () => {
     const owned = new Set(['armi-corte']);
     expect(missingPrereq(cat.find((a) => a.id === 'armi-due-mani')!, owned, cat)).toEqual(['Armi Medie', 'Sviluppo Fisico 1']);
-    expect(missingPrereq(cat.find((a) => a.id === 'armatura-completa')!, owned, cat)).toEqual(['un’Armatura']);
+    expect(missingPrereq(cat.find((a) => a.id === 'armatura-completa')!, owned, cat)).toEqual(['Armatura di Cuoio']);
     expect(missingPrereq(cat.find((a) => a.id === 'linguaggio-arcano')!, new Set(['leggere-scrivere']), cat)).toEqual([]);
   });
   it('un solo potere sovrannaturale', () => {
@@ -28,7 +28,7 @@ describe('Creazione', () => {
     expect(checkCreation([], R('umano-centrale'), cat).errori.join()).toMatch(/Contare/);
   });
   it('togliere a catena', () => {
-    expect(removeWithDependents(['armi-corte', 'armi-medie', 'armi-lancio'], 'armi-corte', cat)).toEqual([]);
+    expect(removeWithDependents(['armi-corte', 'armi-medie', 'armi-lancio'], 'armi-corte', cat)).toEqual(['armi-medie']);
   });
   it('sforamento budget', () => {
     expect(checkCreation(['armi-tiro', 'sviluppo-fisico-1', 'contare', 'leggere-scrivere', 'conoscenze-magiche', 'linguaggio-arcano'], R('umano-nord'), cat).errori[0]).toMatch(/superato/);

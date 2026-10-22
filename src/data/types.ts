@@ -20,8 +20,8 @@ export interface AbilityEffects {
   armatura?: ArmorType;
   /** Armatura Completa: +1 PA in tutte le locazioni se l'armatura copre almeno l'80% del corpo */
   completa?: boolean;
-  /** dà accesso a una via sovrannaturale a un certo livello (1 Minore … 4 Assoluto) */
-  potere?: { via: ViaPotere; livello: 1 | 2 | 3 | 4 };
+  /** dà accesso a una via sovrannaturale a un certo livello (1 Minore … 4 Assoluto, 5 Puro) */
+  potere?: { via: ViaPotere; livello: 1 | 2 | 3 | 4 | 5 };
 }
 
 export interface Ability {
@@ -35,6 +35,25 @@ export interface Ability {
   descrizione: string;
   soloCreazione?: boolean;
   effetti?: AbilityEffects;
+  // dal database dello staff (foglio Abilità)
+  codice?: string;
+  /** Sephira minima per apprenderla */
+  sephira?: number;
+  /** titolo o carica richiesti: "A, B" = servono entrambi, "A / B" = basta uno */
+  titolo?: string;
+  /** TAG del foglio: professione o ramo a cui appartiene */
+  gruppo?: string;
+  /** eventi di apprendimento per disciplina: 0 = nessun tempo, 'NI' = non insegnabile */
+  tempi?: Partial<Record<Categoria, number | 'NI'>>;
+  segreta?: boolean;
+  riacquistabile?: boolean;
+  temporanea?: boolean;
+  limitata?: boolean;
+  nonInsegnabile?: boolean;
+  /** appunti interni dello staff */
+  note?: string;
+  /** nomi delle tabelle speciali collegate (tabelle.json) */
+  tabelle?: string[];
 }
 
 export interface Race {
@@ -63,7 +82,7 @@ export interface Race {
 export interface Spell {
   id: string;
   nome: string;
-  tipo: 'incantesimo' | 'miracolo';
+  tipo: 'incantesimo' | 'miracolo' | 'runa' | 'cerchio';
   scuola: string;
   livello: string;
   flavor: string;
@@ -74,6 +93,20 @@ export interface Spell {
   bersaglio: string;
   lancio: string;
   durata: string;
+  codice?: string;
+  genere?: string;
+  /** riassunto dello staff (Descrizione Breve) */
+  breve?: string;
+  /** segreto: non compare tra le scelte dei giocatori */
+  segreto?: boolean;
+  brevetto?: string;
+  /** livello Master: solo staff, i giocatori lo ottengono solo da oggetti, suppliche o rituali */
+  master?: boolean;
+  proibito?: boolean;
+  /** solo Rune */
+  lettera?: string;
+  significato?: string;
+  notaStaff?: string;
 }
 
 export interface SlotApprendimento {
@@ -106,6 +139,8 @@ export interface Character {
   abilita: string[];
   slot: Partial<Record<Categoria, SlotApprendimento>>;
   incantesimi: string[];
+  /** titoli e cariche assegnati dallo staff (Fyrd e la razza valgono già da sé) */
+  titoli?: string[];
   note?: string;
   /** l'unica parte modificabile dal giocatore */
   equipaggiamento: Equipaggiamento;

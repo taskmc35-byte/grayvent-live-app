@@ -8,6 +8,9 @@ import { DEI_MINORI, PANTHEON, astroOf } from '../../data/deities';
 import { ARMOR, ARMOR_ORDER, compute } from '../../rules';
 import { gruppiSlot } from '../../slots';
 import { motivoIncompatibile } from '../../incompat';
+import { motivoRequisiti, prerequisitiMancanti, titoliAutomatici, titoliDelCatalogo } from '../../requisiti';
+import { gruppiPoteri } from '../../poteri';
+import { etichetteSpeciali } from '../AbilitaTab';
 import { AfflizioniEditor } from '../Afflizioni';
 
 const CAT: { id: Categoria; nome: string }[] = [
@@ -18,12 +21,6 @@ const PROFESSIONI = [
   'Crocevia, Via della Natura', 'Crocevia, Via della Parola', 'Crocevia, Speziali', 'Corte dei Miracoli', 'Bevär dei Barellieri',
   'Bevär dei Maniscalchi', 'Bevär dell’Avanguardia', 'Bevär dei Razziatori', 'Circolo Esoterico di Seidr',
 ];
-const SCUOLE = ['Fuoco', 'Acqua', 'Terra', 'Aria', 'Sintesi', 'Madre', 'Spada', 'Padre', 'Generico'];
-const SCUOLA_NOME: Record<string, string> = {
-  Fuoco: 'Incantesimi del Fuoco', Acqua: 'Incantesimi dell’Acqua', Terra: 'Incantesimi della Terra', Aria: 'Incantesimi dell’Aria',
-  Sintesi: 'Incantesimi di Sintesi', Madre: 'Miracoli della Madre', Spada: 'Miracoli della Spada', Padre: 'Miracoli del Padre', Generico: 'Miracoli Generici',
-};
-
 export const emptyCharacter = (): StaffCharacter => ({
   id: '', giocatore: '', nome: '', cognome: '', provenienza: '', razza: 'umano-centrale', professione: '', sephire: 1,
   abilita: ['armi-corte'], slot: {}, incantesimi: [], proprietario: null, attivo: true,
@@ -38,21 +35,28 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [filtro, setFiltro] = useState('');
+  const [tutte, setTutte] = useState(false);
+  const [nuovoTitolo, setNuovoTitolo] = useState('');
+  const elencoTitoli = useMemo(() => titoliDelCatalogo(catalog), [catalog]);
   const set = <K extends keyof StaffCharacter>(k: K, v: StaffCharacter[K]) => setC((x) => ({ ...x, [k]: v }));
 
   const calc = useMemo(() => compute(c, catalog, RACES), [c, catalog]);
   const [stampa, setStampa] = useState(false);
   const race = RACES.find((r) => r.id === c.razza);
   const owned = new Set(c.abilita);
-  const nameToId = new Map(catalog.map((a) => [a.nome.toLowerCase(), a.id]));
 
   const toggleAb = (id: string) => set('abilita', owned.has(id) ? c.abilita.filter((x) => x !== id) : [...c.abilita, id]);
   const toggleSp = (id: string) => set('incantesimi', c.incantesimi.includes(id) ? c.incantesimi.filter((x) => x !== id) : [...c.incantesimi, id]);
 
-  const missingPrereq = (a: Ability) => (a.prerequisiti ?? '').split(',').map((p) => p.trim()).filter((p) => {
-    const id = nameToId.get(p.toLowerCase());
-    return id && !owned.has(id);
-  });
+  const missingPrereq = (a: Ability) => prerequisitiMancanti(a, owned, catalog);
+  const auto = titoliAutomatici(c);
+  const aggiungiTitolo = (t: string) => {
+    const v = t.trim();
+    if (!v) return;
+    const tutti = [...auto, ...(c.titoli ?? [])].map((x) => x.toLowerCase());
+    if (!tutti.includes(v.toLowerCase())) set('titoli', [...(c.titoli ?? []), v]);
+    setNuovoTitolo('');
+  };
   const vietate = new Set(race?.abilitaVietate ?? []);
   const obbligatorieMancanti = (race?.abilitaObbligatorie ?? []).filter((id) => !owned.has(id)).map((id) => catalog.find((a) => a.id === id)?.nome ?? id);
 
@@ -178,6 +182,22 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
           <datalist id="professioni">{PROFESSIONI.map((p) => <option key={p} value={p} />)}</datalist>
         </div>
         <div className="field"><label htmlFor="profa">Professione avanzata</label><input id="profa" value={c.professioneAvanzata ?? ''} onChange={(e) => set('professioneAvanzata', e.target.value || undefined)} placeholder="Nessuna" /></div>
+        <div className="field">
+          <label htmlFor="titoli">Titoli e cariche</label>
+          <div className="titoli-chips" aria-label="Titoli del personaggio">
+            {auto.map((t) => <span key={t} className="chip auto" title="Assegnato da sé">{t}</span>)}
+            {(c.titoli ?? []).map((t) => (
+              <span key={t} className="chip">{t}<button type="button" aria-label={`Togli ${t}`} onClick={() => set('titoli', (c.titoli ?? []).filter((x) => x !== t))}>×</button></span>
+            ))}
+          </div>
+          <div className="row-add">
+            <input id="titoli" list="elenco-titoli" value={nuovoTitolo} placeholder="Es. Mistagogo, Runista, Professione Segreta"
+              onChange={(e) => setNuovoTitolo(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); aggiungiTitolo(nuovoTitolo); } }} />
+            <button type="button" className="btn ghost" disabled={!nuovoTitolo.trim()} onClick={() => aggiungiTitolo(nuovoTitolo)}>Aggiungi</button>
+          </div>
+          <datalist id="elenco-titoli">{elencoTitoli.filter((t) => !auto.includes(t)).map((t) => <option key={t} value={t} />)}</datalist>
+          <span className="hint">Servono per le abilità di professione: senza il titolo richiesto non si possono assegnare. Fyrd e la razza contano da sé.</span>
+        </div>
         <div className="field"><label htmlFor="varie">Varie</label><input id="varie" value={c.varie ?? ''} onChange={(e) => set('varie', e.target.value || undefined)} placeholder="Es. Sacerdote di Loky" /></div>
         <div className="grid2">
           <div className="field"><label htmlFor="div">Divinità</label>
@@ -196,7 +216,7 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
           <div className="field"><label htmlFor="el">Elemento</label>
             <select id="el" value={c.elemento ?? ''} onChange={(e) => set('elemento', e.target.value || undefined)}>
               <option value="">{haMagia ? 'Da scegliere' : 'Nessuno'}</option>
-              {['Fuoco', 'Acqua', 'Terra', 'Aria'].map((x) => <option key={x}>{x}</option>)}
+              {['Fuoco', 'Acqua', 'Terra', 'Aria', 'Luce', 'Ombra'].map((x) => <option key={x}>{x}</option>)}
             </select>
           </div>
         </div>
@@ -205,27 +225,47 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
       <fieldset className="fs">
         <legend>Abilità apprese</legend>
         <input className="search" type="search" placeholder="Cerca un’abilità" value={filtro} onChange={(e) => setFiltro(e.target.value)} aria-label="Cerca abilità" />
+        <label className="check"><input type="checkbox" checked={tutte} onChange={(e) => setTutte(e.target.checked)} /><span>Mostra anche le abilità di altri titoli e professioni</span></label>
         {CAT.map((cat) => {
-          const list = catalog.filter((a) => a.categoria === cat.id && (!f || a.nome.toLowerCase().includes(f)));
+          const list = catalog.filter((a) => a.categoria === cat.id
+            && (!f || a.nome.toLowerCase().includes(f) || (a.codice ?? '').toLowerCase() === f || (a.gruppo ?? '').toLowerCase().includes(f))
+            && (tutte || f || owned.has(a.id) || !motivoRequisiti(a, { ...c, sephire: 99 })));
           if (!list.length) return null;
+          const gruppi = new Map<string, Ability[]>();
+          for (const a of list) {
+            const g = owned.has(a.id) ? 'Possedute' : a.tipo === 'base' ? 'Base' : (a.gruppo || 'Altre');
+            gruppi.set(g, [...(gruppi.get(g) ?? []), a]);
+          }
+          const ordine = [...gruppi.keys()].sort((x, y) => (x === 'Possedute' ? -1 : y === 'Possedute' ? 1 : x === 'Base' ? -1 : y === 'Base' ? 1 : x.localeCompare(y, 'it')));
           return (
             <div key={cat.id} className="chk-group">
               <h3>{cat.nome}</h3>
-              {list.map((a) => {
-                const miss = owned.has(a.id) ? [] : missingPrereq(a);
-                const incomp = owned.has(a.id) ? null : motivoIncompatibile(a, [...owned, ...Object.values(c.slot).filter(Boolean).map((v) => v!.abilita)], catalog);
-                return (
-                  <label key={a.id} className={`chk${owned.has(a.id) ? ' on' : ''}${incomp ? ' blocked' : ''}`}>
-                    <input type="checkbox" checked={owned.has(a.id)} disabled={!!incomp} onChange={() => toggleAb(a.id)} />
-                    <span>
-                      {a.nome}{a.tipo === 'avanzata' && <em> avanzata</em>}
-                      {vietate.has(a.id) && <small className="bad">Vietata per la razza</small>}
-                      {incomp && <small className="bad">{incomp}</small>}
-                      {miss.length > 0 && <small>Richiede {miss.join(', ')}</small>}
-                    </span>
-                  </label>
-                );
-              })}
+              {ordine.map((g) => (
+                <div key={g}>
+                  {gruppi.size > 1 && <h4 className="ab-sub">{g}</h4>}
+                  {gruppi.get(g)!.sort((x, y) => (x.sephira ?? 0) - (y.sephira ?? 0) || x.nome.localeCompare(y.nome, 'it')).map((a) => {
+                    const on = owned.has(a.id);
+                    const miss = on ? [] : missingPrereq(a);
+                    const incomp = on ? null : motivoIncompatibile(a, [...owned, ...Object.values(c.slot).filter(Boolean).map((v) => v!.abilita)], catalog);
+                    const req = on ? null : motivoRequisiti(a, c);
+                    const blocco = incomp ?? req;
+                    const spec = etichetteSpeciali(a);
+                    return (
+                      <label key={a.id} className={`chk${on ? ' on' : ''}${blocco ? ' blocked' : ''}`}>
+                        <input type="checkbox" checked={on} disabled={!!blocco} onChange={() => toggleAb(a.id)} />
+                        <span>
+                          {a.nome}{a.codice && <span className="codice">{a.codice}</span>}{a.tipo === 'avanzata' && <em> avanzata</em>}
+                          <small className="ab-req">{[a.sephira ? `Sephira ${a.sephira}` : null, a.titolo && a.titolo !== 'Fyrd' ? a.titolo : null, a.pc != null ? `${a.pc} PC` : null, ...spec].filter(Boolean).join(' · ')}</small>
+                          {vietate.has(a.id) && <small className="bad">Vietata per la razza</small>}
+                          {blocco && <small className="bad">{blocco}</small>}
+                          {miss.length > 0 && <small>Richiede {miss.join(', ')}</small>}
+                          {a.note && <small className="hint">Nota staff: {a.note}</small>}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           );
         })}
@@ -245,7 +285,17 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
             for (const id of cats) slot[id] = v ? { ...v } : undefined;
             return { ...x, slot };
           });
-          const options = catalog.filter((a) => (g.cats.includes(a.categoria) || a.tipo === 'avanzata') && !owned.has(a.id));
+          // abilità che si apprendono in una delle discipline di questo slot, con i requisiti di titolo e Sephira
+          const nelloSlot = (a: Ability) => (a.tempi && Object.keys(a.tempi).length
+            ? Object.entries(a.tempi).some(([k, v]) => g.cats.includes(k as Categoria) && v !== 'NI')
+            : g.cats.includes(a.categoria));
+          const options = catalog.filter((a) => !owned.has(a.id) && (a.id === s?.abilita || (nelloSlot(a) && !motivoRequisiti(a, c))))
+            .sort((x, y) => x.nome.localeCompare(y.nome, 'it'));
+          // discipline occupate secondo il foglio dello staff (es. Fisico 2 + Mentale 2)
+          const disciplineDi = (a?: Ability) => {
+            const k = Object.entries(a?.tempi ?? {}).filter(([, v]) => typeof v === 'number').map(([k]) => k as Categoria);
+            return k.length ? [...new Set([...g.cats.filter((x) => k.includes(x)), ...k])].filter((x) => !c.slot[x] || g.cats.includes(x)) : g.cats;
+          };
           const altri = CAT.filter((x) => x.id !== cat.id);
           return (
             <div key={cat.id} className="slot-edit">
@@ -254,14 +304,15 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
                 <select id={`slot-${cat.id}`} value={s?.abilita ?? ''} onChange={(e) => {
                   const a = catalog.find((x) => x.id === e.target.value);
                   setGroup(e.target.value ? { abilita: e.target.value, eventiTotali: a?.tda || s?.eventiTotali || 1, eventiSvolti: 0, insegnante: s?.insegnante ?? '', eventoInizio: s?.eventoInizio ?? '' } : undefined,
-                    e.target.value ? g.cats : g.cats);
+                    e.target.value ? disciplineDi(a) : g.cats);
                 }}>
                   <option value="">Libero</option>
                   {options.map((a) => {
                     // conta anche le abilità in apprendimento negli altri slot
                     const altri = [...owned, ...Object.entries(c.slot).filter(([k, v]) => v && !g.cats.includes(k as Categoria)).map(([, v]) => v!.abilita)];
                     const why = motivoIncompatibile(a, altri, catalog);
-                    return <option key={a.id} value={a.id} disabled={!!why}>{a.nome}{why ? ` (${why.toLowerCase()})` : ''}</option>;
+                    const tempi = Object.entries(a.tempi ?? {}).filter(([, v]) => typeof v === 'number').map(([k, v]) => `${k[0].toUpperCase()}${v}`).join(' ');
+                    return <option key={a.id} value={a.id} disabled={!!why}>{a.nome}{a.codice ? ` [${a.codice}]` : ''}{tempi ? ` · ${tempi}` : ''}{why ? ` (${why.toLowerCase()})` : ''}</option>;
                   })}
                 </select>
               </div>
@@ -301,18 +352,27 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
       </fieldset>
 
       <fieldset className="fs">
-        <legend>Incantesimi e miracoli</legend>
-        {SCUOLE.map((sc) => {
-          const list = spells.filter((s) => s.scuola === sc);
+        <legend>Incantesimi, miracoli, rune e cerchi</legend>
+        <p className="hint">Segreti e Master non compaiono mai tra le scelte dei giocatori: li assegna solo lo staff.</p>
+        {gruppiPoteri(spells).map((gr) => {
+          const list = gr.poteri;
           const n = list.filter((s) => c.incantesimi.includes(s.id)).length;
-          const rilevante = (sc === c.elemento) || (astro && sc === astro) || (sc === 'Sintesi' && calc.potere.some((p) => p.via === 'mago')) || (sc === 'Generico' && calc.potere.some((p) => p.via === 'sacerdote'));
+          const sc = gr.scuola;
+          const rilevante = gr.tipo === 'incantesimo' ? (sc === c.elemento || (sc === 'Sintesi' && calc.potere.some((p) => p.via === 'mago')))
+            : gr.tipo === 'miracolo' ? ((astro && sc === astro) || sc === c.divinita || (sc === 'Generico' && calc.potere.some((p) => p.via === 'sacerdote'))) : false;
           return (
-            <details key={sc} className="sp-group" open={n > 0 || !!rilevante}>
-              <summary>{SCUOLA_NOME[sc]}{n > 0 && <span className="badge">{n}</span>}</summary>
+            <details key={gr.chiave} className="sp-group" open={n > 0 || !!rilevante}>
+              <summary>{gr.titolo}{n > 0 && <span className="badge">{n}</span>}</summary>
               {list.map((s) => (
                 <label key={s.id} className={`chk${c.incantesimi.includes(s.id) ? ' on' : ''}`}>
                   <input type="checkbox" checked={c.incantesimi.includes(s.id)} onChange={() => toggleSp(s.id)} />
-                  <span>{s.nome} <small>{s.livello}</small></span>
+                  <span>{s.nome} <small>{s.livello}</small>
+                    {s.codice && <span className="codice">{s.codice}</span>}
+                    {s.master && <span className="sp-flag">Master</span>}
+                    {s.segreto && <span className="sp-flag">{s.brevetto ?? 'Segreto'}</span>}
+                    {s.proibito && <span className="sp-flag">Proibito</span>}
+                    {s.notaStaff && <small className={`ab-req${/NON APPRENDIBILE/i.test(s.notaStaff) ? ' bad' : ''}`}>Nota staff: {s.notaStaff}</small>}
+                  </span>
                 </label>
               ))}
             </details>
