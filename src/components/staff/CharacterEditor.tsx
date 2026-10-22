@@ -36,6 +36,8 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
   const [error, setError] = useState('');
   const [filtro, setFiltro] = useState('');
   const [tutte, setTutte] = useState(false);
+  /** eccezione dello staff: insegnare fuori Sephira o fuori titolo/grado */
+  const [eccezione, setEccezione] = useState(false);
   const [nuovoTitolo, setNuovoTitolo] = useState('');
   const elencoTitoli = useMemo(() => titoliDelCatalogo(catalog), [catalog]);
   const set = <K extends keyof StaffCharacter>(k: K, v: StaffCharacter[K]) => setC((x) => ({ ...x, [k]: v }));
@@ -225,7 +227,9 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
       <fieldset className="fs">
         <legend>Abilità apprese</legend>
         <input className="search" type="search" placeholder="Cerca un’abilità" value={filtro} onChange={(e) => setFiltro(e.target.value)} aria-label="Cerca abilità" />
-        <label className="check"><input type="checkbox" checked={tutte} onChange={(e) => setTutte(e.target.checked)} /><span>Mostra anche le abilità di altri titoli e professioni</span></label>
+        <label className="check"><input type="checkbox" checked={tutte || eccezione} disabled={eccezione} onChange={(e) => setTutte(e.target.checked)} /><span>Mostra anche le abilità di altri titoli e professioni</span></label>
+        <label className="check"><input type="checkbox" checked={eccezione} onChange={(e) => setEccezione(e.target.checked)} />
+          <span>Eccezione dello staff: permetti di insegnare fuori Sephira o fuori titolo<br /><span className="hint">Vale solo mentre modifichi questa scheda. Le incompatibilità tra poteri restano bloccate.</span></span></label>
         {CAT.map((cat) => {
           const list = catalog.filter((a) => a.categoria === cat.id
             && (!f || a.nome.toLowerCase().includes(f) || (a.codice ?? '').toLowerCase() === f || (a.gruppo ?? '').toLowerCase().includes(f))
@@ -247,8 +251,8 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
                     const on = owned.has(a.id);
                     const miss = on ? [] : missingPrereq(a);
                     const incomp = on ? null : motivoIncompatibile(a, [...owned, ...Object.values(c.slot).filter(Boolean).map((v) => v!.abilita)], catalog);
-                    const req = on ? null : motivoRequisiti(a, c);
-                    const blocco = incomp ?? req;
+                    const req = motivoRequisiti(a, c);
+                    const blocco = incomp ?? (on || eccezione ? null : req);
                     const spec = etichetteSpeciali(a);
                     return (
                       <label key={a.id} className={`chk${on ? ' on' : ''}${blocco ? ' blocked' : ''}`}>
@@ -258,6 +262,7 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
                           <small className="ab-req">{[a.sephira ? `Sephira ${a.sephira}` : null, a.titolo && a.titolo !== 'Fyrd' ? a.titolo : null, a.pc != null ? `${a.pc} PC` : null, ...spec].filter(Boolean).join(' · ')}</small>
                           {vietate.has(a.id) && <small className="bad">Vietata per la razza</small>}
                           {blocco && <small className="bad">{blocco}</small>}
+                          {!blocco && req && <small className="warn">{on ? 'Insegnata come eccezione' : 'Eccezione'}: {req.charAt(0).toLowerCase() + req.slice(1)}</small>}
                           {miss.length > 0 && <small>Richiede {miss.join(', ')}</small>}
                           {a.note && <small className="hint">Nota staff: {a.note}</small>}
                         </span>
@@ -289,7 +294,7 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
           const nelloSlot = (a: Ability) => (a.tempi && Object.keys(a.tempi).length
             ? Object.entries(a.tempi).some(([k, v]) => g.cats.includes(k as Categoria) && v !== 'NI')
             : g.cats.includes(a.categoria));
-          const options = catalog.filter((a) => !owned.has(a.id) && (a.id === s?.abilita || (nelloSlot(a) && !motivoRequisiti(a, c))))
+          const options = catalog.filter((a) => !owned.has(a.id) && (a.id === s?.abilita || (nelloSlot(a) && (eccezione || !motivoRequisiti(a, c)))))
             .sort((x, y) => x.nome.localeCompare(y.nome, 'it'));
           // discipline occupate secondo il foglio dello staff (es. Fisico 2 + Mentale 2)
           const disciplineDi = (a?: Ability) => {
@@ -312,7 +317,7 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
                     const altri = [...owned, ...Object.entries(c.slot).filter(([k, v]) => v && !g.cats.includes(k as Categoria)).map(([, v]) => v!.abilita)];
                     const why = motivoIncompatibile(a, altri, catalog);
                     const tempi = Object.entries(a.tempi ?? {}).filter(([, v]) => typeof v === 'number').map(([k, v]) => `${k[0].toUpperCase()}${v}`).join(' ');
-                    return <option key={a.id} value={a.id} disabled={!!why}>{a.nome}{a.codice ? ` [${a.codice}]` : ''}{tempi ? ` · ${tempi}` : ''}{why ? ` (${why.toLowerCase()})` : ''}</option>;
+                    return <option key={a.id} value={a.id} disabled={!!why}>{a.nome}{a.codice ? ` [${a.codice}]` : ''}{tempi ? ` · ${tempi}` : ''}{why ? ` (${why.toLowerCase()})` : motivoRequisiti(a, c) ? ' (eccezione)' : ''}</option>;
                   })}
                 </select>
               </div>

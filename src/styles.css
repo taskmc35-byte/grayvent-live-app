@@ -1134,3 +1134,4 @@ dd.codice { display: inline-block; width: fit-content; justify-self: start; }
 .sp-flag.warn { border-color: #c0392b; color: #e57373; }
 .row-add { display: flex; gap: 8px; }
 .row-add input { flex: 1; min-width: 0; }
+.chk small.warn { display: block; color: var(--warn); }
