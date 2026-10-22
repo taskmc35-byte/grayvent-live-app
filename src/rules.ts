@@ -25,6 +25,7 @@ export const POWER_TABLE: Record<ViaPotere, { nome: string; risorsa: string; val
     { qta: 2, tdr: '5 min', tdrMax: '10 min' },
     { qta: 3, tdr: '4 min', tdrMax: '12 min' },
     { qta: 4, tdr: '3 min', tdrMax: '12 min' },
+    { qta: 6, tdr: '3 min', tdrMax: '18 min' }, // Assoluto: come il Mago Assoluto (confermato dallo staff)
   ] },
   sacerdote: { nome: 'Sacerdote', risorsa: 'Punti Potere', valori: [
     { qta: 3, tdr: '6 min', tdrMax: '18 min' },

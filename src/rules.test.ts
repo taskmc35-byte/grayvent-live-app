@@ -98,3 +98,8 @@ it('Studio Arcano Puro e Conoscenza Alchemica Pura', () => {
   expect(m.extra).toMatch(/Energia! Crash!/);
   expect(POWER_TABLE.alchimista.valori[4].qta).toBe(17);
 });
+
+it('Dono Arcano Assoluto come il Mago Assoluto', () => {
+  const st = POWER_TABLE.stregone.valori[3], ma = POWER_TABLE.mago.valori[3];
+  expect([st.qta, st.tdr, st.tdrMax]).toEqual([ma.qta, ma.tdr, ma.tdrMax]);
+});
