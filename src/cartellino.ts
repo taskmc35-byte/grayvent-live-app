@@ -57,8 +57,7 @@ export function cercaCodice(idx: Indice, testo: string): Voce[] {
   if (es) return es;
   // con lo scambio di caratteri accetto solo se il risultato è uno solo (niente indovinelli)
   const unico = (l: Voce[]) => (new Set(l.map((v) => v.codice)).size === 1 ? l : []);
-  const sim = unico(idx.simile.get(canonico(k)) ?? []);
-  return sim.length ? sim : unico(idx.larghi.get(largo(k)) ?? []);
+  return unico(idx.simile.get(canonico(k)) ?? []);
 }
 
 const CIFRA_DA_LETTERA: Record<string, string[]> = { S: ['5', '8'], B: ['8'], Z: ['2'], G: ['6'], O: ['0'], Q: ['0'], I: ['1'], T: ['7'] };
@@ -77,20 +76,12 @@ export function trovaNelTesto(idx: Indice, testo: string): Voce[] {
   const visti = new Map<string, Voce>();
   const prova = (s: string) => { const r = cercaCodice(idx, s); for (const v of r) visti.set(`${v.tipo}|${v.codice}`, v); return r.length > 0; };
   pezzi.forEach((p, i) => {
-    if (!/\d/.test(largo(p)) && !/^[A-Z]{4}$/.test(originali[i])) return; // i codici hanno sempre almeno una cifra (anche letta come lettera: RACF = R4CF)
+    if (!/\d/.test(canonico(p))) return; // i codici hanno sempre almeno una cifra (anche letta come lettera: RACF = R4CF)
     const cifraVera = /\d/.test(p);
     // codice spezzato dall'OCR (R4CF WCV): ha la precedenza, perché le prime 4 lettere da sole sono il codice dell'abilità
     // madre (R4CF = Incantesimo) e non vanno mostrate come risultato a parte
     const dopo = pezzi[i + 1];
     if (p.length === 4 && dopo && [2, 3].includes(dopo.length) && prova(p + dopo)) return;
-    // parola maiuscola di 4 lettere senza cifre: può essere un codice scritto a mano con la cifra letta come lettera
-    // (SWEA = 8WEA). Provo solo a cambiare le lettere che somigliano a una cifra, e solo con corrispondenza esatta e unica.
-    if (p.length === 4 && !cifraVera && /^[A-Z]{4}$/.test(originali[i])) {
-      const trovate = new Map<string, Voce[]>();
-      for (const variante of variantiCifre(p)) { const v = idx.esatto.get(variante); if (v) trovate.set(variante, v); }
-      if (trovate.size === 1) for (const v of [...trovate.values()][0]) visti.set(`${v.tipo}|${v.codice}`, v);
-      return;
-    }
     // codice intero, anche se l'OCR ha perso il punto; una parola di 4 lettere senza cifre (es. ALLA) non è un codice
     if (p.length === 4 ? cifraVera : [6, 7].includes(p.length)) prova(p);
   });
@@ -132,6 +123,8 @@ export function cercaScritto(idx: Indice, q: string, max = 20): Voce[] {
 
 export const nomeVoce = (v: Voce) => (v.tipo === 'abilita' ? v.abilita.nome : v.tipo === 'potere' ? v.potere.nome : `${v.tabella.nome}${v.sezione ? `, ${v.sezione}` : ''}`);
 
+const unicoL = (l: Voce[]) => (new Set(l.map((v) => v.codice)).size === 1 ? l : []);
+
 /** Distanza di modifica (lettere da aggiungere, togliere o cambiare) */
 function distanza(a: string, b: string): number {
   const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
@@ -150,6 +143,8 @@ export function suggerimenti(idx: Indice, testo: string, max = 6): Voce[] {
   const out = new Map<string, Voce>();
   for (const p of parole) {
     const k = canonico(pulisci(p));
+    for (const v of unicoL(idx.larghi.get(largo(pulisci(p))) ?? [])) out.set(`${v.tipo}|${v.codice}`, v);
+    if (p.length === 4) for (const variante of variantiCifre(p.toUpperCase())) for (const v of idx.esatto.get(variante) ?? []) out.set(`${v.tipo}|${v.codice}`, v);
     for (const [codice, voci] of idx.esatto) {
       if (Math.abs(codice.length - k.length) > 1) continue;
       if (distanza(k, canonico(codice)) <= 1) for (const v of voci) out.set(`${v.tipo}|${v.codice}`, v);

@@ -50,9 +50,10 @@ it('cartellino oggetto reale: titolo "Runa 3^ Aett Odino" + nome', () => {
   const testo = 'Runa 3” Aett Odino\n"INGUZ"\nValore Medio 1000\nOgg. Sovrannaturali\nValutare 2\nE4319V | 64XA14 | O4D9E6 | WV3s17\nvtilizzi/Eventi | | \\ NV VV VVVV\n';
   expect(trovaNelTesto(idx, testo).map((v) => v.codice)).toEqual(['R2HG.EAG']);
 });
-it('scritto a mano: 8 letto come S (SWEA = 8WEA)', () => {
-  expect(cercaCodice(idx, 'SWEA').map((v) => v.codice)).toEqual(['8WEA']);
-  expect(trovaNelTesto(idx, 'aD\n>\npa.\nSWEA').map((v) => v.codice)).toEqual(['8WEA']);
+it('scritto a mano: 8 letto come S (SWEA) è solo un suggerimento, non un risultato sicuro', async () => {
+  const { suggerimenti } = await import('./cartellino');
+  expect(trovaNelTesto(idx, 'aD\n>\npa.\nSWEA')).toEqual([]);
+  expect(suggerimenti(idx, 'aD\n>\npa.\nSWEA').map((v) => v.codice)).toContain('8WEA');
 });
 it('suggerimenti: WEA (8 non letto) propone 8WEA', async () => {
   const { suggerimenti } = await import('./cartellino');

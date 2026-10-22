@@ -22,7 +22,7 @@ function preparaWorker() {
 export type Regione = { x: number; y: number; w: number; h: number }; // frazioni della foto (0-1)
 const bitmap = new WeakMap<Blob, Promise<ImageBitmap>>();
 
-async function prepara(file: Blob, gradi: 0 | 90 | 180 | 270, bn: boolean, reg?: Regione): Promise<HTMLCanvasElement> {
+async function prepara(file: Blob, gradi: 0 | 90 | 180 | 270, bn: boolean, reg?: Regione, riduci?: number): Promise<HTMLCanvasElement> {
   if (!bitmap.has(file)) bitmap.set(file, createImageBitmap(file));
   const img = await bitmap.get(file)!;
   // pezzo della foto (tutta, una porzione automatica o il punto toccato)
@@ -31,14 +31,26 @@ async function prepara(file: Blob, gradi: 0 | 90 | 180 | 270, bn: boolean, reg?:
   const sw = Math.min(img.width - sx, r.w * img.width), sh = Math.min(img.height - sy, r.h * img.height);
   // le foto grandi si riducono, i pezzi piccoli si ingrandiscono: l'OCR vuole lettere di 20-40 px
   const lato = Math.max(sw, sh);
-  const k = reg ? Math.min(4, Math.max(1.5, 1800 / lato)) : lato > 3200 ? 3200 / lato : lato < 1200 ? Math.min(3, 1200 / lato) : 1;
+  const k = riduci ? Math.min(1, riduci / lato) : reg ? Math.min(4, Math.max(1.5, 1800 / lato)) : lato > 3200 ? 3200 / lato : lato < 1200 ? Math.min(3, 1200 / lato) : 1;
   const w = Math.round(sw * k), h = Math.round(sh * k);
+  // riduzione a metà per volta: fa la media dei pixel e cancella la griglia dei pixel di uno schermo fotografato (moiré)
+  let sorgente: CanvasImageSource = img, ssx = sx, ssy = sy, ssw = sw, ssh = sh;
+  if (riduci) {
+    while (ssw / 2 > w * 1.2) {
+      const c2 = document.createElement('canvas');
+      c2.width = Math.round(ssw / 2); c2.height = Math.round(ssh / 2);
+      const x2 = c2.getContext('2d')!; x2.imageSmoothingQuality = 'high';
+      x2.drawImage(sorgente, ssx, ssy, ssw, ssh, 0, 0, c2.width, c2.height);
+      sorgente = c2; ssx = 0; ssy = 0; ssw = c2.width; ssh = c2.height;
+    }
+  }
   const cv = document.createElement('canvas');
   const girata = gradi === 90 || gradi === 270;
   cv.width = girata ? h : w; cv.height = girata ? w : h;
   const ctx = cv.getContext('2d', { willReadFrequently: true })!;
   ctx.translate(cv.width / 2, cv.height / 2); ctx.rotate((gradi * Math.PI) / 180);
-  ctx.drawImage(img, sx, sy, sw, sh, -w / 2, -h / 2, w, h);
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(sorgente, ssx, ssy, ssw, ssh, -w / 2, -h / 2, w, h);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   const d = ctx.getImageData(0, 0, cv.width, cv.height);
   let min = 255, max = 0;
@@ -73,12 +85,16 @@ async function prepara(file: Blob, gradi: 0 | 90 | 180 | 270, bn: boolean, reg?:
   return cv;
 }
 
-export type Passata = { gradi: 0 | 90 | 180 | 270; modo: 'normale' | 'codici' | 'bn'; regione?: Regione };
+export type Passata = { gradi: 0 | 90 | 180 | 270; modo: 'normale' | 'codici' | 'bn'; regione?: Regione; riduci?: number };
 
 /** Tentativi in ordine: lettura normale, solo codici, bianco e nero; poi la foto girata.
  * Se il codice è piccolo nella foto (es. lo schermo del PC) si legge toccandolo: passateZona */
 export const PASSATE: Passata[] = [
-  { gradi: 0, modo: 'normale' }, { gradi: 0, modo: 'codici' }, { gradi: 0, modo: 'bn' },
+  { gradi: 0, modo: 'normale' },
+  // foto di uno schermo: rimpicciolita la griglia dei pixel sparisce e il codice grande resta leggibile (ed è veloce)
+  { gradi: 0, modo: 'normale', riduci: 400 }, { gradi: 0, modo: 'normale', riduci: 700 },
+  { gradi: 0, modo: 'codici' },
+  { gradi: 0, modo: 'bn' },
   { gradi: 90, modo: 'normale' }, { gradi: 270, modo: 'normale' }, { gradi: 180, modo: 'normale' },
 ];
 /** Tentativi sul punto toccato dal giocatore */
@@ -91,13 +107,18 @@ export const passateZona = (cx: number, cy: number): Passata[] => {
   return out;
 };
 
-/** Testo letto dalla foto (la lettura avviene tutta sul telefono) */
-export async function leggiFoto(file: Blob, onProgresso?: (p: number) => void, passata: Passata = PASSATE[0]): Promise<string> {
+/** Soglia di sicurezza (0-100) di una parola letta: sotto, la parola vale solo per i suggerimenti */
+const SICURA = 65;
+
+/** Testo letto dalla foto (la lettura avviene tutta sul telefono): tutto, e solo le parole lette con sicurezza */
+export async function leggiFoto(file: Blob, onProgresso?: (p: number) => void, passata: Passata = PASSATE[0]): Promise<{ testo: string; sicuro: string }> {
   avanzamento = onProgresso;
-  const [w, cv] = await Promise.all([preparaWorker(), prepara(file, passata.gradi, passata.modo === 'bn', passata.regione)]);
+  const [w, cv] = await Promise.all([preparaWorker(), prepara(file, passata.gradi, passata.modo === 'bn', passata.regione, passata.riduci)]);
   await w.setParameters(passata.modo === 'codici'
     ? { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.', tessedit_pageseg_mode: '11' as never }
-    : { tessedit_char_whitelist: '', tessedit_pageseg_mode: (passata.modo === 'bn' || passata.regione ? '11' : '3') as never });
-  const r = await w.recognize(cv);
-  return r.data.text;
+    : { tessedit_char_whitelist: '', tessedit_pageseg_mode: (passata.modo === 'bn' || passata.regione || passata.riduci ? '11' : '3') as never });
+  const r = await w.recognize(cv, {}, { text: true, blocks: true });
+  const righe = (r.data.blocks ?? []).flatMap((b) => b.paragraphs.flatMap((p) => p.lines))
+    .map((l) => l.words.filter((x) => x.confidence >= SICURA).map((x) => x.text).join(' ')).filter(Boolean);
+  return { testo: r.data.text, sicuro: righe.join('\n') };
 }

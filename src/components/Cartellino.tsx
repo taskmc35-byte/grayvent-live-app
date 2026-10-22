@@ -53,9 +53,9 @@ function Pannello({ catalog, spells, pg, staff, onClose }: { catalog: Ability[];
       // più tentativi: normale, solo codici, a pezzi, bianco e nero, foto girata
       for (const [i, pass] of passate.entries()) {
         setTentativo(i + 1); setLettura(0);
-        const t = await leggiFoto(file, (p) => setLettura(p), pass);
+        const { testo: t, sicuro } = await leggiFoto(file, (p) => setLettura(p), pass);
         testi.push(t);
-        voci = trovaNelTesto(idx, t);
+        voci = trovaNelTesto(idx, sicuro); // solo parole lette con sicurezza: niente codici "inventati" dal rumore
         if (voci.length) break;
       }
       setLetto(voci.length ? '' : testi.map((t) => t.trim()).filter(Boolean).slice(0, 4).join('\n—\n'));
