@@ -167,7 +167,9 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
         <div className="grid2">
           <div className="field"><label htmlFor="razza">Razza</label>
             <select id="razza" value={c.razza} onChange={(e) => set('razza', e.target.value)}>
-              {RACES.map((r) => <option key={r.id} value={r.id}>{raceLabel(r)}</option>)}
+              {RACES.filter((r) => !r.soloStaff).map((r) => <option key={r.id} value={r.id}>{raceLabel(r)}</option>)}
+              <optgroup label="Cambi di razza in gioco">{RACES.filter((r) => r.soloStaff === 'gioco').map((r) => <option key={r.id} value={r.id}>{raceLabel(r)}</option>)}</optgroup>
+              <optgroup label="Solo PNG dei Master">{RACES.filter((r) => r.soloStaff === 'png').map((r) => <option key={r.id} value={r.id}>{raceLabel(r)}</option>)}</optgroup>
             </select>
           </div>
           {race?.ereditaDaScelta && (

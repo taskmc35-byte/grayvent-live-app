@@ -9,6 +9,7 @@ const TITOLO_RAZZA: Record<string, string> = {
   'umano-nord': 'Umano Feudo Nord', 'umano-centrale': 'Umano Feudo Centrale', 'umano-acquaviva': 'Umano Feudo Acqua Viva',
   'umano-cieli': 'Umano Feudo Dei Cieli', 'umano-fiamma': 'Umano Feudo Fiamma Ardente', nano: 'Nano', alf: 'Alf',
   vinteralf: 'Vinteralf', mezzorco: "Mezz'Orchi", mezzogigante: 'Mezzo Giganti', benedetto: 'Benedetto', dannato: 'Dannato',
+  'senza-fato': 'Senza Fato', 'blotbeast-lupo': 'Blotbeast Lupo', 'blotbeast-orso': 'Blotbeast Orso',
 };
 
 /** Titoli che ogni personaggio ha senza che lo staff li assegni: Fyrd e quello della razza */

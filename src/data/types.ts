@@ -77,6 +77,8 @@ export interface Race {
   abilitaVietate?: string[];
   /** il Mezz'Elfo eredita bonus/malus da un'altra razza, scelta dai Master */
   ereditaDaScelta?: boolean;
+  /** non si sceglie in creazione: 'png' = solo per i personaggi dei Master; 'gioco' = la assegnano i Master durante il gioco */
+  soloStaff?: 'png' | 'gioco';
 }
 
 export interface Spell {

@@ -1,7 +1,7 @@
 import { Fragment, useMemo, useState } from 'react';
 import type { Ability, Character, Categoria } from '../data/types';
 import { LOCAZIONI } from '../data/types';
-import { RACES, raceLabel } from '../data/races';
+import { RACES, RAZZE_CREAZIONE, raceLabel } from '../data/races';
 import { PANTHEON } from '../data/deities';
 import { CampoFoto } from './FotoPg';
 import { BG_CARATTERI, BUDGET_PC, SOVRANNATURALI, SPUNTI_BG, checkCreation, creationAbilities, removeWithDependents } from '../creation';
@@ -108,7 +108,7 @@ export function CreaPersonaggio({ initial, catalog, notaStaff, onSubmit, onCance
         <section className="wiz-sec">
           <p className="hint">Ogni razza ha un bonus e un malus. Trovi le descrizioni complete nel Manuale di Creazione.</p>
           <div className="race-list" role="radiogroup" aria-label="Razza">
-            {RACES.map((r) => (
+            {RAZZE_CREAZIONE.map((r) => (
               <label key={r.id} className={`race-opt${c.razza === r.id ? ' on' : ''}`}>
                 <input type="radio" name="razza" checked={c.razza === r.id} onChange={() => scegliRazza(r.id)} />
                 <span className="race-name">{raceLabel(r)}</span>

@@ -113,7 +113,7 @@ export function PersonaggioTab({ pg, races, onFoto }: { pg: Character; races: Ra
           <dt>Sephire</dt><dd>{pg.sephire}</dd>
           {pg.varie && (<><dt>Varie</dt><dd>{pg.varie}</dd></>)}
         </dl>
-        {bonusDa && <div><span className="tag">Bonus di razza{bonusDa !== race ? ` (${raceLabel(bonusDa)})` : ''}</span><p><strong>{bonusDa.bonusNome}.</strong> {bonusDa.bonus}</p></div>}
+        {bonusDa && <div><span className="tag">Bonus di razza{bonusDa !== race ? ` (${raceLabel(bonusDa)})` : ''}</span><p>{bonusDa.bonusNome && <strong>{bonusDa.bonusNome}. </strong>}{bonusDa.bonus}</p></div>}
         {malusDa && <div><span className="tag">Malus di razza{malusDa !== race ? ` (${raceLabel(malusDa)})` : ''}</span><p>{malusDa.malus}</p></div>}
         {pg.abilitaSpeciali && (
           <div><span className="tag">Abilità speciali e note</span>

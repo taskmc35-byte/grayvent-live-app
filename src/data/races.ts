@@ -99,7 +99,19 @@ export const RACES: Race[] = [
     effetti: { pf: 1 },
     abilitaObbligatorie: ['linguaggio-runico'],
   },
+  // Razze che non si scelgono in creazione. Bonus e malus da completare con lo staff.
+  ...([
+    ['senza-fato', 'Senza Fato', undefined, 'gioco'],
+    ['blotbeast-lupo', 'Blotbeast', 'Lupo', 'gioco'],
+    ['blotbeast-orso', 'Blotbeast', 'Orso', 'gioco'],
+    ['svartalf', 'Svartalf', undefined, 'png'],
+    ['orco', 'Orco', undefined, 'png'],
+    ['goblin', 'Goblin', undefined, 'png'],
+    ['draconis', 'Draconis', undefined, 'png'],
+  ] as const).map(([id, nome, origine, soloStaff]): Race => ({ id, nome, origine, soloStaff, bonusNome: '', bonus: 'Dettagli in arrivo dallo staff.', malus: 'Dettagli in arrivo dallo staff.' })),
 ];
 
 export const raceById = (id?: string) => RACES.find((r) => r.id === id);
-export const raceLabel = (r?: Race) => (r ? (r.nome === 'Umano' ? `Umano, ${r.origine}` : r.nome) : '—');
+export const raceLabel = (r?: Race) => (r ? (['Umano', 'Blotbeast'].includes(r.nome) && r.origine ? `${r.nome}, ${r.origine}` : r.nome) : '—');
+/** razze che il giocatore può scegliere in creazione */
+export const RAZZE_CREAZIONE = RACES.filter((r) => !r.soloStaff);
