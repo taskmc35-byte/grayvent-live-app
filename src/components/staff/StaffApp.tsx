@@ -6,6 +6,7 @@ import { CharacterEditor, emptyCharacter } from './CharacterEditor';
 import { CatalogEditor } from './CatalogEditor';
 import { ChatbotPanel } from './ChatbotPanel';
 import { ChatPopup } from '../ChatPopup';
+import { LettoreCartellino, apriCartellino, IconaFoto } from '../Cartellino';
 import { StaffEventi } from './StaffEventi';
 import { ImpostazioniMissive, StaffMissive } from './StaffMissive';
 import { Seal } from '../Seal';
@@ -84,7 +85,10 @@ export function StaffApp({ user, spells, onLogout, onToast, onMiaScheda }: { use
           <InvitoNotifiche onToast={onToast} />
           <div className="list-head">
             <h1>Personaggi</h1>
-            <button className="btn primary" onClick={() => setEditing(emptyCharacter())}>Nuova scheda</button>
+            <div className="head-btns">
+              <button className="btn ghost" onClick={apriCartellino} aria-label="Leggi un cartellino"><IconaFoto /> Cartellino</button>
+              <button className="btn primary" onClick={() => setEditing(emptyCharacter())}>Nuova scheda</button>
+            </div>
           </div>
           <input className="search" type="search" placeholder="Cerca per personaggio o giocatore" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Cerca personaggi" />
           <div className="seg" role="tablist">
@@ -133,6 +137,7 @@ export function StaffApp({ user, spells, onLogout, onToast, onMiaScheda }: { use
 
       </div>
       <ChatPopup />
+      <LettoreCartellino catalog={catalog} spells={spells} staff />
       <nav className="tabbar" aria-label="Sezioni staff">
         <div className="tabbar-inner">
           {(['personaggi', 'eventi', 'missive', 'altro'] as Tab[]).map((t) => {

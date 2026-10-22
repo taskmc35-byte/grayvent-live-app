@@ -4,6 +4,7 @@ import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { api } from '../api';
 import type { Manuale } from '../data/types';
 import { useIndietro } from '../indietro';
+import { IconaFoto } from './Cartellino';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdf.worker.min.mjs', document.baseURI).href;
 
@@ -35,6 +36,13 @@ export function ManualiTab() {
         <h1 style={{ fontSize: '2rem' }}>Manuali</h1>
         <p className="hint" style={{ margin: '4px 0 0' }}>La biblioteca di Grayvent: regolamento, poteri e mondo di gioco.</p>
       </div>
+      <button className="chiedi-card" onClick={() => window.dispatchEvent(new Event('grayvent:apri-cartellino'))}>
+        <span className="chat-sigillo grande cart-sigillo" aria-hidden="true"><IconaFoto /></span>
+        <span className="chiedi-testo">
+          <strong>Leggi un cartellino</strong>
+          <span>Fotografa o scrivi il codice di un’abilità, un incantesimo o un oggetto per vederne gli effetti</span>
+        </span>
+      </button>
       <button className="chiedi-card" onClick={() => window.dispatchEvent(new Event('grayvent:apri-chat'))}>
         <span className="chat-sigillo grande" aria-hidden="true">?</span>
         <span className="chiedi-testo">

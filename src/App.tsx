@@ -12,6 +12,7 @@ import { PoteriTab } from './components/PoteriTab';
 import { AvvisoScelta, SceltaIncantesimi } from './components/SceltaIncantesimi';
 import { scelteDovute } from './scelte';
 import { ChatPopup } from './components/ChatPopup';
+import { LettoreCartellino, apriCartellino, IconaFoto } from './components/Cartellino';
 import { ManualiTab } from './components/ManualiTab';
 import { StaffApp } from './components/staff/StaffApp';
 import { CreaPersonaggio, nuovaScheda } from './components/CreaPersonaggio';
@@ -156,6 +157,7 @@ export default function App() {
             <button role="tab" aria-selected={activeSub === 'abilita'} onClick={() => setSub('abilita')}>Abilità</button>
             {hasPoteri && <button role="tab" aria-selected={activeSub === 'poteri'} onClick={() => setSub('poteri')}>Poteri</button>}
           </div>
+          <button className="ingranaggio" onClick={apriCartellino} aria-label="Leggi un cartellino"><IconaFoto /></button>
           <BottoneImpostazioni onClick={() => setImpostazioni(true)} />
         </div>
         {inAttesa && <div className="page" style={{ paddingBottom: 0 }}><StatoCard c={inAttesa} onEdit={() => setCrea(inAttesa)} compatto /></div>}
@@ -221,6 +223,7 @@ export default function App() {
       </nav>
       {toast && <div className="toast" role="status">{toast}</div>}
       <ChatPopup />
+      <LettoreCartellino catalog={catalog} spells={SPELLS} pg={pg} />
     </div>
   );
 }

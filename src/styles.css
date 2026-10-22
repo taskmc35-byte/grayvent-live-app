@@ -1135,3 +1135,24 @@ dd.codice { display: inline-block; width: fit-content; justify-self: start; }
 .row-add { display: flex; gap: 8px; }
 .row-add input { flex: 1; min-width: 0; }
 .chk small.warn { display: block; color: var(--warn); }
+
+/* ---- Lettore di cartellini ---- */
+.cartellino { position: fixed; inset: 0; z-index: 45; overflow-y: auto; background-color: var(--bg);
+  background-image: var(--noise), radial-gradient(110% 380px at 50% 300px, #45403a 0%, transparent 70%); padding-top: env(safe-area-inset-top, 0px); }
+.cartellino .page { max-width: 560px; margin: 0 auto; padding-bottom: 60px; }
+.cart-head { display: flex; }
+.cart-azioni { display: flex; flex-direction: column; gap: 10px; }
+.cart-azioni .btn.primary { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; font-size: 1.1rem; }
+.cart-lettura { display: flex; flex-direction: column; gap: 8px; color: var(--muted); }
+.cart-barra { height: 6px; border-radius: 999px; background: rgb(255 255 255 / 0.08); overflow: hidden; }
+.cart-barra span { display: block; height: 100%; background: var(--gold); transition: width 0.2s; }
+.cart-codice input { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.06em; text-transform: uppercase; }
+.cart-codice input::placeholder { text-transform: none; letter-spacing: 0; font-family: inherit; }
+.cart-elenco { display: flex; flex-direction: column; }
+.cart-elenco .row-btn small { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.cart-dettaglio { display: flex; flex-direction: column; gap: 10px; }
+.cart-dettaglio h2 { font-size: 1.9rem; margin: 0; }
+.cart-sigillo svg { width: 26px; height: 26px; }
+.head-btns { display: flex; gap: 8px; }
+.head-btns .btn.ghost { display: inline-flex; align-items: center; gap: 6px; }
+.subnav-wrap.con-ingranaggio .ingranaggio { width: 42px; }

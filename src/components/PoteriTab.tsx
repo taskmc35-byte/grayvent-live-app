@@ -54,16 +54,28 @@ export function PoteriTab({ pg, calc, spells, avviso }: { pg: Character; calc: C
 }
 
 export function SpellCard({ s, pg, onClose }: { s: Spell; pg: Character; onClose: () => void }) {
+  return (
+    <BottomSheet onClose={onClose} label={s.nome}>
+      <DettaglioPotere s={s} pg={pg} />
+      <button className="btn block" onClick={onClose}>Chiudi</button>
+    </BottomSheet>
+  );
+}
+
+/** Tutte le informazioni di un incantesimo, miracolo, runa o cerchio */
+export function DettaglioPotere({ s, pg, staff }: { s: Spell; pg?: Character; staff?: boolean }) {
   // Sostituisce i segnaposto delle formule generiche con elemento/astro del PG, quando noti
-  const el = pg.elemento ? ELEMENTO[pg.elemento] : undefined;
-  const as = astro(pg.divinita);
+  const el = pg?.elemento ? ELEMENTO[pg.elemento] : undefined;
+  const as = astro(pg?.divinita);
   const fill = (t: string) => t
     .replace(/del MIO ELEMENTO/gi, el ?? 'del MIO ELEMENTO')
     .replace(/della MIA DIVINITÀ/g, as ?? 'della MIA DIVINITÀ');
+  const flag = [s.master && 'Master', s.segreto && (s.brevetto ?? 'Segreto'), s.proibito && 'Proibito'].filter(Boolean) as string[];
   return (
-    <BottomSheet onClose={onClose} label={s.nome}>
+    <>
       <span className="tag">{etichettaScuola(s.tipo, s.scuola)}, {s.tipo === 'runa' ? s.livello : `livello ${s.livello}`}</span>
       <h2>{s.nome}</h2>
+      {flag.length > 0 && <p className="ab-meta">{flag.map((x) => <span key={x} className="badge">{x}</span>)}</p>}
       {s.flavor && <p className="flavor">{s.flavor}</p>}
       {s.formula && <div className="formula">{fill(s.formula)}</div>}
       <dl className="facts">
@@ -76,9 +88,9 @@ export function SpellCard({ s, pg, onClose }: { s: Spell; pg: Character; onClose
         <dt>Lancio</dt><dd>{s.lancio}</dd>
         <dt>Durata</dt><dd>{s.durata}</dd>
         {s.codice && (<><dt>Codice</dt><dd className="codice">{s.codice}</dd></>)}
+        {staff && s.notaStaff && (<><dt>Nota staff</dt><dd>{s.notaStaff}</dd></>)}
       </dl>
-      <button className="btn block" onClick={onClose}>Chiudi</button>
-    </BottomSheet>
+    </>
   );
 }
 
