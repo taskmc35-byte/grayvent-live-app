@@ -79,6 +79,8 @@ export interface Race {
   ereditaDaScelta?: boolean;
   /** non si sceglie in creazione: 'png' = solo per i personaggi dei Master; 'gioco' = la assegnano i Master durante il gioco */
   soloStaff?: 'png' | 'gioco';
+  /** bonus e malus presi dal database dello staff: le abilità di Sephira 0 con questo titolo (es. "Senza Fato") */
+  trattiDa?: string;
 }
 
 export interface Spell {

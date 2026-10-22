@@ -1,3 +1,6 @@
+import { ALL_ABILITIES } from '../data/abilities';
+import { trattiRazza } from '../data/races';
+import { DettaglioAbilita } from './AbilitaTab';
 import { elementiDi } from '../elementi';
 import { CampoFoto } from './FotoPg';
 import { useLayoutEffect, useRef, useState } from 'react';
@@ -96,6 +99,7 @@ function SchedaHero({ pg, races }: { pg: Character; races: Race[] }) {
 export function PersonaggioTab({ pg, races, onFoto }: { pg: Character; races: Race[]; onFoto?: (foto: string | undefined) => Promise<void> }) {
   const { race, bonusDa, malusDa } = effectiveRace(pg, races);
   const sangue = sangueTesto(pg, races, raceLabel);
+  const tratti = trattiRazza(race, ALL_ABILITIES);
   return (
     <div className="page">
       <section className="race-card">
@@ -113,8 +117,10 @@ export function PersonaggioTab({ pg, races, onFoto }: { pg: Character; races: Ra
           <dt>Sephire</dt><dd>{pg.sephire}</dd>
           {pg.varie && (<><dt>Varie</dt><dd>{pg.varie}</dd></>)}
         </dl>
-        {bonusDa && <div><span className="tag">Bonus di razza{bonusDa !== race ? ` (${raceLabel(bonusDa)})` : ''}</span><p>{bonusDa.bonusNome && <strong>{bonusDa.bonusNome}. </strong>}{bonusDa.bonus}</p></div>}
-        {malusDa && <div><span className="tag">Malus di razza{malusDa !== race ? ` (${raceLabel(malusDa)})` : ''}</span><p>{malusDa.malus}</p></div>}
+        {tratti.bonus.length > 0 && <div><span className="tag">Bonus di razza</span>{tratti.bonus.map((a) => <details key={a.id} className="ab"><summary><span>{a.nome}</span></summary><DettaglioAbilita a={a} /></details>)}</div>}
+        {tratti.malus.length > 0 && <div><span className="tag">Malus di razza</span>{tratti.malus.map((a) => <details key={a.id} className="ab"><summary><span>{a.nome}</span></summary><DettaglioAbilita a={a} /></details>)}</div>}
+        {bonusDa?.bonus && <div><span className="tag">Bonus di razza{bonusDa !== race ? ` (${raceLabel(bonusDa)})` : ''}</span><p>{bonusDa.bonusNome && <strong>{bonusDa.bonusNome}. </strong>}{bonusDa.bonus}</p></div>}
+        {malusDa?.malus && <div><span className="tag">Malus di razza{malusDa !== race ? ` (${raceLabel(malusDa)})` : ''}</span><p>{malusDa.malus}</p></div>}
         {pg.abilitaSpeciali && (
           <div><span className="tag">Abilità speciali e note</span>
             <ul className="spec-list">{pg.abilitaSpeciali.split('\n').map((r) => r.trim()).filter(Boolean).map((r) => <li key={r}>{r}</li>)}</ul>

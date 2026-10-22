@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import type { Ability, Categoria, Character, Spell } from '../data/types';
-import { RACES, raceLabel } from '../data/races';
+import { RACES, raceLabel, trattiRazza } from '../data/races';
 import { effectiveRace } from '../rules';
 import { salvaFile } from '../download';
 
@@ -44,7 +44,7 @@ export function creaPdf(pg: Character, catalog: Ability[], spells: Spell[]) {
 export function costruisciPagine(pg: Character, catalog: Ability[], spells: Spell[]): Draw[] {
   const out: Draw[] = [];
   out.push(paginaIdentita(pg));
-  out.push(paginaRazza(pg));
+  out.push(paginaRazza(pg, catalog));
   out.push(paginaRighe('ABILITÀ SPECIALI E NOTE', (pg.abilitaSpeciali ?? '').split('\n').map((s) => s.trim()).filter(Boolean), 'TdR:'));
 
   const nomeAb = (id: string) => catalog.find((a) => a.id === id)?.nome ?? id;
@@ -108,10 +108,11 @@ function paginaIdentita(pg: Character): Draw {
   };
 }
 
-function paginaRazza(pg: Character): Draw {
+function paginaRazza(pg: Character, catalog: Ability[]): Draw {
   const { bonusDa, malusDa } = effectiveRace(pg, RACES);
-  const bonus = bonusDa?.bonusNome ? [bonusDa.bonusNome] : [];
-  const malus = malusDa ? [`Malus ${raceLabel(malusDa).replace(',', '')}`] : [];
+  const tratti = trattiRazza(bonusDa, catalog);
+  const bonus = tratti.bonus.length ? tratti.bonus.map((a) => a.nome.replace(/\s*\n\s*/g, ' ')) : bonusDa?.bonusNome ? [bonusDa.bonusNome] : [];
+  const malus = tratti.malus.length ? tratti.malus.map((a) => a.nome) : malusDa?.malus ? [`Malus ${raceLabel(malusDa).replace(',', '')}`] : [];
   return (d, x, y) => {
     const h = PH - 2 * M;
     d.setLineWidth(0.35); d.rect(x, y, W, h);

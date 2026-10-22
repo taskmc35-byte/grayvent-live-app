@@ -1,4 +1,4 @@
-import type { Race } from './types';
+import type { Ability, Race } from './types';
 
 // Fonte: Manuale di Creazione del Personaggio v1.0, sezione "Razze giocabili"
 export const RACES: Race[] = [
@@ -99,7 +99,8 @@ export const RACES: Race[] = [
     effetti: { pf: 1 },
     abilitaObbligatorie: ['linguaggio-runico'],
   },
-  // Razze che non si scelgono in creazione. Bonus e malus da completare con lo staff.
+  // Razze che non si scelgono in creazione. Le razze in gioco hanno bonus e malus nel database (abilità di Sephira 0
+  // del loro titolo); quelle dei PNG non hanno bonus e malus.
   ...([
     ['senza-fato', 'Senza Fato', undefined, 'gioco'],
     ['blotbeast-lupo', 'Blotbeast', 'Lupo', 'gioco'],
@@ -108,10 +109,21 @@ export const RACES: Race[] = [
     ['orco', 'Orco', undefined, 'png'],
     ['goblin', 'Goblin', undefined, 'png'],
     ['draconis', 'Draconis', undefined, 'png'],
-  ] as const).map(([id, nome, origine, soloStaff]): Race => ({ id, nome, origine, soloStaff, bonusNome: '', bonus: 'Dettagli in arrivo dallo staff.', malus: 'Dettagli in arrivo dallo staff.' })),
+  ] as const).map(([id, nome, origine, soloStaff]): Race => ({
+    id, nome, origine, soloStaff, bonusNome: '', bonus: '', malus: '',
+    ...(soloStaff === 'gioco' ? { trattiDa: origine ? `${nome} ${origine}` : nome } : {}),
+  })),
 ];
 
 export const raceById = (id?: string) => RACES.find((r) => r.id === id);
 export const raceLabel = (r?: Race) => (r ? (['Umano', 'Blotbeast'].includes(r.nome) && r.origine ? `${r.nome}, ${r.origine}` : r.nome) : '—');
 /** razze che il giocatore può scegliere in creazione */
 export const RAZZE_CREAZIONE = RACES.filter((r) => !r.soloStaff);
+
+/** Bonus e malus delle razze assegnate in gioco: le abilità di Sephira 0 del loro titolo nel database */
+export function trattiRazza(r: Race | undefined, catalog: Ability[]): { bonus: Ability[]; malus: Ability[] } {
+  if (!r?.trattiDa) return { bonus: [], malus: [] };
+  const t = catalog.filter((a) => a.sephira === 0 && (a.titolo ?? '').trim().toLowerCase() === r.trattiDa!.toLowerCase());
+  const eMalus = (a: Ability) => /^(malus|maledizione)/i.test(a.nome);
+  return { bonus: t.filter((a) => !eMalus(a)), malus: t.filter(eMalus) };
+}
