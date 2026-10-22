@@ -7,6 +7,7 @@ import { CatalogEditor } from './CatalogEditor';
 import { ChatbotPanel } from './ChatbotPanel';
 import { ChatPopup } from '../ChatPopup';
 import { LettoreCartellino, apriCartellino, IconaFoto } from '../Cartellino';
+import { FotoPg } from '../FotoPg';
 import { StaffEventi } from './StaffEventi';
 import { ImpostazioniMissive, StaffMissive } from './StaffMissive';
 import { Seal } from '../Seal';
@@ -98,7 +99,8 @@ export function StaffApp({ user, spells, onLogout, onToast, onMiaScheda }: { use
           </div>
           <div>
             {visible.map((c) => (
-              <button key={c.id} className="row-btn" onClick={() => setEditing(c)}>
+              <button key={c.id} className="row-btn con-foto" onClick={() => setEditing(c)}>
+                <FotoPg c={c} size={42} />
                 <span>{c.nome} {c.cognome}{c.stato === 'in_approvazione' && <em> da approvare</em>}{c.stato === 'da_rivedere' && <em> rimandata al giocatore</em>}</span>
                 <small>{raceLabel(raceById(c.razza))}, {owner(c.proprietario)?.nome ?? <b className="bad">nessun account</b>}</small>
               </button>

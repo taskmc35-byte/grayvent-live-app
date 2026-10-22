@@ -1,3 +1,4 @@
+import { CampoFoto } from './FotoPg';
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { Ability, ArmorType, Character, LocId, Race } from '../data/types';
 import { LOCAZIONI } from '../data/types';
@@ -25,7 +26,7 @@ export function SchedaTab({ pg, calc, races, onSaveEq, onPoteri }: {
       <SchedaHero pg={pg} races={races} />
 
       <section className="body-block fit" aria-label="Locazioni">
-        <BodyFigure locs={calc.locazioni} onPick={setEditLoc} />
+        <BodyFigure locs={calc.locazioni} onPick={setEditLoc} foto={pg.foto} />
         <p className="fig-hint">Tocca una parte del corpo per cambiare armatura</p>
         {calc.haCompleta && (
           <label className={`check completa mini${calc.completaPossibile ? '' : ' off'}`}>
@@ -91,13 +92,14 @@ function SchedaHero({ pg, races }: { pg: Character; races: Race[] }) {
 }
 
 /** Linguetta "Personaggio": dati anagrafici, bonus e malus di razza, note dei Master */
-export function PersonaggioTab({ pg, races }: { pg: Character; races: Race[] }) {
+export function PersonaggioTab({ pg, races, onFoto }: { pg: Character; races: Race[]; onFoto?: (foto: string | undefined) => Promise<void> }) {
   const { race, bonusDa, malusDa } = effectiveRace(pg, races);
   const sangue = sangueTesto(pg, races, raceLabel);
   return (
     <div className="page">
       <section className="race-card">
         <h2 className="section-title" style={{ marginBottom: 0 }}>Personaggio</h2>
+        {onFoto && <CampoFoto c={pg} onChange={onFoto} nota="Il volto del personaggio: compare nella scheda per riconoscerlo al volo." />}
         <dl className="facts">
           {pg.titolo && (<><dt>Titolo</dt><dd>{pg.titolo}</dd></>)}
           <dt>Nome</dt><dd>{pg.nome} {pg.cognome}</dd>

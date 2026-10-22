@@ -32,6 +32,8 @@ export interface Api {
   setPassword(password: string): Promise<void>;
   myCharacters(): Promise<StaffCharacter[]>;
   saveEquipment(id: string, eq: Character['equipaggiamento']): Promise<void>;
+  /** foto del volto del personaggio (giocatore proprietario o staff); undefined la toglie */
+  savePhoto(id: string, foto: string | undefined): Promise<void>;
   /** il giocatore conferma (una volta sola) gli incantesimi o miracoli scelti */
   chooseSpells(id: string, ids: string[]): Promise<void>;
   // notifiche push
@@ -194,6 +196,7 @@ function demoApi(): Api {
     async setPassword() { /* niente in demo */ },
     async myCharacters() { return db.pg.filter((c) => c.proprietario === user?.id && (c.attivo || c.stato !== 'approvato')); },
     async saveEquipment(id, eq) { db.pg = db.pg.map((c) => (c.id === id ? { ...c, equipaggiamento: eq } : c)); persist(); },
+    async savePhoto(id, foto) { db.pg = db.pg.map((c) => (c.id === id ? { ...c, foto } : c)); persist(); },
     async pushChiave() { return null; },
     async pushIscrivi() { /* in prova non c'è un server che manda le notifiche */ },
     async pushDisiscrivi() { /* idem */ },
@@ -425,6 +428,11 @@ function supabaseApi(sb: SupabaseClient): Api {
       return (data ?? []).map(toStaff);
     },
     async saveEquipment(id, eq) { fail((await sb.rpc('salva_equipaggiamento', { p_id: id, p_eq: eq })).error); },
+    async savePhoto(id, foto) {
+      const { error } = await sb.rpc('salva_foto', { p_id: id, p_foto: foto ?? null });
+      if (error) throw new Error(error.code === 'PGRST202' || /could not find the function/i.test(error.message)
+        ? 'Le foto dei personaggi non sono ancora attive: lo staff deve eseguire foto_personaggi.sql su Supabase.' : error.message);
+    },
     async pushChiave() {
       const { data, error } = await sb.rpc('push_chiave');
       if (error) throw new Error(/push_chiave/.test(error.message) ? 'Notifiche non ancora installate: lo staff deve eseguire push.sql in Supabase.' : error.message);

@@ -139,6 +139,8 @@ export interface Character {
   abilita: string[];
   slot: Partial<Record<Categoria, SlotApprendimento>>;
   incantesimi: string[];
+  /** foto del volto (immagine piccola salvata nella scheda, data URL JPEG) */
+  foto?: string;
   /** titoli e cariche assegnati dallo staff (Fyrd e la razza valgono già da sé) */
   titoli?: string[];
   note?: string;

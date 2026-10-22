@@ -13,6 +13,7 @@ import { AvvisoScelta, SceltaIncantesimi } from './components/SceltaIncantesimi'
 import { scelteDovute } from './scelte';
 import { ChatPopup } from './components/ChatPopup';
 import { LettoreCartellino, apriCartellino, IconaFoto } from './components/Cartellino';
+import { FotoPg } from './components/FotoPg';
 import { ManualiTab } from './components/ManualiTab';
 import { StaffApp } from './components/staff/StaffApp';
 import { CreaPersonaggio, nuovaScheda } from './components/CreaPersonaggio';
@@ -144,10 +145,14 @@ export default function App() {
       <>
         {user.ruolo === 'staff' && approvati.length > 1 && (
           <div className="scegli-pg">
-            <label htmlFor="scegli-pg">PNG</label>
-            <select id="scegli-pg" value={pg.id} onChange={(e) => { scegliPg(e.target.value); setSub('scheda'); }}>
-              {approvati.map((p) => <option key={p.id} value={p.id}>{`${p.nome} ${p.cognome}`.trim()}</option>)}
-            </select>
+            <span className="scegli-pg-tit" id="scegli-pg">PNG</span>
+            <div className="pg-chips" role="radiogroup" aria-labelledby="scegli-pg">
+              {approvati.map((p) => (
+                <button key={p.id} role="radio" aria-checked={p.id === pg.id} className={`pg-chip${p.id === pg.id ? ' on' : ''}`} onClick={() => { scegliPg(p.id); setSub('scheda'); }}>
+                  <FotoPg c={p} size={34} /><span>{`${p.nome} ${p.cognome}`.trim()}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
         <div className="subnav-wrap con-ingranaggio">
@@ -164,7 +169,7 @@ export default function App() {
         {activeSub === 'scheda' && daScegliere && dovute && <div className="page" style={{ paddingBottom: 0 }}><AvvisoScelta dovute={dovute} onApri={() => setSceltaAperta(true)} /></div>}
         {activeSub === 'scheda' && !daScegliere && <div className="page push-wrap" style={{ paddingBottom: 0 }}><InvitoNotifiche onToast={setToast} /></div>}
         {activeSub === 'scheda' && <SchedaTab pg={pg} calc={calc} races={RACES} catalog={catalog} onSaveEq={saveEq} onPoteri={hasPoteri ? () => setSub('poteri') : undefined} />}
-        {activeSub === 'personaggio' && <PersonaggioTab pg={pg} races={RACES} />}
+        {activeSub === 'personaggio' && <PersonaggioTab pg={pg} races={RACES} onFoto={async (f) => { await api.savePhoto(pg.id, f); await load(); setToast(f ? 'Foto salvata' : 'Foto tolta'); }} />}
         {activeSub === 'abilita' && <AbilitaTab pg={pg} catalog={catalog} />}
         {activeSub === 'poteri' && <PoteriTab pg={pg} calc={calc} spells={SPELLS} avviso={dovute && <AvvisoScelta dovute={dovute} onApri={() => setSceltaAperta(true)} />} />}
         {sceltaAperta && daScegliere && dovute && <SceltaIncantesimi pg={pg} dovute={dovute} onChiudi={() => setSceltaAperta(false)}

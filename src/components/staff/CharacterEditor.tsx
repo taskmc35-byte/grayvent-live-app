@@ -11,6 +11,7 @@ import { motivoIncompatibile } from '../../incompat';
 import { motivoRequisiti, prerequisitiMancanti, titoliAutomatici, titoliDelCatalogo } from '../../requisiti';
 import { gruppiPoteri } from '../../poteri';
 import { etichetteSpeciali } from '../AbilitaTab';
+import { CampoFoto } from '../FotoPg';
 import { AfflizioniEditor } from '../Afflizioni';
 
 const CAT: { id: Categoria; nome: string }[] = [
@@ -152,6 +153,7 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
           <div className="field"><label htmlFor="nome">Nome</label><input id="nome" value={c.nome} onChange={(e) => set('nome', e.target.value)} /></div>
           <div className="field"><label htmlFor="cognome">Cognome o soprannome</label><input id="cognome" value={c.cognome} onChange={(e) => set('cognome', e.target.value)} /></div>
         </div>
+        <CampoFoto c={c} onChange={(f) => set('foto', f)} nota="Si salva insieme alla scheda." />
         <div className="field"><label htmlFor="titolo">Titolo</label><input id="titolo" value={c.titolo ?? ''} onChange={(e) => set('titolo', e.target.value || undefined)} placeholder="Nessuno" /></div>
         <div className="field"><label htmlFor="prov">Luogo di provenienza</label><input id="prov" value={c.provenienza} onChange={(e) => set('provenienza', e.target.value)} /></div>
         <div className="grid2">

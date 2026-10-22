@@ -3,6 +3,7 @@ import type { Ability, Character, Categoria } from '../data/types';
 import { LOCAZIONI } from '../data/types';
 import { RACES, raceLabel } from '../data/races';
 import { PANTHEON } from '../data/deities';
+import { CampoFoto } from './FotoPg';
 import { BG_CARATTERI, BUDGET_PC, SOVRANNATURALI, SPUNTI_BG, checkCreation, creationAbilities, removeWithDependents } from '../creation';
 import { compute } from '../rules';
 
@@ -124,6 +125,7 @@ export function CreaPersonaggio({ initial, catalog, notaStaff, onSubmit, onCance
       {passo === 1 && (
         <section className="wiz-sec form">
           <div className="grid2">
+            <CampoFoto c={c} onChange={(f) => set('foto', f)} nota="Facoltativa: il volto del personaggio, la puoi aggiungere anche dopo." />
             <div className="field"><label htmlFor="w-nome">Nome</label><input id="w-nome" value={c.nome} onChange={(e) => set('nome', e.target.value)} /></div>
             <div className="field"><label htmlFor="w-cognome">Cognome o soprannome</label><input id="w-cognome" value={c.cognome} onChange={(e) => set('cognome', e.target.value)} /></div>
           </div>

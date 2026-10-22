@@ -18,11 +18,17 @@ const fillFor = (pa: number) => {
   return `color-mix(in srgb, var(--steel) ${Math.round(25 + a * 45)}%, var(--surface-2))`;
 };
 
-export function BodyFigure({ locs, onPick }: { locs: LocStats[]; onPick: (id: LocId) => void }) {
+export function BodyFigure({ locs, onPick, foto }: { locs: LocStats[]; onPick: (id: LocId) => void; foto?: string }) {
   return (
     <div className="figure-wrap">
       <svg className="figure" viewBox="20 0 180 304" role="group" aria-label="Locazioni del corpo">
-        <circle className="head" cx="110" cy="34" r="22" />
+        {foto ? (
+          <g className="head-foto">
+            <clipPath id="clip-testa"><circle cx="110" cy="34" r="22" /></clipPath>
+            <image href={foto} x="88" y="12" width="44" height="44" clipPath="url(#clip-testa)" preserveAspectRatio="xMidYMid slice" />
+            <circle className="head-cornice" cx="110" cy="34" r="22" />
+          </g>
+        ) : <circle className="head" cx="110" cy="34" r="22" />}
         {locs.map((l) => {
           const s = SHAPES[l.id];
           const narrow = l.id.startsWith('braccio');

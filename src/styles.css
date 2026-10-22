@@ -1156,3 +1156,24 @@ dd.codice { display: inline-block; width: fit-content; justify-self: start; }
 .head-btns { display: flex; gap: 8px; }
 .head-btns .btn.ghost { display: inline-flex; align-items: center; gap: 6px; }
 .subnav-wrap.con-ingranaggio .ingranaggio { width: 42px; }
+
+/* ---- Foto dei personaggi ---- */
+.foto-pg { flex: none; display: inline-grid; place-items: center; border-radius: 50%; overflow: hidden; padding: 0;
+  border: 1.5px solid color-mix(in srgb, var(--gold) 55%, var(--line)); background: var(--surface-2); color: var(--gold);
+  font-family: var(--display); font-weight: 700; line-height: 1; cursor: default; }
+button.foto-pg { cursor: pointer; }
+.foto-pg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.campo-foto { display: flex; gap: 14px; align-items: center; }
+.campo-foto-azioni { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.campo-foto-tit { font-weight: 600; }
+.campo-foto-btn { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.campo-foto-btn .btn { min-height: 38px; padding: 6px 14px; }
+.row-btn.con-foto { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; }
+.row-btn.con-foto .foto-pg { grid-row: span 2; }
+.head-cornice { fill: none; stroke: color-mix(in srgb, var(--gold) 70%, transparent); stroke-width: 1.5; }
+.scegli-pg { align-items: center; }
+.scegli-pg-tit { color: var(--muted); font-size: 0.9rem; flex: none; }
+.pg-chips { display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 2px 0 4px; flex: 1; min-width: 0; scrollbar-width: none; }
+.pg-chip { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--fg); font-family: var(--display); font-weight: 700; font-size: 1rem; cursor: pointer; }
+.pg-chip.on { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 16%, var(--surface)); }
