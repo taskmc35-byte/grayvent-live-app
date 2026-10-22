@@ -134,6 +134,8 @@ export interface Character {
   professioneAvanzata?: string;
   divinita?: string;
   elemento?: string;
+  /** altri elementi oltre al principale (un mago può averne più di uno) */
+  altriElementi?: string[];
   eta?: number;
   sephire: number;
   abilita: string[];

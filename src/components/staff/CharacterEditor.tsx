@@ -12,6 +12,7 @@ import { motivoRequisiti, prerequisitiMancanti, titoliAutomatici, titoliDelCatal
 import { gruppiPoteri } from '../../poteri';
 import { etichetteSpeciali } from '../AbilitaTab';
 import { CampoFoto } from '../FotoPg';
+import { TUTTI_GLI_ELEMENTI, elementiDi } from '../../elementi';
 import { AfflizioniEditor } from '../Afflizioni';
 
 const CAT: { id: Categoria; nome: string }[] = [
@@ -48,6 +49,13 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
   const race = RACES.find((r) => r.id === c.razza);
   const owned = new Set(c.abilita);
 
+  const conta = (id: string) => c.abilita.filter((x) => x === id).length;
+  /** abilità riacquistabili: una volta in più o in meno (resta almeno una) */
+  const cambiaVolte = (id: string, delta: 1 | -1) => setC((x) => {
+    if (delta > 0) return { ...x, abilita: [...x.abilita, id] };
+    const i = x.abilita.lastIndexOf(id);
+    return conta(id) > 1 && i >= 0 ? { ...x, abilita: x.abilita.filter((_, j) => j !== i) } : x;
+  });
   const toggleAb = (id: string) => set('abilita', owned.has(id) ? c.abilita.filter((x) => x !== id) : [...c.abilita, id]);
   const toggleSp = (id: string) => set('incantesimi', c.incantesimi.includes(id) ? c.incantesimi.filter((x) => x !== id) : [...c.incantesimi, id]);
 
@@ -217,13 +225,29 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
             </select>
             {astro && c.divinita && !PANTHEON.some((p) => p.nome === c.divinita) && <span className="hint">Miracoli dell’Astro: {PANTHEON.find((p) => p.astro === astro)!.nome}</span>}
           </div>
-          <div className="field"><label htmlFor="el">Elemento</label>
-            <select id="el" value={c.elemento ?? ''} onChange={(e) => set('elemento', e.target.value || undefined)}>
+          <div className="field"><label htmlFor="el">Elemento principale</label>
+            <select id="el" value={c.elemento ?? ''} onChange={(e) => setC((x) => ({ ...x, elemento: e.target.value || undefined, altriElementi: (x.altriElementi ?? []).filter((y) => y !== e.target.value) }))}>
               <option value="">{haMagia ? 'Da scegliere' : 'Nessuno'}</option>
-              {['Fuoco', 'Acqua', 'Terra', 'Aria', 'Luce', 'Ombra'].map((x) => <option key={x}>{x}</option>)}
+              {TUTTI_GLI_ELEMENTI.map((x) => <option key={x}>{x}</option>)}
             </select>
           </div>
         </div>
+        {c.elemento && (
+          <div className="field">
+            <span className="label">Altri elementi</span>
+            <div className="titoli-chips" role="group" aria-label="Altri elementi">
+              {TUTTI_GLI_ELEMENTI.filter((x) => x !== c.elemento).map((x) => {
+                const on = (c.altriElementi ?? []).includes(x);
+                return (
+                  <label key={x} className={`chip scelta${on ? ' on' : ''}`}>
+                    <input type="checkbox" checked={on} onChange={() => set('altriElementi', on ? (c.altriElementi ?? []).filter((y) => y !== x) : [...(c.altriElementi ?? []), x])} />{x}
+                  </label>
+                );
+              })}
+            </div>
+            <span className="hint">Un mago può ottenere più elementi in gioco. L’Energia Pura è l’unione di tutti gli elementi e non ha incantesimi propri.</span>
+          </div>
+        )}
       </fieldset>
 
       <fieldset className="fs">
@@ -261,6 +285,13 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
                         <input type="checkbox" checked={on} disabled={!!blocco} onChange={() => toggleAb(a.id)} />
                         <span>
                           {a.nome}{a.codice && <span className="codice">{a.codice}</span>}{a.tipo === 'avanzata' && <em> avanzata</em>}
+                          {on && a.riacquistabile && (
+                            <span className="ab-conta" onClick={(e) => e.preventDefault()}>
+                              <button type="button" aria-label={`Una volta in meno: ${a.nome}`} disabled={conta(a.id) < 2} onClick={(e) => { e.preventDefault(); e.stopPropagation(); cambiaVolte(a.id, -1); }}>−</button>
+                              <strong>×{conta(a.id)}</strong>
+                              <button type="button" aria-label={`Riacquista: ${a.nome}`} onClick={(e) => { e.preventDefault(); e.stopPropagation(); cambiaVolte(a.id, 1); }}>+</button>
+                            </span>
+                          )}
                           <small className="ab-req">{[a.sephira ? `Sephira ${a.sephira}` : null, a.titolo && a.titolo !== 'Fyrd' ? a.titolo : null, a.pc != null ? `${a.pc} PC` : null, ...spec].filter(Boolean).join(' · ')}</small>
                           {vietate.has(a.id) && <small className="bad">Vietata per la razza</small>}
                           {blocco && <small className="bad">{blocco}</small>}
@@ -296,7 +327,7 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
           const nelloSlot = (a: Ability) => (a.tempi && Object.keys(a.tempi).length
             ? Object.entries(a.tempi).some(([k, v]) => g.cats.includes(k as Categoria) && v !== 'NI')
             : g.cats.includes(a.categoria));
-          const options = catalog.filter((a) => !owned.has(a.id) && (a.id === s?.abilita || (nelloSlot(a) && (eccezione || !motivoRequisiti(a, c)))))
+          const options = catalog.filter((a) => (!owned.has(a.id) || a.riacquistabile) && (a.id === s?.abilita || (nelloSlot(a) && (eccezione || !motivoRequisiti(a, c)))))
             .sort((x, y) => x.nome.localeCompare(y.nome, 'it'));
           // discipline occupate secondo il foglio dello staff (es. Fisico 2 + Mentale 2)
           const disciplineDi = (a?: Ability) => {
@@ -365,7 +396,7 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
           const list = gr.poteri;
           const n = list.filter((s) => c.incantesimi.includes(s.id)).length;
           const sc = gr.scuola;
-          const rilevante = gr.tipo === 'incantesimo' ? (sc === c.elemento || (sc === 'Sintesi' && calc.potere.some((p) => p.via === 'mago')))
+          const rilevante = gr.tipo === 'incantesimo' ? (elementiDi(c).includes(sc) || (sc === 'Sintesi' && calc.potere.some((p) => p.via === 'mago')))
             : gr.tipo === 'miracolo' ? ((astro && sc === astro) || sc === c.divinita || (sc === 'Generico' && calc.potere.some((p) => p.via === 'sacerdote'))) : false;
           return (
             <details key={gr.chiave} className="sp-group" open={n > 0 || !!rilevante}>

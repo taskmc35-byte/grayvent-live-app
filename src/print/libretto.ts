@@ -51,7 +51,9 @@ export function costruisciPagine(pg: Character, catalog: Ability[], spells: Spel
   const catAb = (id: string): Categoria => catalog.find((a) => a.id === id)?.categoria ?? 'mentale';
   const titoli: Record<Categoria, string> = { fisico: 'ABILITÀ FISICHE', mentale: 'ABILITÀ MENTALI', sovrannaturale: 'ABILITÀ SOVRANNATURALI' };
   for (const cat of ['fisico', 'mentale', 'sovrannaturale'] as Categoria[]) {
-    const voci = pg.abilita.filter((id) => catAb(id) === cat).map((id) => ({ nome: nomeAb(id), cod: catalog.find((a) => a.id === id)?.codice }));
+    const ids = [...new Set(pg.abilita)].filter((id) => catAb(id) === cat);
+    const volte = (id: string) => pg.abilita.filter((x) => x === id).length;
+    const voci = ids.map((id) => ({ nome: volte(id) > 1 ? `${nomeAb(id)} (x${volte(id)})` : nomeAb(id), cod: catalog.find((a) => a.id === id)?.codice }));
     out.push(...paginaTabella(titoli[cat], 'Abilità', voci));
   }
 

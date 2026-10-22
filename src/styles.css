@@ -1192,3 +1192,11 @@ button.foto-pg { cursor: pointer; }
 .pg-card.on { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 14%, transparent); }
 .pg-card strong { font-family: var(--display); font-size: 0.95rem; line-height: 1.15; }
 .pg-card small { font-size: 0.75rem; opacity: 0.75; }
+.field > .label { font-weight: 500; }
+.titoli-chips .chip.scelta { padding: 5px 12px; cursor: pointer; }
+.titoli-chips .chip.scelta.on { border-color: var(--gold); color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); border-style: solid; }
+.chip.scelta input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.ab-conta { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; }
+.ab-conta button { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; line-height: 1; }
+.ab-conta strong { min-width: 26px; text-align: center; color: var(--gold); }
+.volte { color: var(--gold); font-weight: 600; margin-left: 6px; }

@@ -40,3 +40,10 @@ it('dei minori e varianti razziali usano i miracoli del proprio dio; esclusi seg
 it('mago di Luce: elementali della Luce', () => {
   expect(scelteDovute(pg({ abilita: ['conoscenze-magiche'], elemento: 'Luce' }), S).gruppi.map((g) => g.titolo)).toEqual(['Incantesimi Minori della Luce']);
 });
+it('mago con più elementi: sceglie tra gli incantesimi di tutti i suoi elementi; Energia Pura non ne ha', () => {
+  const r = scelteDovute(pg({ abilita: ['conoscenze-magiche'], elemento: 'Fuoco', altriElementi: ['Aria', 'Energia Pura'] }), S);
+  expect(r.gruppi.map((g) => g.titolo)).toEqual(['Incantesimi Minori del Fuoco o dell’Aria']);
+  expect(new Set(r.gruppi[0].opzioni.map((s) => s.scuola))).toEqual(new Set(['Fuoco', 'Aria']));
+  const ep = scelteDovute(pg({ abilita: ['conoscenze-magiche'], elemento: 'Energia Pura' }), S);
+  expect([ep.gruppi.length, ep.mancaElemento.length]).toEqual([0, 0]);
+});

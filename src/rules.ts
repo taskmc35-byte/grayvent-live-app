@@ -79,7 +79,7 @@ export function sangueTesto(c: Character, races: Race[], label: (r?: Race) => st
 }
 
 export function compute(c: Character, catalog: Ability[], races: Race[]): Computed {
-  const abil = c.abilita.map((id) => catalog.find((a) => a.id === id)).filter(Boolean) as Ability[];
+  const abil = [...new Set(c.abilita)].map((id) => catalog.find((a) => a.id === id)).filter(Boolean) as Ability[];
   const { bonusDa: rEff, malusDa: rMalus } = effectiveRace(c, races);
 
   // PF

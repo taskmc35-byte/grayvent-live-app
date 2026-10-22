@@ -107,14 +107,16 @@ export function AbilitaTab({ pg, catalog }: { pg: Character; catalog: Ability[] 
       <section aria-labelledby="ab-title">
         <h2 id="ab-title" className="section-title">Apprese</h2>
         {CAT.map((c) => {
-          const list = owned.filter((a) => a.categoria === c.id);
+          // le riacquistabili possedute più volte compaiono una volta sola, con "×N"
+          const list = owned.filter((a, i) => a.categoria === c.id && owned.findIndex((x) => x.id === a.id) === i);
+          const volte = (id: string) => pg.abilita.filter((x) => x === id).length;
           if (!list.length) return null;
           return (
             <div key={c.id} className="ab-group">
               <h3>{c.nome}</h3>
               {list.map((a) => (
                 <details key={a.id} className="ab">
-                  <summary><span>{a.nome}</span>{a.tipo === 'avanzata' && <span className="badge">avanzata</span>}</summary>
+                  <summary><span>{a.nome}{volte(a.id) > 1 && <span className="volte">×{volte(a.id)}</span>}</span>{a.tipo === 'avanzata' && <span className="badge">avanzata</span>}</summary>
                   <DettaglioAbilita a={a} />
                 </details>
               ))}

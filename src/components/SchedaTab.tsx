@@ -1,3 +1,4 @@
+import { elementiDi } from '../elementi';
 import { CampoFoto } from './FotoPg';
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { Ability, ArmorType, Character, LocId, Race } from '../data/types';
@@ -107,7 +108,7 @@ export function PersonaggioTab({ pg, races, onFoto }: { pg: Character; races: Ra
           <dt>Razza</dt><dd>{raceLabel(race)}{sangue && `, ${sangue}`}</dd>
           <dt>Professione</dt><dd>{pg.professione || 'Nessuna'}{pg.professioneAvanzata ? `, ${pg.professioneAvanzata}` : ''}</dd>
           {pg.divinita && (<><dt>Divinità</dt><dd>{divinitaLabel(pg.divinita)}</dd></>)}
-          {pg.elemento && (<><dt>Elemento</dt><dd>{pg.elemento}</dd></>)}
+          {pg.elemento && (<><dt>{elementiDi(pg).length > 1 ? 'Elementi' : 'Elemento'}</dt><dd>{elementiDi(pg).join(', ')}</dd></>)}
           {pg.eta != null && (<><dt>Età</dt><dd>{pg.eta} anni</dd></>)}
           <dt>Sephire</dt><dd>{pg.sephire}</dd>
           {pg.varie && (<><dt>Varie</dt><dd>{pg.varie}</dd></>)}

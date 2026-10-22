@@ -1,6 +1,7 @@
 import type { Ability, Character, Spell } from './data/types';
 import { astroOf, DEI_MINORI } from './data/deities';
 import { ALL_ABILITIES } from './data/abilities';
+import { elementiDi } from './elementi';
 
 /*
  * Incantesimi e miracoli che il giocatore sceglie da solo quando ottiene un'abilità di potere:
@@ -36,7 +37,7 @@ const SCUOLA_TIT: Record<string, string> = {
   Fuoco: 'del Fuoco', Acqua: 'dell’Acqua', Terra: 'della Terra', Aria: 'dell’Aria', Luce: 'della Luce', Ombra: 'dell’Ombra', Sintesi: 'di Sintesi',
 };
 const titoloGruppo = (tipo: Spell['tipo'], scuola: string, livello: string) =>
-  `${tipo === 'miracolo' ? 'Miracoli' : 'Incantesimi'} ${LIV_PLURALE[livello] ?? livello} ${SCUOLA_TIT[scuola] ?? scuola}`;
+  `${tipo === 'miracolo' ? 'Miracoli' : 'Incantesimi'} ${LIV_PLURALE[livello] ?? livello} ${scuola.split('+').map((x) => SCUOLA_TIT[x] ?? x).join(' o ')}`;
 
 export function scelteDovute(pg: Character, spells: Spell[], catalog: Ability[] = ALL_ABILITIES): ScelteDovute {
   const req = new Map<string, { tipo: Spell['tipo']; scuola: string; livello: string; n: number; da: string[] }>();
@@ -48,7 +49,11 @@ export function scelteDovute(pg: Character, spells: Spell[], catalog: Ability[] 
   };
   const minore = DEI_MINORI.find((d) => d.toLowerCase() === (pg.divinita ?? '').trim().toLowerCase());
   const scuolaDio = astroOf(pg.divinita) ?? minore ?? null;
-  const el = pg.elemento && ELEMENTI.includes(pg.elemento) ? pg.elemento : null;
+  // più elementi: si sceglie tra gli incantesimi di tutti i propri elementi (chiave "Fuoco+Aria")
+  const miei = elementiDi(pg);
+  const conIncantesimi = miei.filter((e) => ELEMENTI.includes(e));
+  const el = conIncantesimi.length ? conIncantesimi.join('+') : null;
+  const senzaElemento = (nome: string) => { if (!miei.length && !mancaElemento.includes(nome)) mancaElemento.push(nome); }; // solo Energia Pura: niente da scegliere
   const mie = pg.abilita.map((id) => catalog.find((a) => a.id === id)).filter(Boolean) as Ability[];
   const haConoscenze = pg.abilita.includes('conoscenze-magiche');
   const fatti = new Set<string>(); // stessa abilità in più varianti: conta una volta
@@ -66,20 +71,21 @@ export function scelteDovute(pg: Character, spells: Spell[], catalog: Ability[] 
       if (dio) add('miracolo', dio, liv, 2, a.nome); else mancaDivinita.push(a.nome);
     } else if (a.id === 'conoscenze-magiche') {
       if (fatti.has('cm')) continue; fatti.add('cm');
-      if (el) add('incantesimo', el, 'Minore', 2, a.nome); else mancaElemento.push(a.nome);
+      if (el) add('incantesimo', el, 'Minore', 2, a.nome); else senzaElemento(a.nome);
     } else if (p.via === 'mago' && /^Studio Arcano/.test(a.nome)) {
       const k = `sa|${p.livello}`;
       if (fatti.has(k)) continue; fatti.add(k);
       add('incantesimo', 'Sintesi', liv, 2, a.nome);
       if (p.livello === 1 && haConoscenze) continue; // mantiene gli elementali di Conoscenze Magiche
-      if (el) add('incantesimo', el, liv, 2, a.nome); else if (!mancaElemento.includes(a.nome)) mancaElemento.push(a.nome);
+      if (el) add('incantesimo', el, liv, 2, a.nome); else senzaElemento(a.nome);
     }
   }
 
   const noti = new Set(pg.incantesimi);
   const gruppi: GruppoScelta[] = [];
   for (const [chiave, r] of req) {
-    const delGruppo = spells.filter((s) => s.tipo === r.tipo && s.scuola === r.scuola && s.livello === r.livello && sceglibile(s));
+    const scuole = r.scuola.split('+');
+    const delGruppo = spells.filter((s) => s.tipo === r.tipo && scuole.includes(s.scuola) && s.livello === r.livello && sceglibile(s));
     if (!delGruppo.length) continue; // livello non ancora nell'app
     const gia = delGruppo.filter((s) => noti.has(s.id)).length;
     const opzioni = delGruppo.filter((s) => !noti.has(s.id));
