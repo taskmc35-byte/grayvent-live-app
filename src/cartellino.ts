@@ -75,7 +75,18 @@ export function trovaNelTesto(idx: Indice, testo: string): Voce[] {
   // nessun codice leggibile: provo con il nome stampato (una riga uguale al nome di un'abilità o di un potere)
   if (!visti.size) {
     const righe = new Set(testo.split(/\n+/).map(normNome).filter((r) => r.length >= 4));
-    for (const v of idx.tutte) if (v.tipo !== 'tabella' && righe.has(normNome(nomeVoce(v)))) visti.set(`${v.tipo}|${v.codice}`, v);
+    const perNome = idx.tutte.filter((v) => v.tipo !== 'tabella' && righe.has(normNome(nomeVoce(v))));
+    // stesso nome in più scuole o livelli (es. Inguz di Odino e di Surtur): tengo quelli il cui tipo, scuola e livello
+    // compaiono nel resto del cartellino ("Runa 3^ Aett Odino")
+    const tutto = ` ${normNome(testo.replace(/\d\s*[\^”"'°º]\s*/g, (m) => `${m.trim()[0]}^ `))} `;
+    const punti = (v: Voce) => {
+      if (v.tipo !== 'potere') return 0;
+      const p = v.potere;
+      const parole = [{ incantesimo: 'incantesimo', miracolo: 'miracolo', runa: 'runa', cerchio: 'cerchio' }[p.tipo], p.scuola, ...p.livello.replace('^', '').split(' ')];
+      return parole.filter((w) => w && tutto.includes(` ${normNome(w)} `)).length;
+    };
+    const max = Math.max(0, ...perNome.map(punti));
+    for (const v of perNome) if (punti(v) === max) visti.set(`${v.tipo}|${v.codice}`, v);
   }
   return [...visti.values()];
 }

@@ -46,3 +46,7 @@ describe('Cartellini: errori di lettura reali', () => {
 it('parole normali non diventano codici (ALLA non è 4LIA)', () => {
   expect(trovaNelTesto(idx, 'infligge alla locazione vitale\nRACF.WCV').map(nomeVoce)).toEqual(['Dardo di Fuoco']);
 });
+it('cartellino oggetto reale: titolo "Runa 3^ Aett Odino" + nome', () => {
+  const testo = 'Runa 3” Aett Odino\n"INGUZ"\nValore Medio 1000\nOgg. Sovrannaturali\nValutare 2\nE4319V | 64XA14 | O4D9E6 | WV3s17\nvtilizzi/Eventi | | \\ NV VV VVVV\n';
+  expect(trovaNelTesto(idx, testo).map((v) => v.codice)).toEqual(['R2HG.EAG']);
+});
