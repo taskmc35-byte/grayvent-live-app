@@ -155,9 +155,17 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
             </select>
           </div>
           {race?.ereditaDaScelta && (
-            <div className="field"><label htmlFor="ered">Bonus e malus ereditati (Fato)</label>
+            <div className="field"><label htmlFor="ered">Bonus ereditato (Fato)</label>
               <select id="ered" value={c.razzaEreditata ?? ''} onChange={(e) => set('razzaEreditata', e.target.value || undefined)}>
                 <option value="">Da tirare</option>
+                {RACES.filter((r) => r.id.startsWith('umano') || r.id === 'alf' || r.id === 'vinteralf').map((r) => <option key={r.id} value={r.id}>{raceLabel(r)}{r.bonusNome ? ` (${r.bonusNome})` : ''}</option>)}
+              </select>
+            </div>
+          )}
+          {race?.ereditaDaScelta && (
+            <div className="field"><label htmlFor="ered-m">Malus ereditato (Fato)</label>
+              <select id="ered-m" value={c.razzaMalus ?? ''} onChange={(e) => set('razzaMalus', e.target.value || undefined)}>
+                <option value="">Stessa razza del bonus</option>
                 {RACES.filter((r) => r.id.startsWith('umano') || r.id === 'alf' || r.id === 'vinteralf').map((r) => <option key={r.id} value={r.id}>{raceLabel(r)}</option>)}
               </select>
             </div>

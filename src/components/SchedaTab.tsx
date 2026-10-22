@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { Ability, ArmorType, Character, LocId, Race } from '../data/types';
 import { LOCAZIONI } from '../data/types';
-import { ARMOR, ARMOR_ORDER, effectiveRace, type Computed } from '../rules';
+import { ARMOR, ARMOR_ORDER, effectiveRace, sangueTesto, type Computed } from '../rules';
 import { raceLabel } from '../data/races';
 import { BodyFigure } from './BodyFigure';
 import { BottomSheet } from './Sheet';
@@ -70,7 +70,8 @@ export function SchedaTab({ pg, calc, races, onSaveEq, onPoteri }: {
 }
 
 function SchedaHero({ pg, races }: { pg: Character; races: Race[] }) {
-  const { race, inherited } = effectiveRace(pg, races);
+  const { race } = effectiveRace(pg, races);
+  const sangueHero = sangueTesto(pg, races, raceLabel);
   return (
     <header className="hero">
       <div>
@@ -78,7 +79,7 @@ function SchedaHero({ pg, races }: { pg: Character; races: Race[] }) {
           {pg.nome}
           {pg.cognome && <span className="cognome">{pg.cognome}</span>}
         </h1>
-        <div className="razza">{raceLabel(race)}{inherited && `, con sangue ${raceLabel(inherited).toLowerCase()}`}</div>
+        <div className="razza">{raceLabel(race)}{sangueHero && `, ${sangueHero}`}</div>
       </div>
       <div className="hero-seph" aria-label={`${pg.sephire} Sephire`}>
         <span>{pg.sephire === 1 ? 'Sephira' : 'Sephire'}</span>
@@ -91,8 +92,8 @@ function SchedaHero({ pg, races }: { pg: Character; races: Race[] }) {
 
 /** Linguetta "Personaggio": dati anagrafici, bonus e malus di razza, note dei Master */
 export function PersonaggioTab({ pg, races }: { pg: Character; races: Race[] }) {
-  const { race, inherited } = effectiveRace(pg, races);
-  const rEff = inherited ?? race;
+  const { race, bonusDa, malusDa } = effectiveRace(pg, races);
+  const sangue = sangueTesto(pg, races, raceLabel);
   return (
     <div className="page">
       <section className="race-card">
@@ -101,7 +102,7 @@ export function PersonaggioTab({ pg, races }: { pg: Character; races: Race[] }) 
           {pg.titolo && (<><dt>Titolo</dt><dd>{pg.titolo}</dd></>)}
           <dt>Nome</dt><dd>{pg.nome} {pg.cognome}</dd>
           <dt>Provenienza</dt><dd>{pg.provenienza || '—'}</dd>
-          <dt>Razza</dt><dd>{raceLabel(race)}{inherited && `, con sangue ${raceLabel(inherited).toLowerCase()}`}</dd>
+          <dt>Razza</dt><dd>{raceLabel(race)}{sangue && `, ${sangue}`}</dd>
           <dt>Professione</dt><dd>{pg.professione || 'Nessuna'}{pg.professioneAvanzata ? `, ${pg.professioneAvanzata}` : ''}</dd>
           {pg.divinita && (<><dt>Divinità</dt><dd>{divinitaLabel(pg.divinita)}</dd></>)}
           {pg.elemento && (<><dt>Elemento</dt><dd>{pg.elemento}</dd></>)}
@@ -109,12 +110,8 @@ export function PersonaggioTab({ pg, races }: { pg: Character; races: Race[] }) 
           <dt>Sephire</dt><dd>{pg.sephire}</dd>
           {pg.varie && (<><dt>Varie</dt><dd>{pg.varie}</dd></>)}
         </dl>
-        {rEff && (
-          <>
-            <div><span className="tag">Bonus di razza</span><p><strong>{rEff.bonusNome}.</strong> {rEff.bonus}</p></div>
-            <div><span className="tag">Malus di razza</span><p>{rEff.malus}</p></div>
-          </>
-        )}
+        {bonusDa && <div><span className="tag">Bonus di razza{bonusDa !== race ? ` (${raceLabel(bonusDa)})` : ''}</span><p><strong>{bonusDa.bonusNome}.</strong> {bonusDa.bonus}</p></div>}
+        {malusDa && <div><span className="tag">Malus di razza{malusDa !== race ? ` (${raceLabel(malusDa)})` : ''}</span><p>{malusDa.malus}</p></div>}
         {pg.abilitaSpeciali && (
           <div><span className="tag">Abilità speciali e note</span>
             <ul className="spec-list">{pg.abilitaSpeciali.split('\n').map((r) => r.trim()).filter(Boolean).map((r) => <li key={r}>{r}</li>)}</ul>

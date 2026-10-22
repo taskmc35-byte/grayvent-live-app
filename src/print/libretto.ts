@@ -107,10 +107,9 @@ function paginaIdentita(pg: Character): Draw {
 }
 
 function paginaRazza(pg: Character): Draw {
-  const { race, inherited } = effectiveRace(pg, RACES);
-  const r = inherited ?? race;
-  const bonus = r?.bonusNome ? [r.bonusNome] : [];
-  const malus = r ? [`Malus ${raceLabel(r).replace(',', '')}`] : [];
+  const { bonusDa, malusDa } = effectiveRace(pg, RACES);
+  const bonus = bonusDa?.bonusNome ? [bonusDa.bonusNome] : [];
+  const malus = malusDa ? [`Malus ${raceLabel(malusDa).replace(',', '')}`] : [];
   return (d, x, y) => {
     const h = PH - 2 * M;
     d.setLineWidth(0.35); d.rect(x, y, W, h);
@@ -263,7 +262,9 @@ function taglio(d: jsPDF, x: number, y: number) {
 }
 
 function razzaTesto(pg: Character) {
-  const { race, inherited } = effectiveRace(pg, RACES);
+  const { race, inherited, malus } = effectiveRace(pg, RACES);
   const base = raceLabel(race).replace(',', '');
-  return inherited ? `${base} (sangue ${raceLabel(inherited).replace(',', '')})` : base;
+  if (!inherited && !malus) return base;
+  if (inherited && malus && inherited.id === malus.id) return `${base} (sangue ${raceLabel(inherited).replace(',', '')})`;
+  return `${base} (${[inherited && `bonus ${raceLabel(inherited).replace(',', '')}`, malus && `malus ${raceLabel(malus).replace(',', '')}`].filter(Boolean).join(', ')})`;
 }

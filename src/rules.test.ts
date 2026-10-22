@@ -74,3 +74,15 @@ describe('Divinità', () => {
   it('Semi Dio -> Astro', () => { expect(astroOf('Freya')).toBe('Madre'); expect(astroOf('Thor')).toBe('Spada'); expect(astroOf('Vali')).toBe('Padre'); });
   it('Astro diretto', () => expect(astroOf('Padre dell’Oblio')).toBe('Padre'));
 });
+
+it("Mezz'Elfo: bonus e malus da razze diverse", async () => {
+  const { effectiveRace, sangueTesto } = await import('./rules');
+  const { RACES, raceLabel } = await import('./data/races');
+  const c = { razza: 'mezzelfo', razzaEreditata: 'umano-fiamma', razzaMalus: 'alf' } as never;
+  const r = effectiveRace(c, RACES);
+  expect(r.bonusDa?.id).toBe('umano-fiamma');
+  expect(r.malusDa?.id).toBe('alf');
+  expect(sangueTesto(c, RACES, raceLabel)).toMatch(/^bonus da .*, malus da /);
+  const stesso = effectiveRace({ razza: 'mezzelfo', razzaEreditata: 'alf' } as never, RACES);
+  expect(stesso.malusDa?.id).toBe('alf');
+});

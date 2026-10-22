@@ -95,7 +95,8 @@ export interface Character {
   provenienza: string;
   razza: string;
   /** solo Mezz'Elfo: id della razza da cui eredita bonus/malus */
-  razzaEreditata?: string;
+  razzaEreditata?: string;   // Mezz'Elfo: razza da cui eredita il bonus
+  razzaMalus?: string;       // Mezz'Elfo: razza da cui eredita il malus (se manca, la stessa del bonus)
   professione: string;
   professioneAvanzata?: string;
   divinita?: string;

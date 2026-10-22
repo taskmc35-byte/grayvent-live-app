@@ -58,17 +58,26 @@ export interface Computed {
   completaAttiva: boolean;
 }
 
-/** Bonus/malus effettivi della razza (il Mezz'Elfo eredita dalla razza scelta dai Master) */
-export function effectiveRace(c: Character, races: Race[]): { race?: Race; inherited?: Race } {
+/** Bonus/malus effettivi della razza: il Mezz'Elfo eredita bonus e malus da razze scelte dai Master, anche diverse tra loro */
+export function effectiveRace(c: Character, races: Race[]): { race?: Race; inherited?: Race; malus?: Race; bonusDa?: Race; malusDa?: Race } {
   const race = races.find((r) => r.id === c.razza);
-  if (race?.ereditaDaScelta && c.razzaEreditata) return { race, inherited: races.find((r) => r.id === c.razzaEreditata) };
-  return { race };
+  if (!race?.ereditaDaScelta) return { race, bonusDa: race, malusDa: race };
+  const inherited = c.razzaEreditata ? races.find((r) => r.id === c.razzaEreditata) : undefined;
+  const malus = c.razzaMalus ? races.find((r) => r.id === c.razzaMalus) : inherited;
+  return { race, inherited, malus, bonusDa: inherited ?? race, malusDa: malus ?? race };
+}
+
+/** "con sangue umano, Feudo Nord" oppure "bonus da …, malus da …" quando le due razze sono diverse */
+export function sangueTesto(c: Character, races: Race[], label: (r?: Race) => string) {
+  const { inherited, malus } = effectiveRace(c, races);
+  if (!inherited && !malus) return '';
+  if (inherited && malus && inherited.id === malus.id) return `con sangue ${label(inherited).toLowerCase()}`;
+  return [inherited && `bonus da ${label(inherited)}`, malus && `malus da ${label(malus)}`].filter(Boolean).join(', ');
 }
 
 export function compute(c: Character, catalog: Ability[], races: Race[]): Computed {
   const abil = c.abilita.map((id) => catalog.find((a) => a.id === id)).filter(Boolean) as Ability[];
-  const { race, inherited } = effectiveRace(c, races);
-  const rEff = inherited ?? race;
+  const { bonusDa: rEff, malusDa: rMalus } = effectiveRace(c, races);
 
   // PF
   const fontiPf = ['Base: 2'];
@@ -133,7 +142,7 @@ export function compute(c: Character, catalog: Ability[], races: Race[]): Comput
   for (const l of locazioni) if (l.avviso) avvisi.push(`${l.nome}: ${l.avviso}`);
 
   const note: string[] = [];
-  if (rEff?.effetti?.malusNotte) note.push('Di notte, dal tramonto all’alba, hai 1 PF in meno in ogni locazione.');
+  if (rMalus?.effetti?.malusNotte) note.push('Di notte, dal tramonto all’alba, hai 1 PF in meno in ogni locazione.');
   if (rEff?.id === 'umano-centrale') note.push('Benedizione Minore: 1 Miracolo Minore al Giorno di Gioco senza spendere PP.');
 
   return { locazioni, pfBase: pf, fontiPf, fontiPa, potere, note, avvisi, armaturePermesse, haCompleta, completaPossibile, completaAttiva };

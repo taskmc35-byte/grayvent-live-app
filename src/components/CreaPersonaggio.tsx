@@ -46,7 +46,7 @@ export function CreaPersonaggio({ initial, catalog, notaStaff, onSubmit, onCance
     for (const o of r.abilitaObbligatorie ?? []) if (!ab.includes(o)) ab.push(o);
     // prerequisiti delle obbligatorie (es. Linguaggio Runico richiede Leggere & Scrivere)
     if (ab.includes('linguaggio-runico') && !ab.includes('leggere-scrivere')) ab.push('leggere-scrivere');
-    setC((x) => ({ ...x, razza: id, abilita: ab, provenienza: r.nome === 'Umano' ? r.origine ?? x.provenienza : x.provenienza, razzaEreditata: undefined }));
+    setC((x) => ({ ...x, razza: id, abilita: ab, provenienza: r.nome === 'Umano' ? r.origine ?? x.provenienza : x.provenienza, razzaEreditata: undefined, razzaMalus: undefined }));
   };
   const toggle = (a: Ability) => {
     if (owned.has(a.id)) {
