@@ -112,6 +112,7 @@ function safeSet(k: string, v: string | null) { try { if (v === null) localStora
 export const NON_CONFERMATO = 'Il tuo account non è ancora confermato: apri il link nell’email che ti abbiamo mandato. Se il link non funziona o l’email non è arrivata, fattela rimandare qui sotto.';
 export const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
 const now = () => new Date().toISOString();
+const EQ_VUOTO = { tronco: { armatura: 'nessuna' }, braccioDx: { armatura: 'nessuna' }, braccioSx: { armatura: 'nessuna' }, gambaDx: { armatura: 'nessuna' }, gambaSx: { armatura: 'nessuna' } } as Character['equipaggiamento'];
 
 /** Impostazioni salvate + valori predefiniti per i tipi aggiunti dopo */
 export function mergeSettings(v?: Partial<Impostazioni> | null): Impostazioni {
@@ -376,7 +377,15 @@ function supabaseApi(sb: SupabaseClient): Api {
   const fail = (error: { message: string } | null) => { if (error) throw new Error(error.message); };
   const myId = async () => { const { data } = await sb.auth.getUser(); if (!data.user) throw new Error('Accesso richiesto.'); return data.user.id; };
   const toStaff = (r: PgRow): StaffCharacter =>
-    ({ ...r.dati, id: r.id, equipaggiamento: r.equipaggiamento, proprietario: r.proprietario, attivo: r.attivo, stato: r.stato, notaStaff: r.nota_staff ?? undefined, aggiornato: r.aggiornato_il });
+    ({
+      ...r.dati, id: r.id,
+      // campi sempre presenti anche nelle schede vecchie o incomplete (niente schermate bianche)
+      nome: r.dati?.nome ?? '', cognome: r.dati?.cognome ?? '', razza: r.dati?.razza ?? 'umano-centrale',
+      abilita: Array.isArray(r.dati?.abilita) ? r.dati.abilita : [], incantesimi: Array.isArray(r.dati?.incantesimi) ? r.dati.incantesimi : [],
+      slot: r.dati?.slot ?? {}, sephire: r.dati?.sephire ?? 1,
+      equipaggiamento: { ...EQ_VUOTO, ...(r.equipaggiamento ?? {}) },
+      proprietario: r.proprietario, attivo: r.attivo, stato: r.stato, notaStaff: r.nota_staff ?? undefined, aggiornato: r.aggiornato_il,
+    });
   const toEvento = (r: { id: string; dati: Omit<Evento, 'id'> }): Evento => ({ ...r.dati, id: r.id });
   const toIscr = (r: { id: string; evento_id: string; utente: string; dati: DatiIscrizione; creata_il: string; pagata: boolean }): Iscrizione =>
     ({ id: r.id, eventoId: r.evento_id, utente: r.utente, dati: r.dati, creata: r.creata_il, pagata: r.pagata });

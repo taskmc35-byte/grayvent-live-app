@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { SchermataErrore } from './components/Errore';
 import { avviaInchiostro } from './inchiostro';
 import './styles.css';
 
@@ -10,7 +11,7 @@ const start = () => {
   const el = document.getElementById('root')!;
   const w = el as HTMLElement & { _gvRoot?: ReactDOM.Root };
   w._gvRoot ??= ReactDOM.createRoot(el);
-  w._gvRoot.render(<React.StrictMode><App /></React.StrictMode>);
+  w._gvRoot.render(<React.StrictMode><SchermataErrore><App /></SchermataErrore></React.StrictMode>);
 };
 // Nell'anteprima pubblicata la pagina può essere aggiornata mentre è aperta: avvia l'app quando il visualizzatore è pronto
 if (hot?.ready) hot.ready(start); else start();
