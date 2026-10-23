@@ -1200,3 +1200,4 @@ button.foto-pg { cursor: pointer; }
 .ab-conta button { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; line-height: 1; }
 .ab-conta strong { min-width: 26px; text-align: center; color: var(--gold); }
 .volte { color: var(--gold); font-weight: 600; margin-left: 6px; }
+.doc-box { display: flex; flex-direction: column; gap: 6px; padding-bottom: 6px; border-bottom: 1px dashed rgba(0,0,0,.2); margin-bottom: 4px; }

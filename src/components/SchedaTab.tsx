@@ -1,3 +1,4 @@
+import { haDocumento } from '../identita';
 import { ALL_ABILITIES } from '../data/abilities';
 import { trattiRazza } from '../data/races';
 import { DettaglioAbilita } from './AbilitaTab';
@@ -105,6 +106,19 @@ export function PersonaggioTab({ pg, races, onFoto }: { pg: Character; races: Ra
       <section className="race-card">
         <h2 className="section-title" style={{ marginBottom: 0 }}>Personaggio</h2>
         {onFoto && <CampoFoto c={pg} onChange={onFoto} nota="Il volto del personaggio: compare nella scheda per riconoscerlo al volo." />}
+        {haDocumento(pg) && (
+          <div className="doc-box">
+            <span className="tag">Dati del documento (falsa identità)</span>
+            <dl className="facts">
+              <dt>Titolo</dt><dd>{pg.documento!.titolo || pg.titolo || '—'}</dd>
+              <dt>Nome</dt><dd>{pg.documento!.nome || `${pg.nome} ${pg.cognome}`}</dd>
+              <dt>Razza</dt><dd>{pg.documento!.razza || raceLabel(race)}</dd>
+              <dt>Professione</dt><dd>{pg.documento!.professione || pg.professione || 'Nessuna'}</dd>
+              {(pg.documento!.varie || pg.varie) && (<><dt>Varie</dt><dd>{pg.documento!.varie || pg.varie}</dd></>)}
+            </dl>
+          </div>
+        )}
+        {haDocumento(pg) && <span className="tag">Dati reali</span>}
         <dl className="facts">
           {pg.titolo && (<><dt>Titolo</dt><dd>{pg.titolo}</dd></>)}
           <dt>Nome</dt><dd>{pg.nome} {pg.cognome}</dd>

@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import type { Ability, Categoria, Character, Spell } from '../data/types';
 import { RACES, raceLabel, trattiRazza } from '../data/races';
 import { effectiveRace } from '../rules';
+import { haDocumento } from '../identita';
 import { salvaFile } from '../download';
 
 /*
@@ -43,7 +44,16 @@ export function creaPdf(pg: Character, catalog: Ability[], spells: Spell[]) {
 
 export function costruisciPagine(pg: Character, catalog: Ability[], spells: Spell[]): Draw[] {
   const out: Draw[] = [];
-  out.push(paginaIdentita(pg));
+  const reali = datiReali(pg);
+  if (haDocumento(pg)) {
+    // falsa identità: prima i dati del documento, poi quelli reali nella pagina delle incongruenze
+    const doc = pg.documento!;
+    out.push(paginaIdentita(pg, 'IDENTITÀ', {
+      titolo: doc.titolo || reali.titolo, nome: doc.nome || reali.nome, razza: doc.razza || reali.razza,
+      professione: doc.professione || reali.professione, varie: doc.varie || reali.varie,
+    }));
+    out.push(paginaIdentita(pg, 'INCONGRUENZE D’IDENTITÀ', reali));
+  } else out.push(paginaIdentita(pg, 'IDENTITÀ', reali));
   out.push(paginaRazza(pg, catalog));
   out.push(paginaRighe('ABILITÀ SPECIALI E NOTE', (pg.abilitaSpeciali ?? '').split('\n').map((s) => s.trim()).filter(Boolean), 'TdR:'));
 
@@ -76,12 +86,18 @@ export function costruisciPagine(pg: Character, catalog: Ability[], spells: Spel
 
 /* ---------- pagine ---------- */
 
-function paginaIdentita(pg: Character): Draw {
+type DatiIdentita = { titolo: string; nome: string; razza: string; professione: string; varie: string };
+const datiReali = (pg: Character): DatiIdentita => ({
+  titolo: pg.titolo ?? '', nome: `${pg.nome} ${pg.cognome}`.trim(), razza: razzaTesto(pg),
+  professione: [pg.professione, pg.professioneAvanzata].filter(Boolean).join(', '), varie: pg.varie ?? '',
+});
+
+function paginaIdentita(pg: Character, titolo: string, dati: DatiIdentita): Draw {
   return (d, x, y) => {
     const h = PH - 2 * M;
     d.setLineWidth(0.35); d.rect(x, y, W, h);
     let cy = y;
-    cy = intestazione(d, x, cy, 'IDENTITÀ', 6.5);
+    cy = intestazione(d, x, cy, titolo, 6.5);
     const LAB = 17;
     const riga = (lab: string, val: string, lw = LAB) => {
       const rh = 8;
@@ -90,14 +106,14 @@ function paginaIdentita(pg: Character): Draw {
       riquadro(d, val, x + lw + 1, cy + 0.5, W - lw - 2, rh - 1, 8);
       cy += rh;
     };
-    riga('Titolo:', pg.titolo ?? '');
-    riga('Nome:', `${pg.nome} ${pg.cognome}`.trim());
-    riga('Razza:', razzaTesto(pg));
-    riga('Professione:', [pg.professione, pg.professioneAvanzata].filter(Boolean).join(', '), 23);
+    riga('Titolo:', dati.titolo);
+    riga('Nome:', dati.nome);
+    riga('Razza:', dati.razza);
+    riga('Professione:', dati.professione, 23);
     // Varie
     const vh = 17;
     testo(d, 'Varie', x + 1.2, cy + 3.6, 7.5);
-    riquadro(d, pg.varie ?? '', x + 1.2, cy + 4.6, W - 2.4, vh - 5.2, 8, { valign: 'top' });
+    riquadro(d, dati.varie, x + 1.2, cy + 4.6, W - 2.4, vh - 5.2, 8, { valign: 'top' });
     cy += vh; d.setLineWidth(0.35); d.line(x, cy, x + W, cy);
     cy = intestazione(d, x, cy, 'DATI GIOCATORE', 6, false);
     cy = intestazione(d, x, cy, 'Cognome e Nome', 5.5, false, 7.5);

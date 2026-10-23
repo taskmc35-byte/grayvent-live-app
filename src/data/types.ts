@@ -124,6 +124,8 @@ export interface SlotApprendimento {
 /** Armatura per locazione + la dichiarazione unica di Armatura Completa (copre almeno l'80% del corpo) */
 export type Equipaggiamento = Record<LocId, { armatura: ArmorType }> & { completa?: boolean };
 
+export interface DatiDocumento { titolo?: string; nome?: string; razza?: string; professione?: string; varie?: string }
+
 export interface Character {
   id: string;
   giocatore: string;
@@ -145,6 +147,9 @@ export interface Character {
   abilita: string[];
   slot: Partial<Record<Categoria, SlotApprendimento>>;
   incantesimi: string[];
+  /** falsa identità: i dati scritti sul documento (pagina Identità del libretto); i campi normali sono i dati reali,
+   *  stampati nella pagina "Incongruenze d'identità". Un campo vuoto vale come quello reale. */
+  documento?: DatiDocumento;
   /** foto del volto (immagine piccola salvata nella scheda, data URL JPEG) */
   foto?: string;
   /** titoli e cariche assegnati dallo staff (Fyrd e la razza valgono già da sé) */

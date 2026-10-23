@@ -49,6 +49,9 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
   const race = RACES.find((r) => r.id === c.razza);
   const owned = new Set(c.abilita);
 
+  const falsa = !!c.documento;
+  const doc = c.documento ?? {};
+  const setDoc = (v: Partial<NonNullable<StaffCharacter['documento']>>) => setC((x) => ({ ...x, documento: { ...(x.documento ?? {}), ...v } }));
   const conta = (id: string) => c.abilita.filter((x) => x === id).length;
   /** abilità riacquistabili: una volta in più o in meno (resta almeno una) */
   const cambiaVolte = (id: string, delta: 1 | -1) => setC((x) => {
@@ -157,6 +160,7 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
 
       <fieldset className="fs">
         <legend>Identità</legend>
+        {falsa && <p className="hint">Questi sono i <b>dati reali</b> del personaggio: nel libretto vanno nella pagina “Incongruenze d’identità”, e valgono per i calcoli (razza compresa).</p>}
         <div className="grid2">
           <div className="field"><label htmlFor="nome">Nome</label><input id="nome" value={c.nome} onChange={(e) => set('nome', e.target.value)} /></div>
           <div className="field"><label htmlFor="cognome">Cognome o soprannome</label><input id="cognome" value={c.cognome} onChange={(e) => set('cognome', e.target.value)} /></div>
@@ -249,6 +253,24 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
             </div>
             <span className="hint">Un mago può ottenere più elementi in gioco. L’Energia Pura è l’unione di tutti gli elementi e non ha incantesimi propri.</span>
           </div>
+        )}
+      </fieldset>
+
+      <fieldset className="fs">
+        <legend>Falsa identità</legend>
+        <label className="check"><input type="checkbox" checked={falsa} onChange={(e) => set('documento', e.target.checked ? { nome: '' } : undefined)} />
+          <span>Il personaggio ha una falsa identità<br /><span className="hint">Compila i dati scritti sul documento: nel libretto vanno nella pagina “Identità”, prima delle incongruenze. Un campo lasciato vuoto resta uguale a quello reale.</span></span></label>
+        {falsa && (
+          <>
+            <div className="field"><label htmlFor="doc-tit">Titolo sul documento</label><input id="doc-tit" value={doc.titolo ?? ''} onChange={(e) => setDoc({ titolo: e.target.value })} placeholder={c.titolo || 'Nessuno'} /></div>
+            <div className="field"><label htmlFor="doc-nome">Nome sul documento</label><input id="doc-nome" value={doc.nome ?? ''} onChange={(e) => setDoc({ nome: e.target.value })} placeholder={`${c.nome} ${c.cognome}`.trim()} /></div>
+            <div className="field"><label htmlFor="doc-razza">Razza sul documento</label>
+              <input id="doc-razza" list="doc-razze" value={doc.razza ?? ''} onChange={(e) => setDoc({ razza: e.target.value })} placeholder={race ? raceLabel(race) : ''} />
+              <datalist id="doc-razze">{RACES.map((r) => <option key={r.id} value={raceLabel(r).replace(',', '')} />)}</datalist>
+            </div>
+            <div className="field"><label htmlFor="doc-prof">Professione sul documento</label><input id="doc-prof" value={doc.professione ?? ''} onChange={(e) => setDoc({ professione: e.target.value })} placeholder={c.professione || 'Nessuna'} /></div>
+            <div className="field"><label htmlFor="doc-varie">Varie sul documento</label><input id="doc-varie" value={doc.varie ?? ''} onChange={(e) => setDoc({ varie: e.target.value })} placeholder={c.varie || ''} /></div>
+          </>
         )}
       </fieldset>
 

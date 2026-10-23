@@ -11,3 +11,10 @@ it('libretto: identità, razza, note, 3 tabelle abilità, gruppi di miracoli, ad
   expect(costruisciPagine(aisha, ALL_ABILITIES, SPELLS as Spell[])).toHaveLength(3 + 3 + 2 + 1);
   expect(creaPdf(aisha, ALL_ABILITIES, SPELLS as Spell[]).getNumberOfPages()).toBe(2);
 });
+
+it('falsa identità: pagina Identità con i dati del documento e poi le Incongruenze', () => {
+  const aisha = DEMO_CHARACTERS[2];
+  const base = costruisciPagine(aisha, ALL_ABILITIES, SPELLS as Spell[]).length;
+  expect(costruisciPagine({ ...aisha, documento: { nome: 'Guendalina Stark' } }, ALL_ABILITIES, SPELLS as Spell[])).toHaveLength(base + 1);
+  expect(costruisciPagine({ ...aisha, documento: { nome: '  ' } }, ALL_ABILITIES, SPELLS as Spell[])).toHaveLength(base);
+});
