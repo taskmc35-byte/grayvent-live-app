@@ -71,8 +71,9 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
     if (!tutti.includes(v.toLowerCase())) set('titoli', [...(c.titoli ?? []), v]);
     setNuovoTitolo('');
   };
-  const vietate = new Set(race?.abilitaVietate ?? []);
-  const obbligatorieMancanti = (race?.abilitaObbligatorie ?? []).filter((id) => !owned.has(id)).map((id) => catalog.find((a) => a.id === id)?.nome ?? id);
+  const race2 = c.razza2 ? RACES.find((r) => r.id === c.razza2) : undefined;
+  const vietate = new Set([...(race?.abilitaVietate ?? []), ...(race2?.abilitaVietate ?? [])]);
+  const obbligatorieMancanti = [...new Set([...(race?.abilitaObbligatorie ?? []), ...(race2?.abilitaObbligatorie ?? [])])].filter((id) => !owned.has(id)).map((id) => catalog.find((a) => a.id === id)?.nome ?? id);
 
   const save = async (patch: Partial<StaffCharacter> = {}) => {
     if (!c.nome.trim()) { setError('Scrivi almeno il nome del personaggio.'); window.scrollTo(0, 0); return; }
@@ -192,6 +193,13 @@ export function CharacterEditor({ initial, catalog, spells, profiles, onSave, on
               </select>
             </div>
           )}
+          <div className="field"><label htmlFor="razza2">Seconda razza</label>
+            <select id="razza2" value={c.razza2 ?? ''} onChange={(e) => set('razza2', e.target.value || undefined)}>
+              <option value="">Nessuna</option>
+              {RACES.filter((r) => r.id !== c.razza && !r.ereditaDaScelta).map((r) => <option key={r.id} value={r.id}>{raceLabel(r)}</option>)}
+            </select>
+            {c.razza2 && <span className="hint">Valgono bonus e malus di entrambe le razze.</span>}
+          </div>
           <div className="field"><label htmlFor="eta">Età</label><input id="eta" type="number" min={0} max={150} value={c.eta ?? ''} onChange={(e) => set('eta', e.target.value ? Number(e.target.value) : undefined)} /></div>
           <div className="field"><label htmlFor="seph">Sephire</label><input id="seph" type="number" min={1} value={c.sephire} onChange={(e) => set('sephire', Math.max(1, Number(e.target.value) || 1))} /></div>
         </div>

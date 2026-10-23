@@ -13,10 +13,10 @@ const TITOLO_RAZZA: Record<string, string> = {
 };
 
 /** Titoli che ogni personaggio ha senza che lo staff li assegni: Fyrd e quello della razza */
-export function titoliAutomatici(c: Pick<Character, 'razza'>): string[] {
-  return ['Fyrd', ...(TITOLO_RAZZA[c.razza] ? [TITOLO_RAZZA[c.razza]] : [])];
+export function titoliAutomatici(c: Pick<Character, 'razza' | 'razza2'>): string[] {
+  return ['Fyrd', ...[c.razza, c.razza2].filter((r): r is string => !!r && !!TITOLO_RAZZA[r]).map((r) => TITOLO_RAZZA[r])];
 }
-export const titoliDi = (c: Pick<Character, 'razza' | 'titoli'>) => [...titoliAutomatici(c), ...(c.titoli ?? [])];
+export const titoliDi = (c: Pick<Character, 'razza' | 'razza2' | 'titoli'>) => [...titoliAutomatici(c), ...(c.titoli ?? [])];
 
 /** Il titolo richiesto, come alternative ("/") di gruppi di titoli tutti necessari (",") */
 export function titoliRichiesti(a: Pick<Ability, 'titolo'>): string[][] {
@@ -30,7 +30,7 @@ export function titoliDelCatalogo(catalog: Ability[]): string[] {
   return [...set.values()].sort((x, y) => x.localeCompare(y, 'it'));
 }
 
-export function motivoTitolo(a: Ability, c: Pick<Character, 'razza' | 'titoli'>): string | null {
+export function motivoTitolo(a: Ability, c: Pick<Character, 'razza' | 'razza2' | 'titoli'>): string | null {
   const alt = titoliRichiesti(a);
   if (!alt.length) return null;
   const miei = new Set(titoliDi(c).map(norm));
@@ -62,6 +62,6 @@ export function prerequisitiMancanti(a: Ability, owned: Iterable<string>, catalo
 }
 
 /** Perché lo staff non può assegnare l'abilità a questo personaggio (titolo o Sephira), oppure null */
-export function motivoRequisiti(a: Ability, c: Pick<Character, 'razza' | 'titoli' | 'sephire'>): string | null {
+export function motivoRequisiti(a: Ability, c: Pick<Character, 'razza' | 'razza2' | 'titoli' | 'sephire'>): string | null {
   return motivoTitolo(a, c) ?? motivoSephira(a, c);
 }

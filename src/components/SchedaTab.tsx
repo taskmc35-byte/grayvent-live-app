@@ -76,7 +76,7 @@ export function SchedaTab({ pg, calc, races, onSaveEq, onPoteri }: {
 }
 
 function SchedaHero({ pg, races }: { pg: Character; races: Race[] }) {
-  const { race } = effectiveRace(pg, races);
+  const { race, seconda } = effectiveRace(pg, races);
   const sangueHero = sangueTesto(pg, races, raceLabel);
   return (
     <header className="hero">
@@ -85,7 +85,7 @@ function SchedaHero({ pg, races }: { pg: Character; races: Race[] }) {
           {pg.nome}
           {pg.cognome && <span className="cognome">{pg.cognome}</span>}
         </h1>
-        <div className="razza">{raceLabel(race)}{sangueHero && `, ${sangueHero}`}</div>
+        <div className="razza">{raceLabel(race)}{seconda && ` + ${raceLabel(seconda)}`}{sangueHero && `, ${sangueHero}`}</div>
       </div>
       <div className="hero-seph" aria-label={`${pg.sephire} Sephire`}>
         <span>{pg.sephire === 1 ? 'Sephira' : 'Sephire'}</span>
@@ -98,7 +98,8 @@ function SchedaHero({ pg, races }: { pg: Character; races: Race[] }) {
 
 /** Linguetta "Personaggio": dati anagrafici, bonus e malus di razza, note dei Master */
 export function PersonaggioTab({ pg, races, onFoto }: { pg: Character; races: Race[]; onFoto?: (foto: string | undefined) => Promise<void> }) {
-  const { race, bonusDa, malusDa } = effectiveRace(pg, races);
+  const { race, bonusDa, malusDa, seconda } = effectiveRace(pg, races);
+  const tratti2 = trattiRazza(seconda, ALL_ABILITIES);
   const sangue = sangueTesto(pg, races, raceLabel);
   const tratti = trattiRazza(race, ALL_ABILITIES);
   return (
@@ -123,7 +124,7 @@ export function PersonaggioTab({ pg, races, onFoto }: { pg: Character; races: Ra
           {pg.titolo && (<><dt>Titolo</dt><dd>{pg.titolo}</dd></>)}
           <dt>Nome</dt><dd>{pg.nome} {pg.cognome}</dd>
           <dt>Provenienza</dt><dd>{pg.provenienza || '—'}</dd>
-          <dt>Razza</dt><dd>{raceLabel(race)}{sangue && `, ${sangue}`}</dd>
+          <dt>{seconda ? 'Razze' : 'Razza'}</dt><dd>{raceLabel(race)}{seconda && ` + ${raceLabel(seconda)}`}{sangue && `, ${sangue}`}</dd>
           <dt>Professione</dt><dd>{pg.professione || 'Nessuna'}{pg.professioneAvanzata ? `, ${pg.professioneAvanzata}` : ''}</dd>
           {pg.divinita && (<><dt>Divinità</dt><dd>{divinitaLabel(pg.divinita)}</dd></>)}
           {pg.elemento && (<><dt>{elementiDi(pg).length > 1 ? 'Elementi' : 'Elemento'}</dt><dd>{elementiDi(pg).join(', ')}</dd></>)}
@@ -134,7 +135,11 @@ export function PersonaggioTab({ pg, races, onFoto }: { pg: Character; races: Ra
         {tratti.bonus.length > 0 && <div><span className="tag">Bonus di razza</span>{tratti.bonus.map((a) => <details key={a.id} className="ab"><summary><span>{a.nome}</span></summary><DettaglioAbilita a={a} /></details>)}</div>}
         {tratti.malus.length > 0 && <div><span className="tag">Malus di razza</span>{tratti.malus.map((a) => <details key={a.id} className="ab"><summary><span>{a.nome}</span></summary><DettaglioAbilita a={a} /></details>)}</div>}
         {bonusDa?.bonus && <div><span className="tag">Bonus di razza{bonusDa !== race ? ` (${raceLabel(bonusDa)})` : ''}</span><p>{bonusDa.bonusNome && <strong>{bonusDa.bonusNome}. </strong>}{bonusDa.bonus}</p></div>}
+        {seconda?.bonus && <div><span className="tag">Bonus di razza ({raceLabel(seconda)})</span><p>{seconda.bonusNome && <strong>{seconda.bonusNome}. </strong>}{seconda.bonus}</p></div>}
+        {tratti2.bonus.length > 0 && <div><span className="tag">Bonus di razza ({raceLabel(seconda)})</span>{tratti2.bonus.map((a) => <details key={a.id} className="ab"><summary><span>{a.nome}</span></summary><DettaglioAbilita a={a} /></details>)}</div>}
         {malusDa?.malus && <div><span className="tag">Malus di razza{malusDa !== race ? ` (${raceLabel(malusDa)})` : ''}</span><p>{malusDa.malus}</p></div>}
+        {seconda?.malus && <div><span className="tag">Malus di razza ({raceLabel(seconda)})</span><p>{seconda.malus}</p></div>}
+        {tratti2.malus.length > 0 && <div><span className="tag">Malus di razza ({raceLabel(seconda)})</span>{tratti2.malus.map((a) => <details key={a.id} className="ab"><summary><span>{a.nome}</span></summary><DettaglioAbilita a={a} /></details>)}</div>}
         {pg.abilitaSpeciali && (
           <div><span className="tag">Abilità speciali e note</span>
             <ul className="spec-list">{pg.abilitaSpeciali.split('\n').map((r) => r.trim()).filter(Boolean).map((r) => <li key={r}>{r}</li>)}</ul>

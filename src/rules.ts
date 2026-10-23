@@ -62,12 +62,14 @@ export interface Computed {
 }
 
 /** Bonus/malus effettivi della razza: il Mezz'Elfo eredita bonus e malus da razze scelte dai Master, anche diverse tra loro */
-export function effectiveRace(c: Character, races: Race[]): { race?: Race; inherited?: Race; malus?: Race; bonusDa?: Race; malusDa?: Race } {
+export function effectiveRace(c: Character, races: Race[]): { race?: Race; inherited?: Race; malus?: Race; bonusDa?: Race; malusDa?: Race; seconda?: Race } {
   const race = races.find((r) => r.id === c.razza);
-  if (!race?.ereditaDaScelta) return { race, bonusDa: race, malusDa: race };
+  // seconda razza (staff): bonus e malus si aggiungono a quelli della prima
+  const seconda = c.razza2 && c.razza2 !== c.razza ? races.find((r) => r.id === c.razza2) : undefined;
+  if (!race?.ereditaDaScelta) return { race, bonusDa: race, malusDa: race, seconda };
   const inherited = c.razzaEreditata ? races.find((r) => r.id === c.razzaEreditata) : undefined;
   const malus = c.razzaMalus ? races.find((r) => r.id === c.razzaMalus) : inherited;
-  return { race, inherited, malus, bonusDa: inherited ?? race, malusDa: malus ?? race };
+  return { race, inherited, malus, bonusDa: inherited ?? race, malusDa: malus ?? race, seconda };
 }
 
 /** "con sangue umano, Feudo Nord" oppure "bonus da …, malus da …" quando le due razze sono diverse */
@@ -81,13 +83,14 @@ export function sangueTesto(c: Character, races: Race[], label: (r?: Race) => st
 export function compute(c: Character, catalog: Ability[], races: Race[]): Computed {
   // ogni volta che un'abilità è presa conta: le riacquistabili e le varianti (es. Temprato dalla Vita due volte) si sommano
   const abil = c.abilita.map((id) => catalog.find((a) => a.id === id)).filter(Boolean) as Ability[];
-  const { bonusDa: rEff, malusDa: rMalus } = effectiveRace(c, races);
+  const { bonusDa: rEff, malusDa: rMalus, seconda } = effectiveRace(c, races);
 
   // PF
   const fontiPf = ['Base: 2'];
   let pf = 2;
   for (const a of abil) if (a.effetti?.pf) { pf += a.effetti.pf; fontiPf.push(`${a.nome}: +${a.effetti.pf}`); }
   if (rEff?.effetti?.pf) { pf += rEff.effetti.pf; fontiPf.push(`${rEff.bonusNome}: +${rEff.effetti.pf}`); }
+  if (seconda?.effetti?.pf) { pf += seconda.effetti.pf; fontiPf.push(`${seconda.bonusNome}: +${seconda.effetti.pf}`); }
 
   // Armature consentite
   const permesse = new Set<ArmorType>(['nessuna']);
@@ -98,7 +101,7 @@ export function compute(c: Character, catalog: Ability[], races: Race[]): Comput
   const eq = c.equipaggiamento;
   // Combattente Esperto: +1 PA solo nelle locazioni dove l'armatura è effettivamente indossata
   const bonusAbilPa = abil.reduce((s, a) => s + (a.effetti?.paSeArmato ?? 0), 0);
-  const bonusRazzaPa = (rEff?.effetti?.paSeArmato ?? 0) + bonusAbilPa;
+  const bonusRazzaPa = (rEff?.effetti?.paSeArmato ?? 0) + (seconda?.effetti?.paSeArmato ?? 0) + bonusAbilPa;
 
   // Armatura Completa: una sola dichiarazione per tutto il corpo. Vale solo se il PG ha l'abilità,
   // indossa un'armatura (consentita) su tutte le locazioni e l'armatura copre almeno l'80% del corpo.
@@ -109,6 +112,7 @@ export function compute(c: Character, catalog: Ability[], races: Race[]): Comput
   const fontiPa: string[] = [];
   if (completaAttiva) fontiPa.push('Armatura Completa: +1 in tutte le locazioni');
   if (rEff?.effetti?.paSeArmato) fontiPa.push(`${rEff.bonusNome}: +${rEff.effetti.paSeArmato} in ogni locazione coperta da armatura`);
+  if (seconda?.effetti?.paSeArmato) fontiPa.push(`${seconda.bonusNome}: +${seconda.effetti.paSeArmato} in ogni locazione coperta da armatura`);
   for (const a of abil) if (a.effetti?.paSeArmato) fontiPa.push(`${a.nome}: +${a.effetti.paSeArmato} in ogni locazione coperta da armatura`);
 
   const avvisi: string[] = [];
@@ -148,8 +152,8 @@ export function compute(c: Character, catalog: Ability[], races: Race[]): Comput
   for (const l of locazioni) if (l.avviso) avvisi.push(`${l.nome}: ${l.avviso}`);
 
   const note: string[] = [];
-  if (rMalus?.effetti?.malusNotte) note.push('Di notte, dal tramonto all’alba, hai 1 PF in meno in ogni locazione.');
-  if (rEff?.id === 'umano-centrale') note.push('Benedizione Minore: 1 Miracolo Minore al Giorno di Gioco senza spendere PP.');
+  if (rMalus?.effetti?.malusNotte || seconda?.effetti?.malusNotte) note.push('Di notte, dal tramonto all’alba, hai 1 PF in meno in ogni locazione.');
+  if (rEff?.id === 'umano-centrale' || seconda?.id === 'umano-centrale') note.push('Benedizione Minore: 1 Miracolo Minore al Giorno di Gioco senza spendere PP.');
 
   return { locazioni, pfBase: pf, fontiPf, fontiPa, potere, note, avvisi, armaturePermesse, haCompleta, completaPossibile, completaAttiva };
 }

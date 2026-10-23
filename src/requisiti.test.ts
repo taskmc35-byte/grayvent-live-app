@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ALL_ABILITIES as cat } from './data/abilities';
-import { motivoRequisiti, motivoTitolo, prerequisitiMancanti, titoliDelCatalogo, titoliRichiesti } from './requisiti';
+import { motivoRequisiti, motivoTitolo, prerequisitiMancanti, titoliAutomatici, titoliDelCatalogo, titoliRichiesti } from './requisiti';
 import type { Ability } from './data/types';
 
 const ab = (id: string) => cat.find((a) => a.id === id)!;
@@ -35,4 +35,7 @@ describe('Requisiti', () => {
     expect(t).toContain('Mistagogo');
     expect(t).toContain('Fyrd');
   });
+});
+it('due razze: valgono i titoli di entrambe', () => {
+  expect(titoliAutomatici({ razza: 'umano-nord', razza2: 'alf' })).toEqual(['Fyrd', 'Umano Feudo Nord', 'Alf']);
 });

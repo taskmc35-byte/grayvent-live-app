@@ -115,3 +115,11 @@ describe('abilità prese più volte', () => {
     expect(run(pg({ abilita: ['armatura-cuoio', 'combattente-esperto-2igl'], equipaggiamento: eq({ tronco: 'cuoio' }) })).locazioni[0].pa).toBe(base + 1);
   });
 });
+
+describe('due razze', () => {
+  it('Mezzo Gigante + Alf: PF del Mezzo Gigante e nota notturna dell’Alf', () => {
+    const r = run(pg({ razza: 'mezzogigante', razza2: 'alf' }));
+    expect(r.pfBase).toBe(3);
+    expect(r.note.join(' ')).toMatch(/notte/);
+  });
+});

@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import type { Ability, Categoria, Character, Spell } from '../data/types';
+import type { Ability, Categoria, Character, Race, Spell } from '../data/types';
 import { RACES, raceLabel, trattiRazza } from '../data/races';
 import { effectiveRace } from '../rules';
 import { haDocumento } from '../identita';
@@ -125,10 +125,17 @@ function paginaIdentita(pg: Character, titolo: string, dati: DatiIdentita): Draw
 }
 
 function paginaRazza(pg: Character, catalog: Ability[]): Draw {
-  const { bonusDa, malusDa } = effectiveRace(pg, RACES);
-  const tratti = trattiRazza(bonusDa, catalog);
-  const bonus = tratti.bonus.length ? tratti.bonus.map((a) => a.nome.replace(/\s*\n\s*/g, ' ')) : bonusDa?.bonusNome ? [bonusDa.bonusNome] : [];
-  const malus = tratti.malus.length ? tratti.malus.map((a) => a.nome) : malusDa?.malus ? [`Malus ${raceLabel(malusDa).replace(',', '')}`] : [];
+  const { bonusDa, malusDa, seconda } = effectiveRace(pg, RACES);
+  const voci = (bR?: Race, mR?: Race) => {
+    const tratti = trattiRazza(bR, catalog);
+    return {
+      bonus: tratti.bonus.length ? tratti.bonus.map((a) => a.nome.replace(/\s*\n\s*/g, ' ')) : bR?.bonusNome ? [bR.bonusNome] : [],
+      malus: tratti.malus.length ? tratti.malus.map((a) => a.nome) : mR?.malus ? [`Malus ${raceLabel(mR).replace(',', '')}`] : [],
+    };
+  };
+  const prima = voci(bonusDa, malusDa), dopo = voci(seconda, seconda);
+  const bonus = [...prima.bonus, ...dopo.bonus];
+  const malus = [...prima.malus, ...dopo.malus];
   return (d, x, y) => {
     const h = PH - 2 * M;
     d.setLineWidth(0.35); d.rect(x, y, W, h);
@@ -283,8 +290,8 @@ function taglio(d: jsPDF, x: number, y: number) {
 }
 
 function razzaTesto(pg: Character) {
-  const { race, inherited, malus } = effectiveRace(pg, RACES);
-  const base = raceLabel(race).replace(',', '');
+  const { race, inherited, malus, seconda } = effectiveRace(pg, RACES);
+  const base = raceLabel(race).replace(',', '') + (seconda ? ` + ${raceLabel(seconda).replace(',', '')}` : '');
   if (!inherited && !malus) return base;
   if (inherited && malus && inherited.id === malus.id) return `${base} (sangue ${raceLabel(inherited).replace(',', '')})`;
   return `${base} (${[inherited && `bonus ${raceLabel(inherited).replace(',', '')}`, malus && `malus ${raceLabel(malus).replace(',', '')}`].filter(Boolean).join(', ')})`;
