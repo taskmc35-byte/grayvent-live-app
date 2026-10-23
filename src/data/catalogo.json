@@ -6977,7 +6977,10 @@
 "gruppo": "Generiche Combattimento",
 "note": "MEDIA - Può essere insegnato anche fuori professione.",
 "segreta": true,
-"riacquistabile": true
+"riacquistabile": true,
+"effetti": {
+"pf": 1
+}
 },
 {
 "id": "rigenerazione-1-7edp",
@@ -8242,7 +8245,10 @@
 "sephira": 0,
 "titolo": "Umano Feudo Fiamma Ardente",
 "descrizione": "Il personaggio ottiene un Punto Armatura aggiuntivo fintanto che indossa una qualsiasi armatura. Questo punto armatura deve essere riparato come se fosse un normale Punto Armatura.",
-"gruppo": "Avanzamento Razziale, Umano Feudo Fiamma Ardente"
+"gruppo": "Avanzamento Razziale, Umano Feudo Fiamma Ardente",
+"effetti": {
+"paSeArmato": 1
+}
 },
 {
 "id": "malus-umano-feudo-fiamma-ardente-2mff",
@@ -8302,7 +8308,10 @@
 "sephira": 8,
 "titolo": "Umano Feudo Fiamma Ardente",
 "descrizione": "Il personaggio ottiene un Punto Armatura aggiuntivo fintanto che indossa una qualsiasi armatura. Questo punto armatura deve essere riparato come se fosse un normale Punto Armatura.",
-"gruppo": "Avanzamento Razziale, Umano Feudo Fiamma Ardente"
+"gruppo": "Avanzamento Razziale, Umano Feudo Fiamma Ardente",
+"effetti": {
+"paSeArmato": 1
+}
 },
 {
 "id": "sviluppo-fisico-3-5iyz",
@@ -8949,7 +8958,10 @@
 "sephira": 0,
 "titolo": "Mezzo Giganti",
 "descrizione": "Il personaggio ottiene 1 Punto Ferita aggiuntivo in tutte le locazioni.",
-"gruppo": "Avanzamento Razziale, Mezzo Gigante"
+"gruppo": "Avanzamento Razziale, Mezzo Gigante",
+"effetti": {
+"pf": 1
+}
 },
 {
 "id": "malus-razziale-mezzo-giganti-1jtn",
@@ -8975,7 +8987,10 @@
 "sephira": 3,
 "titolo": "Mezzo Giganti",
 "descrizione": "Il personaggio ottiene 1 Punto Ferita aggiuntivo in tutte le locazioni.",
-"gruppo": "Avanzamento Razziale, Mezzo Gigante"
+"gruppo": "Avanzamento Razziale, Mezzo Gigante",
+"effetti": {
+"pf": 1
+}
 },
 {
 "id": "3-aett-3wbw",
@@ -9012,7 +9027,10 @@
 "sephira": 6,
 "titolo": "Mezzo Giganti",
 "descrizione": "Il personaggio ottiene 1 Punto Ferita aggiuntivo in tutte le locazioni.",
-"gruppo": "Avanzamento Razziale, Mezzo Gigante"
+"gruppo": "Avanzamento Razziale, Mezzo Gigante",
+"effetti": {
+"pf": 1
+}
 },
 {
 "id": "2-aett-8bdh",
@@ -9203,7 +9221,10 @@
 "sephira": 4,
 "titolo": "Demone Minore",
 "descrizione": "Il personaggio ottiene 1 Punto Ferita aggiuntivo in tutte le locazioni.",
-"gruppo": "Avanzamento Razziale, Demone"
+"gruppo": "Avanzamento Razziale, Demone",
+"effetti": {
+"pf": 1
+}
 },
 {
 "id": "nascondersi-1-9wvn",
@@ -9664,7 +9685,10 @@
 "sephira": 4,
 "titolo": "Angelo Minore",
 "descrizione": "Il personaggio ottiene 1 Punto Ferita aggiuntivo in tutte le locazioni.",
-"gruppo": "Avanzamento Razziale, Angelo"
+"gruppo": "Avanzamento Razziale, Angelo",
+"effetti": {
+"pf": 1
+}
 },
 {
 "id": "vedere-nascosti-1-1aoa",

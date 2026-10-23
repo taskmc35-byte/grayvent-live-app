@@ -121,7 +121,13 @@ for r in righe:
     if a['tipo'] == 'base' and a.get('nonInsegnabile'): a['soloCreazione'] = True
     p = potere(nome)
     if p: a['effetti'] = {'potere': p}
-    if re.match(r'^Sviluppo Fisico \d$', nome): a['effetti'] = {'pf': 1}
+    # PF aggiuntivi in tutte le locazioni (Sviluppo Fisico, Temprato dalla Vita...): se presa più volte, si sommano
+    m = re.search(r'(?:^|- |\. )Il personaggio ottiene (un|\d+) Punt[oi] Ferita aggiuntiv[oi] in tutte le locazioni\.?\s*$', t(r[8]))
+    if re.match(r'^Sviluppo Fisico \d$', nome) or m:
+        a['effetti'] = {'pf': 1 if not m or m.group(1) == 'un' else int(m.group(1))}
+    # Combattente Esperto: +1 PA dove si indossa un'armatura
+    if re.search(r'ottiene un Punto Armatura aggiuntivo fintanto che indossa una qualsiasi armatura', t(r[8])):
+        a['effetti'] = {'paSeArmato': 1}
     abilita.append({k: v for k, v in a.items() if v not in ('', None, {})})
 
 

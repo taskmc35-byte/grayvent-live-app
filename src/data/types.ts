@@ -14,8 +14,10 @@ export type Categoria = 'fisico' | 'mentale' | 'sovrannaturale';
 export type ViaPotere = 'mago' | 'stregone' | 'sacerdote' | 'alchimista' | 'runista';
 
 export interface AbilityEffects {
-  /** PF aggiuntivi in tutte le locazioni */
+  /** PF aggiuntivi in tutte le locazioni (si sommano se l'abilità è presa più volte) */
   pf?: number;
+  /** PA aggiuntivi in ogni locazione coperta da un'armatura (es. Combattente Esperto) */
+  paSeArmato?: number;
   /** abilita a indossare questo tipo di armatura */
   armatura?: ArmorType;
   /** Armatura Completa: +1 PA in tutte le locazioni se l'armatura copre almeno l'80% del corpo */

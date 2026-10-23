@@ -103,3 +103,15 @@ it('Dono Arcano Assoluto come il Mago Assoluto', () => {
   const st = POWER_TABLE.stregone.valori[3], ma = POWER_TABLE.mago.valori[3];
   expect([st.qta, st.tdr, st.tdrMax]).toEqual([ma.qta, ma.tdr, ma.tdrMax]);
 });
+
+describe('abilità prese più volte', () => {
+  it('Temprato dalla Vita riacquistato: ogni volta +1 PF (anche sopra il bonus del Mezzo Gigante)', () => {
+    expect(run(pg({ abilita: ['temprato-dalla-vita-r5zl'] })).pfBase).toBe(3);
+    expect(run(pg({ abilita: ['temprato-dalla-vita-r5zl', 'temprato-dalla-vita-r5zl', 'temprato-dalla-vita-r5zl'] })).pfBase).toBe(5);
+    expect(run(pg({ razza: 'mezzogigante', abilita: ['temprato-dalla-vita-r5zl', 'temprato-dalla-vita-1kyk'] })).pfBase).toBe(5);
+  });
+  it('Combattente Esperto: +1 PA dove c’è armatura', () => {
+    const base = run(pg({ abilita: ['armatura-cuoio'], equipaggiamento: eq({ tronco: 'cuoio' }) })).locazioni[0].pa;
+    expect(run(pg({ abilita: ['armatura-cuoio', 'combattente-esperto-2igl'], equipaggiamento: eq({ tronco: 'cuoio' }) })).locazioni[0].pa).toBe(base + 1);
+  });
+});

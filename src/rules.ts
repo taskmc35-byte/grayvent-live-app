@@ -79,7 +79,8 @@ export function sangueTesto(c: Character, races: Race[], label: (r?: Race) => st
 }
 
 export function compute(c: Character, catalog: Ability[], races: Race[]): Computed {
-  const abil = [...new Set(c.abilita)].map((id) => catalog.find((a) => a.id === id)).filter(Boolean) as Ability[];
+  // ogni volta che un'abilità è presa conta: le riacquistabili e le varianti (es. Temprato dalla Vita due volte) si sommano
+  const abil = c.abilita.map((id) => catalog.find((a) => a.id === id)).filter(Boolean) as Ability[];
   const { bonusDa: rEff, malusDa: rMalus } = effectiveRace(c, races);
 
   // PF
@@ -96,7 +97,8 @@ export function compute(c: Character, catalog: Ability[], races: Race[]): Comput
 
   const eq = c.equipaggiamento;
   // Combattente Esperto: +1 PA solo nelle locazioni dove l'armatura è effettivamente indossata
-  const bonusRazzaPa = rEff?.effetti?.paSeArmato ?? 0;
+  const bonusAbilPa = abil.reduce((s, a) => s + (a.effetti?.paSeArmato ?? 0), 0);
+  const bonusRazzaPa = (rEff?.effetti?.paSeArmato ?? 0) + bonusAbilPa;
 
   // Armatura Completa: una sola dichiarazione per tutto il corpo. Vale solo se il PG ha l'abilità,
   // indossa un'armatura (consentita) su tutte le locazioni e l'armatura copre almeno l'80% del corpo.
@@ -107,6 +109,7 @@ export function compute(c: Character, catalog: Ability[], races: Race[]): Comput
   const fontiPa: string[] = [];
   if (completaAttiva) fontiPa.push('Armatura Completa: +1 in tutte le locazioni');
   if (rEff?.effetti?.paSeArmato) fontiPa.push(`${rEff.bonusNome}: +${rEff.effetti.paSeArmato} in ogni locazione coperta da armatura`);
+  for (const a of abil) if (a.effetti?.paSeArmato) fontiPa.push(`${a.nome}: +${a.effetti.paSeArmato} in ogni locazione coperta da armatura`);
 
   const avvisi: string[] = [];
   const locazioni: LocStats[] = LOCAZIONI.map((l) => {
