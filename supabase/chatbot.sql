@@ -127,7 +127,7 @@ begin
       into v_contesto, v_fonti
       from (
         select manuale, titolo, pagina, testo, ts_rank_cd(tsv, v_query) as rank
-        from public.manuali_parti where tsv @@ v_query
+        from public.manuali_parti where tsv @@ v_query and (not solo_staff or public.is_staff())  -- riservati: solo per lo staff (leggi_staff.sql)
         order by rank desc limit 6
       ) t;
   end if;
