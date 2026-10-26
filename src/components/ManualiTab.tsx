@@ -29,7 +29,9 @@ export function ApriManuale({ m, pagina, onClose }: { m: Manuale; pagina?: numbe
 export function ManualiTab() {
   const { list } = useManuali();
   const [open, setOpen] = useState<Manuale | null>(null);
-  const visibili = list.filter((m) => !m.nascosto);
+  const visibili = list.filter((m) => !m.nascosto && !m.soloStaff);
+  // arrivano solo a chi è dello staff: l'archivio non li consegna ai giocatori
+  const riservati = list.filter((m) => !m.nascosto && m.soloStaff);
   return (
     <div className="page">
       <div>
@@ -57,6 +59,15 @@ export function ManualiTab() {
           {visibili.map((m, i) => <Libro key={m.id} m={m} i={i} onApri={() => setOpen(m)} />)}
         </div>
       </section>
+      {riservati.length > 0 && (
+        <section>
+          <h2 className="section-title">Riservati allo staff</h2>
+          <p className="hint" style={{ margin: '-4px 0 10px' }}>I giocatori non vedono questi volumi.</p>
+          <div className="libri">
+            {riservati.map((m, i) => <Libro key={m.id} m={m} i={visibili.length + i} onApri={() => setOpen(m)} />)}
+          </div>
+        </section>
+      )}
       {open && <ApriManuale m={open} onClose={() => setOpen(null)} />}
     </div>
   );

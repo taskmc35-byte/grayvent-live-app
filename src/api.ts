@@ -665,7 +665,7 @@ function supabaseApi(sb: SupabaseClient): Api {
       if (error) return unisciManuali([]); // tabella non ancora creata: solo i manuali di base
       return unisciManuali((data ?? []).map((r) => ({
         id: r.id, nome: r.nome, descrizione: r.descrizione ?? '', sigla: r.sigla ?? '', ordine: r.ordine ?? 100,
-        filePath: r.file_path ?? undefined, nascosto: r.nascosto, base: false,
+        filePath: r.file_path ?? undefined, nascosto: r.nascosto, soloStaff: !!r.solo_staff, base: false,
       })));
     },
     async manualUrl(m) {
@@ -675,18 +675,28 @@ function supabaseApi(sb: SupabaseClient): Api {
     },
     async saveManual(m, file) {
       const saved: Manuale = { ...m, id: m.id || `m-${Date.now()}` };
+      // i PDF riservati stanno nella cartella "staff/" dell'archivio: solo lo staff può aprirli
+      const cartella = saved.soloStaff ? 'staff/' : '';
       if (file) {
-        const path = `${saved.id}/${Date.now()}.pdf`;
+        const path = `${cartella}${saved.id}/${Date.now()}.pdf`;
         const up = await sb.storage.from('manuali').upload(path, file, { contentType: 'application/pdf', upsert: true });
         if (up.error) throw new Error(up.error.message.includes('not found') ? 'Archivio dei manuali non installato: esegui manuali.sql in Supabase.' : up.error.message);
         if (m.filePath) await sb.storage.from('manuali').remove([m.filePath]); // versione precedente
+        saved.filePath = path;
+      } else if (saved.filePath && saved.filePath.startsWith('staff/') !== !!saved.soloStaff) {
+        // cambiato "solo staff": il PDF passa nella cartella giusta
+        const path = saved.soloStaff ? `staff/${saved.filePath}` : saved.filePath.replace(/^staff\//, '');
+        const mv = await sb.storage.from('manuali').move(saved.filePath, path);
+        if (mv.error) throw new Error(mv.error.message);
         saved.filePath = path;
       }
       const { error } = await sb.from('manuali').upsert({
         id: saved.id, nome: saved.nome, descrizione: saved.descrizione, sigla: saved.sigla, ordine: saved.ordine,
         file_path: saved.filePath ?? null, nascosto: saved.nascosto, aggiornato_il: now(),
+        ...(saved.soloStaff ? { solo_staff: true } : m.soloStaff !== undefined ? { solo_staff: false } : {}),
       });
-      if (error) throw new Error(error.message.includes('manuali') ? 'Gestione manuali non installata: esegui manuali.sql in Supabase.' : error.message);
+      if (error) throw new Error(error.message.includes('solo_staff') ? 'Manuali riservati allo staff non installati: esegui leggi_staff.sql in Supabase.'
+        : error.message.includes('manuali') ? 'Gestione manuali non installata: esegui manuali.sql in Supabase.' : error.message);
       return saved;
     },
     async deleteManual(m) {

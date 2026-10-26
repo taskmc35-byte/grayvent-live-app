@@ -6,7 +6,8 @@ import { BottomSheet } from '../Sheet';
 
 /** Fa imparare al chatbot il testo di un manuale (o lo toglie, se il manuale è nascosto) */
 async function indicizza(m: Manuale, onStato: (t: string) => void) {
-  if (m.nascosto) { await api.indexManual(m.id, []); return 0; }
+  // nascosti e riservati allo staff: il chatbot (che rispondono anche ai giocatori) non li usa
+  if (m.nascosto || m.soloStaff) { await api.indexManual(m.id, []); return 0; }
   const { estraiParti } = await import('../../manuali/indicizza');
   const parti = await estraiParti(await api.manualUrl(m), m.id, m.nome, (n, t) => onStato(`Leggo ${m.nome}: pagina ${n} di ${t}`));
   onStato(`Salvo ${m.nome}…`);
@@ -44,17 +45,19 @@ export function ChatbotPanel({ onToast }: { onToast: (t: string) => void }) {
     if (!mod.id && !file) throw new Error('Scegli il file PDF del manuale.');
     if (file && file.type && file.type !== 'application/pdf') throw new Error('Il file deve essere un PDF.');
     setStato(file ? 'Carico il PDF…' : 'Salvo…');
-    const nascostoPrima = list.find((x) => x.id === mod.id)?.nascosto;
+    const prima = list.find((x) => x.id === mod.id);
+    const nascostoPrima = prima?.nascosto || prima?.soloStaff;
     const saved = await api.saveManual({ ...mod, nome: mod.nome.trim(), descrizione: mod.descrizione.trim(), sigla: mod.sigla.trim().slice(0, 2) }, file);
     // il chatbot impara il nuovo testo (o lo dimentica se il manuale è nascosto)
-    if (file || nascostoPrima !== saved.nascosto || !mod.id) { setStato(`Aggiorno il chatbot con ${saved.nome}…`); await indicizza(saved, setStato); }
+    if (file || !!nascostoPrima !== (saved.nascosto || !!saved.soloStaff) || !mod.id) { setStato(`Aggiorno il chatbot con ${saved.nome}…`); await indicizza(saved, setStato); }
     setMod(null); setFile(null); onToast('Manuale salvato'); await ricarica();
   });
 
   const nuovo = (): Manuale => ({ id: '', nome: '', descrizione: '', sigla: '', ordine: 100 + list.length, nascosto: false, base: false });
   const [apri, setApri] = useState<Manuale | null>(null);
-  const caricati = stats ? list.filter((m) => !m.nascosto && stats[m.id]).length : 0;
-  const daCaricare = stats ? list.filter((m) => !m.nascosto && !stats[m.id]).length : 0;
+  const perChatbot = list.filter((m) => !m.nascosto && !m.soloStaff);
+  const caricati = stats ? perChatbot.filter((m) => stats[m.id]).length : 0;
+  const daCaricare = stats ? perChatbot.filter((m) => !stats[m.id]).length : 0;
   const passaggi = stats ? Object.values(stats).reduce((a, b) => a + b, 0) : 0;
   const chiudi = () => { if (!busy) { setMod(null); setFile(null); setErr(''); } };
 
@@ -88,9 +91,10 @@ export function ChatbotPanel({ onToast }: { onToast: (t: string) => void }) {
             <div key={m.id} className={`libro-staff${m.nascosto ? ' nascosto' : ''}`}>
               <Libro m={m} i={i}>
                 <span className="libro-tag">
+                  {m.soloStaff && <em className="tag-x nasc">Solo staff</em>}
                   {m.nascosto && <em className="tag-x nasc">Nascosto</em>}
                   <em className="tag-x">{m.filePath ? 'Caricato dallo staff' : 'Di base'}</em>
-                  {stats && !m.nascosto && (stats[m.id]
+                  {stats && !m.nascosto && !m.soloStaff && (stats[m.id]
                     ? <em className="tag-x ok">Chatbot ✓</em>
                     : <em className="tag-x warn">Chatbot: da leggere</em>)}
                 </span>
@@ -123,6 +127,7 @@ export function ChatbotPanel({ onToast }: { onToast: (t: string) => void }) {
               <div className="field"><label htmlFor="man-ord">Posizione</label><input id="man-ord" type="number" value={mod.ordine} onChange={(e) => setMod({ ...mod, ordine: Number(e.target.value) || 0 })} /></div>
             </div>
             <label className="check"><input type="checkbox" checked={mod.nascosto} onChange={(e) => setMod({ ...mod, nascosto: e.target.checked })} /><span>Nascosto ai giocatori (anche il chatbot smette di usarlo)</span></label>
+            {!mod.base && <label className="check"><input type="checkbox" checked={!!mod.soloStaff} onChange={(e) => setMod({ ...mod, soloStaff: e.target.checked })} /><span>Riservato allo staff (es. le Leggi): i giocatori non lo vedono e non possono aprirlo, il chatbot non lo usa</span></label>}
             {stato && <p className="bot-progresso" role="status"><span className="spinner" aria-hidden="true" />{stato}</p>}
             {err && <p className="error">{err}</p>}
             <div className="sheet-actions">

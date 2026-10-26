@@ -243,6 +243,8 @@ export interface Manuale {
   /** PDF caricato nell'archivio; assente = PDF di base dell'app */
   filePath?: string;
   nascosto: boolean;
+  /** riservato allo staff (es. le Leggi): i giocatori non lo vedono e il chatbot non lo usa */
+  soloStaff?: boolean;
   /** uno dei manuali inclusi nell'app */
   base: boolean;
 }
